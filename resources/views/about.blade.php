@@ -1,5 +1,13 @@
 @extends('admin.admin_base')
 
+@section('title')
+  Sobre
+@endsection
+
+@section('description')
+  Um pouco sobre o sistema.
+@endsection
+
 @section('content')
   <div class="row">
     <div class="col-md-12">
@@ -16,21 +24,20 @@
         todos os pedidos e suas características, podendo facilmente suspender/reativar dispostivos bem como desligá-los ou adicionar a rede a qualquer momento. Existe também uma
         integração com o <a href="http://bandwidthd.sourceforge.net/" target="_blank">Bandwidthd</a>, que rastreia todo tráfego na rede que passa pelo servidor de Firewall,
         onde é possível verificar a quantidade que cada dispositvo transferiu.
-
-        <br />
-
+      </p>
+      <p>
         O novo sistema foi feito pelo bolsista <a target="_black" href="https://github.com/jpmoura">João Pedro Santos de Moura</a> e sua necessidade surgiu dada a dificuldade
         de se gerenciar todos os dispositivos e arquivos de configurações entre os servidores de Firewall e DHCP, onde cada inserção ou remoção eram bastante custosas, necessitando
         edição de linhas em diferentes arquivos e execuções de comandos em diferentes servidores com o objetivo de proibir ou conceder acesso a um dado dispositivo. Existia
         também a dificuldade de se verificar se um dispositivo já fazia parte da rede ou não e de monitorar a sua utilização da rede. Outra dificuldade era a requisição de inclusão
         de um dispositivo por parte dos discentes, que necessitavam desloca-se até a sala dos administradores da rede e entregar o termo de compromisso em mãos para que pudessem ter
         sua requisição atendida.
-
-        <br />
-
+      </p>
+      <p>
         O sistema foi desenvolvido usando a versão 5.3 do <em>Framework</em> <a href="https://laravel.com/" target="_blank">Laravel</a> para aplicações web, um dos mais usados no mercado durante o
         período de desenvolvimento.
-
+      </p>
+      
         <h3 class="text-center">A Fazer</h3>
         <ul>
           <li>Otimizar carregamento de objetos javascript e CSS usando SASS ou LESS;</li>
