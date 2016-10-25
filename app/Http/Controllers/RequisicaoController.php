@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
+use App\Http\Controllers\UserController;
 use App\Requisicao;
 use App\TipoDispositivo;
 use App\TipoUsuario;
@@ -21,6 +22,7 @@ use DB;
 
 class RequisicaoController extends Controller
 {
+
   private function loadArpTableFromServer($successful) {
     $serverArp = '/usr/local/etc/arp_icea';
     $localArp = '/var/www/html/macnager/storage/app/public/arp_icea';
@@ -250,62 +252,69 @@ class RequisicaoController extends Controller
   public function getAddMac()
   {
     if(UserController::checkLogin()) {
-      $freeIPs = $this->getFreeIPs();
-      return View::make('admin.actions.addMac')->with(['ipsLivre' => $freeIPs, 'dispositivos' => TipoDispositivo::all(), 'usuarios' => TipoUsuario::all()]);
+
+      if(UserController::checkPermissions(1)) {
+        $freeIPs = $this->getFreeIPs();
+        return View::make('admin.actions.addMac')->with(['ipsLivre' => $freeIPs, 'dispositivos' => TipoDispositivo::all(), 'usuarios' => TipoUsuario::all()]);
+      }
+      else abort(403);
     }
     else return redirect('/login');
   }
 
   public function doAddMac()
   {
-    $input = Input::all();
 
-    if($input['ip'] == "Sem IP livre") {
-      Session::flash('mensagem', 'Não existe IP livre.');
-      Session::flash('tipo', 'Erro');
-    }
-    else {
-      $date = explode('/', $input['validade']);
+    if(UserController::checkPermissions(1)) {
+      $input = Input::all();
 
-      if(empty($input['validade']) || checkdate($date[1], $date[0], $date[2]) ) {
-
-        // Criar requisição para o novo dispositivo
-        $newRequest = new Requisicao;
-        $newRequest->responsavel = $input['responsavel'];
-        $newRequest->responsavelNome = $input['responsavelNome'];
-        $newRequest->usuario = $input['usuario'];
-        $newRequest->usuarioNome = $input['usuarioNome'];
-        $newRequest->tipo_usuario = $input['tipousuario'];
-        $newRequest->tipo_dispositivo = $input['tipodispositivo'];
-        $newRequest->mac = $input['mac'];
-        $newRequest->termo = "termos/default.pdf";
-        $newRequest->descricao_dispositivo = $input['descricao'];
-        $newRequest->justificativa = $input['justificativa'];
-        $newRequest->submissao = date("Y-m-d H:i:s", time());
-        $newRequest->avaliacao = date("Y-m-d H:i:s", time());
-        $newRequest->juizCPF = Session::get('id');
-        $newRequest->juizMotivo = 'Adição manual.';
-        $newRequest->ip = $input['ip'];
-        $newRequest->status = 1;
-
-        if( empty($input['validade']) ) $newRequest->validade = null;
-        else $newRequest->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
-
-        $newRequest->save();
-
-        $responseArp = $this->updateArp();
-        $responseDhcp = $this->updateDhcp();
-
-        Session::flash('mensagem', "<p>ARP: " . $responseArp . "</p><p>DHCP: " . $responseDhcp . "</p>");
-        Session::flash('tipo', 'Informação');
-      }
-      else {
-        Session::flash('mensagem', 'A data informada é inválida.');
+      if($input['ip'] == "Sem IP livre") {
+        Session::flash('mensagem', 'Não existe IP livre.');
         Session::flash('tipo', 'Erro');
       }
-    }
+      else {
+        $date = explode('/', $input['validade']);
 
-    return Redirect::back();
+        if(empty($input['validade']) || checkdate($date[1], $date[0], $date[2]) ) {
+
+          // Criar requisição para o novo dispositivo
+          $newRequest = new Requisicao;
+          $newRequest->responsavel = $input['responsavel'];
+          $newRequest->responsavelNome = $input['responsavelNome'];
+          $newRequest->usuario = $input['usuario'];
+          $newRequest->usuarioNome = $input['usuarioNome'];
+          $newRequest->tipo_usuario = $input['tipousuario'];
+          $newRequest->tipo_dispositivo = $input['tipodispositivo'];
+          $newRequest->mac = $input['mac'];
+          $newRequest->termo = "termos/default.pdf";
+          $newRequest->descricao_dispositivo = $input['descricao'];
+          $newRequest->justificativa = $input['justificativa'];
+          $newRequest->submissao = date("Y-m-d H:i:s", time());
+          $newRequest->avaliacao = date("Y-m-d H:i:s", time());
+          $newRequest->juizCPF = Session::get('id');
+          $newRequest->juizMotivo = 'Adição manual.';
+          $newRequest->ip = $input['ip'];
+          $newRequest->status = 1;
+
+          if( empty($input['validade']) ) $newRequest->validade = null;
+          else $newRequest->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
+
+          $newRequest->save();
+
+          $responseArp = $this->updateArp();
+          $responseDhcp = $this->updateDhcp();
+
+          Session::flash('mensagem', "<p>ARP: " . $responseArp . "</p><p>DHCP: " . $responseDhcp . "</p>");
+          Session::flash('tipo', 'Informação');
+        }
+        else {
+          Session::flash('mensagem', 'A data informada é inválida.');
+          Session::flash('tipo', 'Erro');
+        }
+      }
+      return Redirect::back();
+    }
+    else abort(401);
   }
 
   public function forceReload()
@@ -318,46 +327,52 @@ class RequisicaoController extends Controller
   public function getEditMac($id)
   {
     if(UserController::checkLogin()) {
-      return View::make('admin.actions.editMac')->with(['requisicao' => Requisicao::find($id), 'tiposdispositivo' => TipoDispositivo::all(), 'tiposusuario' => TipoUsuario::all(), 'ipsLivre' => $this->getFreeIPs()]);
+      if(UserController::checkPermissions(1)) {
+        return View::make('admin.actions.editMac')->with(['requisicao' => Requisicao::find($id), 'tiposdispositivo' => TipoDispositivo::all(), 'tiposusuario' => TipoUsuario::all(), 'ipsLivre' => $this->getFreeIPs()]);
+      }
+      else abort(403);
     }
     else return redirect('/login');
   }
 
   public function doEditMac()
   {
-    $input = Input::all();
+    if(UserController::checkPermissions(1)) {
+      $input = Input::all();
 
-    $date = explode('/', $input['validade']);
+      $date = explode('/', $input['validade']);
 
-    if(empty($input['validade']) || checkdate($date[1], $date[0], $date[2]) ) { // Se a data for válida ou em branco
-      $record = Requisicao::find($input['id']);
-      $record->ip = $input['ip'];
-      $record->responsavel = $input['responsavel'];
-      $record->responsavelNome = $input['responsavelNome'];
-      $record->usuario = $input['usuario'];
-      $record->usuarioNome = $input['usuarioNome'];
-      $record->mac = $input['mac'];
-      $record->descricao_dispositivo = $input['descricao'];
-      $record->tipo_dispositivo = $input['tipodispositivo'];
-      $record->tipo_usuario = $input['tipousuario'];
+      if(empty($input['validade']) || checkdate($date[1], $date[0], $date[2]) ) { // Se a data for válida ou em branco
+        $record = Requisicao::find($input['id']);
+        $record->ip = $input['ip'];
+        $record->responsavel = $input['responsavel'];
+        $record->responsavelNome = $input['responsavelNome'];
+        $record->usuario = $input['usuario'];
+        $record->usuarioNome = $input['usuarioNome'];
+        $record->mac = $input['mac'];
+        $record->descricao_dispositivo = $input['descricao'];
+        $record->tipo_dispositivo = $input['tipodispositivo'];
+        $record->tipo_usuario = $input['tipousuario'];
 
-      if( empty($input['validade']) ) $record->validade = null;
-      else $record->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
+        if( empty($input['validade']) ) $record->validade = null;
+        else $record->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
 
-      $record->save();
+        $record->save();
 
-      //$responseArp = $this->updateArp();
-      //$responseDhcp = $this->updateDhcp();
+        //$responseArp = $this->updateArp();
+        //$responseDhcp = $this->updateDhcp();
 
-      //Session::flash('mensagem', "<p>ARP: " . $responseArp . "</p><p>DHCP: " . $responseDhcp . "</p>");
-      Session::flash('tipo', 'Informação');
+        //Session::flash('mensagem', "<p>ARP: " . $responseArp . "</p><p>DHCP: " . $responseDhcp . "</p>");
+        Session::flash('tipo', 'Informação');
+      }
+      else  {
+        Session::flash('mensagem', 'A data informada é inválida.');
+        Session::flash('tipo', 'Erro');
+      }
+
+      return Redirect::back();
     }
-    else  {
-      Session::flash('mensagem', 'A data informada é inválida.');
-      Session::flash('tipo', 'Erro');
-    }
-
-    return Redirect::back();
+    else abort(401);
   }
 
   public function doAddRequest()
@@ -432,14 +447,17 @@ class RequisicaoController extends Controller
   public function getListRequests($type)
   {
     if(UserController::checkLogin()) {
-      Session::put('novosPedidos', Requisicao::where('status', '=', 0)->count());
-      if(!isset($type)) $type = 0;
-      $requests = DB::table('requisicoes')->join('tipo_dispositivo', 'requisicoes.tipo_dispositivo', '=', 'tipo_dispositivo.id')
-                                          ->join('tipo_usuario', 'requisicoes.tipo_usuario', '=', 'tipo_usuario.id')
-                                          ->select('requisicoes.id as id', 'responsavelNome', 'usuarioNome', 'tipo_usuario.descricao as tipousuario', 'tipo_dispositivo.descricao as tipodispositivo', 'submissao', 'avaliacao')
-                                          ->where('status', $type)
-                                          ->get();
-      return View::make('admin.actions.listRequests')->with(['requisicoes' => $requests, 'tipo' => $type]);
+      if(UserController::checkPermissions(1)) {
+        Session::put('novosPedidos', Requisicao::where('status', '=', 0)->count());
+        if(!isset($type)) $type = 0;
+        $requests = DB::table('requisicoes')->join('tipo_dispositivo', 'requisicoes.tipo_dispositivo', '=', 'tipo_dispositivo.id')
+                                            ->join('tipo_usuario', 'requisicoes.tipo_usuario', '=', 'tipo_usuario.id')
+                                            ->select('requisicoes.id as id', 'responsavelNome', 'usuarioNome', 'tipo_usuario.descricao as tipousuario', 'tipo_dispositivo.descricao as tipodispositivo', 'submissao', 'avaliacao')
+                                            ->where('status', $type)
+                                            ->get();
+        return View::make('admin.actions.listRequests')->with(['requisicoes' => $requests, 'tipo' => $type]);
+      }
+      else abort(403);
     }
     else return redirect('/login');
   }
@@ -459,51 +477,56 @@ class RequisicaoController extends Controller
 
   public function doApproveRequest()
   {
-    $date = explode('/', Input::get('validade'));
+    if(UserController::checkPermissions(1)) {
+      $date = explode('/', Input::get('validade'));
 
-    if(empty(Input::get('validade')) || checkdate($date[1], $date[0], $date[2]) ) {
+      if(empty(Input::get('validade')) || checkdate($date[1], $date[0], $date[2]) ) {
 
-      $request = Requisicao::find(Input::get('id'));
-      $request->status = 1;
-      $request->avaliacao = date("Y-m-d H:i:s", time());
-      $request->juizCPF = Session::get('id');
-      $request->ip = Input::get('ip');
-      if( empty($input['validade']) ) $request->validade = null;
-      else $request->validade = date("Y-m-d H:i:s", time());
-      $request->save();
+        $request = Requisicao::find(Input::get('id'));
+        $request->status = 1;
+        $request->avaliacao = date("Y-m-d H:i:s", time());
+        $request->juizCPF = Session::get('id');
+        $request->ip = Input::get('ip');
+        if( empty($input['validade']) ) $request->validade = null;
+        else $request->validade = date("Y-m-d H:i:s", time());
+        $request->save();
 
-      $arpResult = $this->updateArp();
-      $dhcpResult = $this->updateDhcp();
+        $arpResult = $this->updateArp();
+        $dhcpResult = $this->updateDhcp();
 
-      // enviar e-mail
+        // enviar e-mail
 
-      Session::flash('tipo', 'Sucesso');
-      Session::flash('mensagem', '<p>A requisição foi aprovada.</p><p>Saída do ARP: ' . $arpResult . '</p>Saída do DHCPD: ' . $dhcpResult . '</p>');
+        Session::flash('tipo', 'Sucesso');
+        Session::flash('mensagem', '<p>A requisição foi aprovada.</p><p>Saída do ARP: ' . $arpResult . '</p>Saída do DHCPD: ' . $dhcpResult . '</p>');
+      }
+      else {
+        Session::flash('mensagem', 'A data informada é inválida.');
+        Session::flash('tipo', 'Erro');
+      }
+
+      return Redirect::back();
     }
-    else {
-      Session::flash('mensagem', 'A data informada é inválida.');
-      Session::flash('tipo', 'Erro');
-    }
-
-    return Redirect::back();
-
+    else abort(401);
   }
 
   public function doDenyRequest()
   {
     if(UserController::checkLogin()) {
-      $requisicao = Requisicao::find(Input::get('id'));
-      $requisicao->juizMotivo = Input::get('juizMotivo');
-      $requisicao->juizCPF = Session::get("id");
-      $requisicao->status = 2;
-      $requisicao->save();
+      if(UserController::checkPermissions(1)) {
+        $requisicao = Requisicao::find(Input::get('id'));
+        $requisicao->juizMotivo = Input::get('juizMotivo');
+        $requisicao->juizCPF = Session::get("id");
+        $requisicao->status = 2;
+        $requisicao->save();
 
-      // Mandar e-mail com motivo
+        // Mandar e-mail com motivo
 
-      Session::flash('tipo', 'Sucesso');
-      Session::flash('mensagem', 'O pedido de liberação do dispositivo foi negado.');
+        Session::flash('tipo', 'Sucesso');
+        Session::flash('mensagem', 'O pedido de liberação do dispositivo foi negado.');
 
-      return redirect('/requests');
+        return redirect('/requests');
+      }
+      else abort(401);
     }
     else return redirect('/login');
   }
@@ -511,22 +534,25 @@ class RequisicaoController extends Controller
   public function doSuspendRequest()
   {
     if(UserController::checkLogin()) {
-      $requisicao = Requisicao::find(Input::get('id'));
-      $requisicao->juizMotivo = Input::get('juizMotivo');
-      $requisicao->juizCPF = Session::get("id");
-      $requisicao->status = 4;
-      $requisicao->avaliacao = date("Y-m-d H:i:s", time());
-      $requisicao->save();
+      if(UserController::checkPermissions(1)) {
+        $requisicao = Requisicao::find(Input::get('id'));
+        $requisicao->juizMotivo = Input::get('juizMotivo');
+        $requisicao->juizCPF = Session::get("id");
+        $requisicao->status = 4;
+        $requisicao->avaliacao = date("Y-m-d H:i:s", time());
+        $requisicao->save();
 
-      // Mandar e-mail com motivo
+        // Mandar e-mail com motivo
 
-      $responseArp = $this->updateArp();
-      $responseDhcp = $this->updateDhcp();
+        $responseArp = $this->updateArp();
+        $responseDhcp = $this->updateDhcp();
 
-      Session::flash('tipo', 'Sucesso');
-      Session::flash('mensagem', "<p>O dispositivo teve o acesso suspenso.</p><p>ARP: " . $responseArp . "</p><p>DHCP: " . $responseDhcp . "</p>");
+        Session::flash('tipo', 'Sucesso');
+        Session::flash('mensagem', "<p>O dispositivo teve o acesso suspenso.</p><p>ARP: " . $responseArp . "</p><p>DHCP: " . $responseDhcp . "</p>");
 
-      return Redirect::back()->with('requisicao', $requisicao);
+        return Redirect::back()->with('requisicao', $requisicao);
+      }
+      else abort(401);
     }
     else return redirect('/login');
   }
@@ -534,22 +560,25 @@ class RequisicaoController extends Controller
   public function doDisableRequest()
   {
     if(UserController::checkLogin()) {
-      $requisicao = Requisicao::find(Input::get('id'));
-      $requisicao->juizMotivo = Input::get('juizMotivo');
-      $requisicao->juizCPF = Session::get("id");
-      $requisicao->status = 5;
-      $requisicao->avaliacao = date("Y-m-d H:i:s", time());
-      $requisicao->save();
+      if(UserController::checkPermissions(1)) {
+        $requisicao = Requisicao::find(Input::get('id'));
+        $requisicao->juizMotivo = Input::get('juizMotivo');
+        $requisicao->juizCPF = Session::get("id");
+        $requisicao->status = 5;
+        $requisicao->avaliacao = date("Y-m-d H:i:s", time());
+        $requisicao->save();
 
-      // Mandar e-mail com motivo
+        // Mandar e-mail com motivo
 
-      $responseArp = $this->updateArp();
-      $responseDhcp = $this->updateDhcp();
+        $responseArp = $this->updateArp();
+        $responseDhcp = $this->updateDhcp();
 
-      Session::flash('tipo', 'Sucesso');
-      Session::flash('mensagem', "<p>O dispositivo foi desligado da rede.</p><p>ARP: " . $responseArp . "</p><p>DHCP: " . $responseDhcp . "</p>");
+        Session::flash('tipo', 'Sucesso');
+        Session::flash('mensagem', "<p>O dispositivo foi desligado da rede.</p><p>ARP: " . $responseArp . "</p><p>DHCP: " . $responseDhcp . "</p>");
 
-      return Redirect::to('/listMac/1');
+        return Redirect::to('/listMac/1');
+      }
+      else abot(401);
     }
     else return redirect('/login');
   }
@@ -668,6 +697,59 @@ class RequisicaoController extends Controller
         else {
           Session::flash('tipo', 'Erro');
           Session::flash('mensagem', 'Não é possível editar uma requisição que foi julgada. Edite o dispostivo ao invés disso.');
+        }
+      }
+      else abort(403);
+    }
+    else return redirect('/login');
+  }
+
+  public function getMonthlyActiveUsers()
+  {
+    $content = file_get_contents("http://200.239.152.2:8080/trafego-nti/Subnet-3-200.239.152.0.html");
+
+    $dom = new \DOMDocument;
+    $dom->preserveWhiteSpace = false;
+    $dom->loadHTML($content);
+    $rows = $dom->getElementsByTagName('td');
+    $frequentUsers = array();
+    $frequentUsersTransfers = array();
+
+    for($i=10; $rows->item($i) != NULL; $i+=10) {
+      // $rows->item(11)->nodeValue; // Total
+      // $rows->item(12)->nodeValue; // Total Sent
+      // $rows->item(13)->nodeValue; // Total Received
+      // $rows->item($i)->nodeValue; // IP
+
+      $user = Requisicao::where('ip', $rows->item($i)->nodeValue)->where('status', 1)->first();
+      if(!is_null($user)) {
+        $user['totalTransferred'] = $rows->item($i + 1)->nodeValue;
+        $user['sent'] = $rows->item($i + 2)->nodeValue;
+        $user['received'] = $rows->item($i + 3)->nodeValue;
+        array_push($frequentUsers, $user);
+      }
+    }
+
+    return $frequentUsers;
+  }
+
+  public function getUsersList($id)
+  {
+    if(UserController::checkLogin()) {
+      if (UserController::checkPermissions(1)) {
+        $frequentUsers = $this->getMonthlyActiveUsers();
+        if($id == 1) return View::make('admin.actions.listUsers')->with(['id' => $id, 'usuarios' => $frequentUsers]);
+        else {
+          //pegar os usuarios que tem status == 1 mas não tem o ip na lista
+          $frequentIPs = array();
+
+          // Obtém todos os IPs frequentes
+          foreach ($frequentUsers as $user) array_push($frequentIPs, $user->ip);
+
+          //Obtém todos os usuários aprovados que não estão na lista de frequentes
+          $nonFrequentUsers = Requisicao::where('status', 1)->whereNotIn('ip', $frequentIPs)->get();
+
+          return View::make('admin.actions.listUsers')->with(['id' => $id, 'usuarios' => $nonFrequentUsers]);
         }
       }
       else abort(403);

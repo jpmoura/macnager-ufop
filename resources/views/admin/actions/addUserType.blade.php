@@ -1,5 +1,9 @@
 @extends('admin.admin_base')
 
+@section('usuarios')
+  active
+@endsection
+
 @section('tipousuario')
   active
 @endsection

@@ -30,14 +30,23 @@
               </ul>
             </li>
 
-            <li class="treeview @yield('tipousuario')">
+            <li class="treeview @yield('usuarios')">
               <a href="#">
-                <i class="fa fa-users"></i><span>Tipos de usuários</span>
+                <i class="fa fa-users"></i><span>Usuários</span>
                 <i class="fa fa-angle-left pull-right"></i>
               </a>
               <ul class="treeview-menu">
-                <li class="@yield('addUserType')"><a href="{{url('/addUserType')}}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
-                <li class="@yield('listUserType')"><a href="{{url('/listUserType')}}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
+                <li class="@yield('listUsers')"><a href="{{url('/listUsers/1')}}"><i class="fa fa-th-list"></i> <span>Listar Frequentes</span></a></li>
+                <li class="treeview @yield('tipousuario')">
+                  <a href="#">
+                    <i class="fa fa-users"></i><span>Tipos de usuários</span>
+                    <i class="fa fa-angle-left pull-right"></i>
+                  </a>
+                  <ul class="treeview-menu">
+                    <li class="@yield('addUserType')"><a href="{{url('/addUserType')}}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
+                    <li class="@yield('listUserType')"><a href="{{url('/listUserType')}}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
+                  </ul>
+                </li>
               </ul>
             </li>
 

@@ -12,6 +12,7 @@
 */
 
 Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
+Route::get('/teste', ['as' => 'teste', 'uses' => 'RequisicaoController@test']);
 
 Route::get('/', ['as' => 'home', 'uses' => 'RequisicaoController@getIndex']);
 Route::get('/forceReload', ['as' => 'forceReload', 'uses' => 'RequisicaoController@forceReload']);
@@ -34,7 +35,6 @@ Route::get('/sair', ['as' => 'doLogout', 'uses' => 'UserController@doLogout']);
 
 Route::get('/listMac/{type}', ['as' => 'listMac', 'uses' => 'RequisicaoController@getListMac']);
 
-Route::get('/teste', ['as' => 'teste', 'uses' => 'RequisicaoController@test']);
 Route::get('/addRequest', ['as' => 'addRequest', 'uses' => 'RequisicaoController@getAddRequest']);
 Route::post('/addRequest', ['as' => 'addRequest', 'uses' => 'RequisicaoController@doAddRequest']);
 Route::get('/listUserRequests', ['as' => 'listUserRequests', 'uses' => 'RequisicaoController@getListUserRequests']);
@@ -66,3 +66,5 @@ Route::get('/request/reactive/{id}', ['as' => 'doReactiveRequest', 'uses' => 'Re
 Route::post('/request/delete', ['as' => 'doDeleteRequest', 'uses' => 'RequisicaoController@doDeleteRequest']);
 Route::get('/request/edit/{id}', ['as' => 'getEditRequest', 'uses' => 'RequisicaoController@getEditRequest']);
 Route::post('/request/edit', ['as' => 'doEditRequest', 'uses' => 'RequisicaoController@doEditRequest']);
+
+Route::get('/listUsers/{id}', ['as' => 'getUsersList', 'uses' => 'RequisicaoController@getUsersList']);
