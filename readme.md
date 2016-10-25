@@ -13,6 +13,17 @@ a geração e manipulação de informações sobre esses dispositivos. Outro mot
 foi a possibilidade de histórico da relação usuário e endereço IP atribuído ao
 mesmo em um determinado intervalo de tempo.
 
+Sua necessidade surgiu dada a dificuldadede se gerenciar todos os dispositivos e
+arquivos de configurações entre os servidores de Firewall e DHCP, onde cada
+inserção ou remoção eram bastante custosas, necessitando edição de linhas em
+diferentes arquivos e execuções de comandos em diferentes servidores com o
+objetivo de proibir ou conceder acesso a um dado dispositivo. Existia
+também a dificuldade de se verificar se um dispositivo já fazia parte da rede ou
+não e de monitorar a sua utilização da rede. Outra dificuldade era a requisição
+de inclusão de um dispositivo por parte dos discentes, que necessitavam
+desloca-se até a sala dos administradores da rede e entregar o termo de
+compromisso em mãos para que pudessem ter sua requisição atendida.
+
 O sistema foi desenvolvido usando a versão 5.3 do *framework* [Laravel](https://laravel.com/)
 para aplicações web, um dos mais usados no mercado durante o período de
 desenvolvimento.
@@ -64,7 +75,16 @@ chown -R www-data:USUARIO_DO_SISTEMA PASTA_DE_DESTINO
 ```
 
 Basta usar o comando *sudo* ou *su* dependendo da distribuição *Linux*
-juntamente com este comando.
+juntamente com este comando. Além disso, no arquivo de ambiente .ENV é necessário
+criar as seguintes a seguir, onde elas devem representar o endereço do servidor,
+o usuário e senha do mesmo em cada um deles, tanto Firewall como DHCP:
+
+* FIREWALL_HOST
+* FIREWALL_USER
+* FIREWALL_PASS
+* DHCP_HOST
+* DHCP_USER
+* DHCP_PASS
 
 A estrutura do banco de dados usada pelo sistema pode ser criada a partir do
 script SQL encontrado [aqui](./DUMP_bdarpicea.sql). Além disso é necessário

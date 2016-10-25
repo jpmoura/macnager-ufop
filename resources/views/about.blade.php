@@ -10,56 +10,31 @@
   <div class="row">
     <div class="col-md-6 col-md-offset-3">
       <p class="text-justify">
-        O Sistema de Reserva de Salas e Equipamentos é o sistema da <a target="_blank" href="http://ufop.br">Universidade Federal de Ouro Preto</a> do
-        <a taget="_blank" href="http://www.icea.ufop.br/site/"><em>campus</em> João Monlevade</a> usado por professores e corpo administrativo para realizar a alocação dos recursos
-        existentes de acordo com as datas e horários disponíveis.
+        O <span class="text-bold">MAC</span>nager é o sistema da <a target="_blank" href="http://ufop.br">Universidade Federal de Ouro Preto</a> do
+        <a taget="_blank" href="http://www.icea.ufop.br/site/"><em>campus</em> João Monlevade</a> usado por professores para fazer requisições de inclusão de dispositivos
+        à rede da <a>UFOP</a> e acompanhar o status daquelas que já foram feitas. É usado também pelo NTI do <em>campus</em> para gerenciar a rede do instituto, podendo acompanhar
+        todos os pedidos e suas características, podendo facilmente suspender/reativar dispostivos bem como desligá-los ou adicionar a rede a qualquer momento. Existe também uma
+        integração com o <a href="http://bandwidthd.sourceforge.net/" target="_blank">Bandwidthd</a>, que rastreia todo tráfego na rede que passa pelo servidor de Firewall,
+        onde é possível verificar a quantidade que cada dispositvo transferiu.
+
         <br />
-        O novo sistema foi refeito pelo bolsista <a target="_black" href="https://github.com/jpmoura">João Pedro Santos de Moura</a>  devido a necessidade de se atualizar tanto a interface com o usuário quanto as ferramentas
-        que davam suporte ao funcionamento do sistema. Um dos objetivos do sistema era atualizar as ferramentas sem comprometer a estrutura já existente do
-        banco de dados, que contém todo o histórico de alocação
-        <section id="modificacoes">
-          <h3 class="text-center">Mudanças na Versão 2.1</h3>
-          <ul>
-            <li>Adicionado método de login usando dados do <a target="_blank" href="http://www.minha.ufop.br/"><i class="fa fa-home"></i> Minha UFOP</a>;</li>
-            <li>Adicionado suporte para <em>login</em> via <a target="_blank" href="http://200.239.152.5/meuicea/public"><i class="fa fa-building-o"></i> Meu ICEA</a> automaticamente, usando a mesma sessão;</li>
-            <li>Criptografia dos arquivos de sessões e alterado o tempo de vida para 30 minutos (eram 120);</li>
-            <li>Adicionado mais um tipo de usuário: Usuário Especial. Necessário caso o novo usuário não pertença a nenhum grupo do campus;</li>
-            <li>Adicionado persistência local de dados do usuário após o primeiro login;</li>
-            <li>Adicionado possiblidade de qualquer usuário reportar um bug no sistema;</li>
-            <li>Correção de bugs;</li>
-            <li>Retirada de arquivos desnecessários para funcionamento do sistema;</li>
-            <li>Adicionada opção ao administradores para visualizar as reservas de um recurso em um determinado dia;</li>
-            <li>Adicionado uma pré-visualização dos dados no momento do cadastro para confirmação.</li>
-          </ul>
 
-          <h3 class="text-center">Mudanças na Versão 2.0.1</h3>
-          <ul>
-            <li>Possibilidade de mundaça de senha do usuário;</li>
-            <li>Horários agora estão definidos e não são mais uma referência genérica de ordem;</li>
-            <li>Página de visualização do quadro de alocação agora possui um botão de voltar;</li>
-            <li>Os quadros de turnos agora podem ser expandidos e minizados clicando também sobre o nome do turno.</li>
-          </ul>
+        O novo sistema foi feito pelo bolsista <a target="_black" href="https://github.com/jpmoura">João Pedro Santos de Moura</a> e sua necessidade surgiu dada a dificuldade
+        de se gerenciar todos os dispositivos e arquivos de configurações entre os servidores de Firewall e DHCP, onde cada inserção ou remoção eram bastante custosas, necessitando
+        edição de linhas em diferentes arquivos e execuções de comandos em diferentes servidores com o objetivo de proibir ou conceder acesso a um dado dispositivo. Existia
+        também a dificuldade de se verificar se um dispositivo já fazia parte da rede ou não e de monitorar a sua utilização da rede. Outra dificuldade era a requisição de inclusão
+        de um dispositivo por parte dos discentes, que necessitavam desloca-se até a sala dos administradores da rede e entregar o termo de compromisso em mãos para que pudessem ter
+        sua requisição atendida.
 
-          <h3 class="text-center">Principais novidades na versão 2.0</h3>
-          <ul>
-            <li>Remodelamento da interface com o usuário, com o objetivo de facilitar o processo de alocação, tornando-o mais intuitivo;</li>
-            <li>Uso do conceito de reponsividade na interface, sendo que a mesma se adapta os dispositivo do usuário sem comprometer sua usabilidade;</li>
-            <li>Atualização do PHP para a versão 7.0, aumentando a velocidade de execução do sistema;</li>
-            <li>Uso do <em>framework</em> <a target="_blank" href="https://laravel.com/">Laravel</a>, um dos <em>frameworks</em> mais famosos no período em que o sistema foi desenvolvido</li>
-            <li>Uso da arquitetura MVC para desenvolvimento, com o objetivo de facilitar a manutenção e atualização;</li>
-            <li>Utilização do padrão mais recente do HTML de acordo com o <a target="_blank" href="https://www.w3.org/html/">W3C</a>.</li>
-          </ul>
-        </section>
+        <br />
+
+        O sistema foi desenvolvido usando a versão 5.3 do <em>Framework</em> <a href="https://laravel.com/" target="_blank">Laravel</a> para aplicações web, um dos mais usados no mercado durante o
+        período de desenvolvimento.
 
         <h3 class="text-center">A Fazer</h3>
         <ul>
-          <li><del>Alterar o motor de login para utilizar um login único com base no sistema <a target="_blank" href="http://www.minha.ufop.br/"><i class="fa fa-home"></i> Minha UFOP</a>;</del></li>
-          <li><del>Adicionar configurações do servidor LDAP em uma tabela do banco de dados para evitar expor os dados no código-fonte;</del></li>
-          <li>Otimizar as tabelas do banco de dados;</li>
           <li>Otimizar carregamento de objetos javascript e CSS usando SASS ou LESS;</li>
-          <li>Adicionar uma tabela de horários com a finalidade de fixar os <em>slots</em> de cada horário;</li>
-          <li>Criar atalho para reservas "favoritas" (Laboratório, dia da semana e horários);</li>
-          <li>Tratar para que caso altere o horário de início de cada turno para que o último horário do turno não sobreponha o início do próximo turno.</li>
+          <li>Corrigir comando para enviar a nova tabela ARP para o servidor após ela ser atualizada pelo rotina que retira requisições vencidas.</li>
         </ul>
       </p>
     </div>

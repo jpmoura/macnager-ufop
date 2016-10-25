@@ -13,6 +13,7 @@
 
 Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 Route::get('/teste', ['as' => 'teste', 'uses' => 'RequisicaoController@test']);
+Route::get('/sobre', function() { return View::make('about'); });
 
 Route::get('/', ['as' => 'home', 'uses' => 'RequisicaoController@getIndex']);
 Route::get('/forceReload', ['as' => 'forceReload', 'uses' => 'RequisicaoController@forceReload']);
