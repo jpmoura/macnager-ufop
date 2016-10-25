@@ -708,29 +708,32 @@ class RequisicaoController extends Controller
   {
     $content = file_get_contents("http://200.239.152.2:8080/trafego-nti/Subnet-3-200.239.152.0.html");
 
-    $dom = new \DOMDocument;
-    $dom->preserveWhiteSpace = false;
-    $dom->loadHTML($content);
-    $rows = $dom->getElementsByTagName('td');
-    $frequentUsers = array();
-    $frequentUsersTransfers = array();
+    if($content != false) {
+      $dom = new \DOMDocument;
+      $dom->preserveWhiteSpace = false;
+      $dom->loadHTML($content);
+      $rows = $dom->getElementsByTagName('td');
+      $frequentUsers = array();
+      $frequentUsersTransfers = array();
 
-    for($i=10; $rows->item($i) != NULL; $i+=10) {
-      // $rows->item(11)->nodeValue; // Total
-      // $rows->item(12)->nodeValue; // Total Sent
-      // $rows->item(13)->nodeValue; // Total Received
-      // $rows->item($i)->nodeValue; // IP
+      for($i=10; $rows->item($i) != NULL; $i+=10) {
+        // $rows->item(11)->nodeValue; // Total
+        // $rows->item(12)->nodeValue; // Total Sent
+        // $rows->item(13)->nodeValue; // Total Received
+        // $rows->item($i)->nodeValue; // IP
 
-      $user = Requisicao::where('ip', $rows->item($i)->nodeValue)->where('status', 1)->first();
-      if(!is_null($user)) {
-        $user['totalTransferred'] = $rows->item($i + 1)->nodeValue;
-        $user['sent'] = $rows->item($i + 2)->nodeValue;
-        $user['received'] = $rows->item($i + 3)->nodeValue;
-        array_push($frequentUsers, $user);
+        $user = Requisicao::where('ip', $rows->item($i)->nodeValue)->where('status', 1)->first();
+        if(!is_null($user)) {
+          $user['totalTransferred'] = $rows->item($i + 1)->nodeValue;
+          $user['sent'] = $rows->item($i + 2)->nodeValue;
+          $user['received'] = $rows->item($i + 3)->nodeValue;
+          array_push($frequentUsers, $user);
+        }
       }
-    }
 
-    return $frequentUsers;
+      return $frequentUsers;
+    }
+    else return NULL;
   }
 
   public function getUsersList($id)
@@ -738,6 +741,13 @@ class RequisicaoController extends Controller
     if(UserController::checkLogin()) {
       if (UserController::checkPermissions(1)) {
         $frequentUsers = $this->getMonthlyActiveUsers();
+
+        if($frequentUsers == NULL) {
+          Session::flash('tipo', 'Erro');
+          Session::flash('mensagem', 'O servidor do Bandwidthd não respondeu a solicitação. Tente novamente em alguns instantes.');
+          $id = 1;
+        }
+
         if($id == 1) return View::make('admin.actions.listUsers')->with(['id' => $id, 'usuarios' => $frequentUsers]);
         else {
           //pegar os usuarios que tem status == 1 mas não tem o ip na lista
