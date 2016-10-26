@@ -21,12 +21,12 @@
 @endsection
 
 @section('breadcrumb')
-  <li><i class="fa fa-users"></i> Tipos de Usuário</li>
+  <li><i class="fa fa-puzzle-piece"></i> Tipos de Usuário</li>
   <li><i class="fa fa-th-list"></i> Listar</li>
 @endsection
 
 @section('prescripts')
-  <link rel="stylesheet" href="{{asset('plugins/datatables/dataTables.bootstrap.css')}}">
+  <link rel="stylesheet" href="{{asset('public/plugins/datatables/dataTables.bootstrap.css')}}">
 @endsection
 
 @section('content')
@@ -78,8 +78,8 @@
 @endsection
 
 @section('extrascripts')
-  <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js')}}"></script>
-  <script src="{{ asset('plugins/datatables/dataTables.bootstrap.min.js')}}"></script>
+  <script src="{{ asset('public/plugins/datatables/jquery.dataTables.min.js')}}"></script>
+  <script src="{{ asset('public/plugins/datatables/dataTables.bootstrap.min.js')}}"></script>
   <script>
   $(function () {
     $("#tipos").DataTable( {

@@ -9,7 +9,7 @@
 @endsection
 
 @section('extracss')
-  <link href="{{ asset("plugins/jQueryUI/jquery-ui.min.css")}}" rel="stylesheet" type="text/css" />
+  <link href="{{ asset("public/plugins/jQueryUI/jquery-ui.min.css")}}" rel="stylesheet" type="text/css" />
 @endsection
 
 @section('title')
@@ -127,9 +127,9 @@
 @endsection
 
 @section('extrascripts')
-  <script src="{{ asset ('plugins/jQueryMask/jquery.mask.min.js') }}" type="text/javascript"></script>
-  <script src="{{ asset ('plugins/jQueryUI/jquery-ui.min.js') }}" type="text/javascript"></script>
-  <script src="{{ asset ('plugins/jQueryUI/datepicker-pt-BR.js') }}" type="text/javascript"></script>
+  <script src="{{ asset ('public/plugins/jQueryMask/jquery.mask.min.js') }}" type="text/javascript"></script>
+  <script src="{{ asset ('public/plugins/jQueryUI/jquery-ui.min.js') }}" type="text/javascript"></script>
+  <script src="{{ asset ('public/plugins/jQueryUI/datepicker-pt-BR.js') }}" type="text/javascript"></script>
   <script>
     $(document).ready(function() {
       $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );

@@ -13,7 +13,7 @@
 @endsection
 
 @section('breadcrumb')
-  <li><i class="fa fa-users"></i> Tipos de Usuário</li>
+  <li><i class="fa fa-puzzle-piece"></i> Tipos de Usuário</li>
   <li><i class="fa fa-edit"></i> Editar</li>
 @endsection
 
@@ -38,7 +38,7 @@
             <input type="hidden" name="id" value="{{$tipo->id}}">
 
             <div class="input-group">
-              <span class="input-group-addon"><i class="fa fa-users"></i></span>
+              <span class="input-group-addon"><i class="fa fa-puzzle-piece"></i></span>
               <input type="text" maxlength="50" name="descricao" value="{!! $tipo->descricao !!}" class="form-control" placeholder="Nome do tipo de usuário" title="Nome do tipo de usuário" required data-toggle="tooltip" data-placement="top">
             </div>
 

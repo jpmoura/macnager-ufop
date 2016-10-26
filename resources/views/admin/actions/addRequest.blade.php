@@ -9,11 +9,11 @@
 @endsection
 
 @section('extracss')
-  <link href="{{ asset("plugins/jQueryUI/jquery-ui.min.css")}}" rel="stylesheet" type="text/css" />
+  <link href="{{ asset("public/plugins/jQueryUI/jquery-ui.min.css")}}" rel="stylesheet" type="text/css" />
 @endsection
 
 @section('prescripts')
-  <link rel="stylesheet" href="{{asset('plugins/datatables/dataTables.bootstrap.css')}}">
+  <link rel="stylesheet" href="{{asset('public/plugins/datatables/dataTables.bootstrap.css')}}">
 @endsection
 
 @section('title')
@@ -190,7 +190,7 @@
 @endsection
 
 @section('extrascripts')
-  <script src="{{ asset ('plugins/jQueryMask/jquery.mask.min.js') }}" type="text/javascript"></script>
+  <script src="{{ asset ('public/plugins/jQueryMask/jquery.mask.min.js') }}" type="text/javascript"></script>
   <script>
     $(document).ready(function() {
       $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );
@@ -241,8 +241,8 @@
     });
   </script>
 
-  <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js')}}"></script>
-  <script src="{{ asset('plugins/datatables/dataTables.bootstrap.min.js')}}"></script>
+  <script src="{{ asset('public/plugins/datatables/jquery.dataTables.min.js')}}"></script>
+  <script src="{{ asset('public/plugins/datatables/dataTables.bootstrap.min.js')}}"></script>
   <script>
   $(function () {
     $("#organizacoes").DataTable( {

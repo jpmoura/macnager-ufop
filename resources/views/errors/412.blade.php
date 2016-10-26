@@ -14,7 +14,7 @@
 
         <p>
           Você pode fazer o login diretamente no
-          <a href="http://localhost/reserva/public/"><i class="fa fa-calendar-check-o"></i> Sistema de Gerência de Rede</a> ou
+          <a href="http://localhost/macnager/public/"><i class="fa fa-desktop"></i> Sistema de Gerência de Rede</a> ou
           então realizar o login no portal
           <a href="http://localhost/meuicea/public/login"><i class="fa fa-building-o"></i> Meu ICEA</a>.
         </p>

@@ -14,8 +14,8 @@
 @endsection
 
 @section('prescripts')
-  <link rel="stylesheet" href="{{asset('plugins/datatables/dataTables.bootstrap.css')}}">
-  <link href="{{ asset("plugins/jQueryUI/jquery-ui.min.css")}}" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="{{asset('public/plugins/datatables/dataTables.bootstrap.css')}}">
+  <link href="{{ asset("public/plugins/jQueryUI/jquery-ui.min.css")}}" rel="stylesheet" type="text/css" />
 @endsection
 
 @section('content')
@@ -129,7 +129,7 @@
                 {{ csrf_field() }}
 
                 <input type="hidden" name="id" value="{{$requisicao->id}}">
-                
+
                 <div class="input-group">
                   <span class="input-group-addon">IP</span>
                   <select name="ip" class="form-control" required data-toggle="tooltip" data-placement="top" title="Endereço IP destinado ao dispositvo">
@@ -232,11 +232,11 @@
 @endsection
 
 @section('extrascripts')
-  <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js')}}"></script>
-  <script src="{{ asset('plugins/datatables/dataTables.bootstrap.min.js')}}"></script>
-  <script src="{{ asset ('plugins/jQueryMask/jquery.mask.min.js') }}" type="text/javascript"></script>
-  <script src="{{ asset ('plugins/jQueryUI/jquery-ui.min.js') }}" type="text/javascript"></script>
-  <script src="{{ asset ('plugins/jQueryUI/datepicker-pt-BR.js') }}" type="text/javascript"></script>
+  <script src="{{ asset('public/plugins/datatables/jquery.dataTables.min.js')}}"></script>
+  <script src="{{ asset('public/plugins/datatables/dataTables.bootstrap.min.js')}}"></script>
+  <script src="{{ asset ('public/plugins/jQueryMask/jquery.mask.min.js') }}" type="text/javascript"></script>
+  <script src="{{ asset ('public/plugins/jQueryUI/jquery-ui.min.js') }}" type="text/javascript"></script>
+  <script src="{{ asset ('public/plugins/jQueryUI/datepicker-pt-BR.js') }}" type="text/javascript"></script>
   <script>
   $(function () {
     $("#tipos").DataTable( {

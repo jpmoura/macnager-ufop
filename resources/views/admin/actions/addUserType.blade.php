@@ -21,7 +21,7 @@
 @endsection
 
 @section('breadcrumb')
-  <li><i class="fa fa-users"></i> Tipos de Usuário</li>
+  <li><i class="fa fa-puzzle-piece"></i> Tipos de Usuário</li>
   <li><i class="fa fa-plus"></i> Adicionar</li>
 @endsection
 
@@ -44,7 +44,7 @@
             {{ csrf_field() }}
 
             <div class="input-group">
-              <span class="input-group-addon"><i class="fa fa-users"></i></span>
+              <span class="input-group-addon"><i class="fa fa-puzzle-piece"></i></span>
               <input type="text" maxlength="50" name="descricao" class="form-control" placeholder="Nome do tipo de usuário" title="Nome do tipo de usuário" required data-toggle="tooltip" data-placement="top">
             </div>
 

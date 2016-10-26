@@ -11,7 +11,7 @@
 @section('content')
   <div class="row">
     <div class="col-md-12">
-      <img src="{{asset('/img/stackholders.png')}}" alt="Stackholders do Sistema" class="center-block img-responsive"/>
+      <img src="{{asset('public/img/stackholders.png')}}" alt="Stackholders do Sistema" class="center-block img-responsive"/>
     </div>
   </div>
   <br />
@@ -37,7 +37,7 @@
         O sistema foi desenvolvido usando a versão 5.3 do <em>Framework</em> <a href="https://laravel.com/" target="_blank">Laravel</a> para aplicações web, um dos mais usados no mercado durante o
         período de desenvolvimento.
       </p>
-      
+
         <h3 class="text-center">A Fazer</h3>
         <ul>
           <li>Otimizar carregamento de objetos javascript e CSS usando SASS ou LESS;</li>
