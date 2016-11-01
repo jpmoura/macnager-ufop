@@ -96,9 +96,11 @@
           </div>
         </div>
       </div>
-
-      </div>
     </div>
+  </div>
+
+  <div id="processingIndicator">
+  </div>
 @endsection
 
 @section('extrascripts')
@@ -108,8 +110,10 @@
   $(function () {
     $("#usuarios").DataTable( {
       "bSort" : false,
+      "processing": true,
       "language": {
         "lengthMenu": "Mostrar _MENU_ registros por página",
+        "processing": "Carregando...",
         "zeroRecords": "Nada encontrado.",
         "info": "Mostrando página _PAGE_ de _PAGES_",
         "infoEmpty": "Nenhum registro disponível",
@@ -124,5 +128,10 @@
       "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tudo"]]
     });
   });
+  // $('#usuarios')
+  //   .on( 'processing.dt', function ( e, settings, processing ) {
+  //       $('#processingIndicator').css( 'display', processing ? 'block' : 'none' );
+  //   } )
+  //   .dataTable();
   </script>
 @endsection

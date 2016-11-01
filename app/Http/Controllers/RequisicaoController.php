@@ -711,24 +711,33 @@ class RequisicaoController extends Controller
     if($content != false) {
       $dom = new \DOMDocument;
       $dom->preserveWhiteSpace = false;
-      $dom->loadHTML($content);
-      $rows = $dom->getElementsByTagName('td');
-      $frequentUsers = array();
-      $frequentUsersTransfers = array();
 
-      for($i=10; $rows->item($i) != NULL; $i+=10) {
-        // $rows->item(11)->nodeValue; // Total
-        // $rows->item(12)->nodeValue; // Total Sent
-        // $rows->item(13)->nodeValue; // Total Received
-        // $rows->item($i)->nodeValue; // IP
+      try {
+        $loadSuccess = $dom->loadHTML($content);
 
-        $user = Requisicao::where('ip', $rows->item($i)->nodeValue)->where('status', 1)->first();
-        if(!is_null($user)) {
-          $user['totalTransferred'] = $rows->item($i + 1)->nodeValue;
-          $user['sent'] = $rows->item($i + 2)->nodeValue;
-          $user['received'] = $rows->item($i + 3)->nodeValue;
-          array_push($frequentUsers, $user);
+        if($loadSuccess == true) {
+          $rows = $dom->getElementsByTagName('td');
+          $frequentUsers = array();
+          $frequentUsersTransfers = array();
+
+          for($i=10; $rows->item($i) != NULL; $i+=10) {
+            // $rows->item(11)->nodeValue; // Total
+            // $rows->item(12)->nodeValue; // Total Sent
+            // $rows->item(13)->nodeValue; // Total Received
+            // $rows->item($i)->nodeValue; // IP
+
+            $user = Requisicao::where('ip', $rows->item($i)->nodeValue)->where('status', 1)->first();
+            if(!is_null($user)) {
+              $user['totalTransferred'] = $rows->item($i + 1)->nodeValue;
+              $user['sent'] = $rows->item($i + 2)->nodeValue;
+              $user['received'] = $rows->item($i + 3)->nodeValue;
+              array_push($frequentUsers, $user);
+            }
+          }
         }
+        else $frequentUsers = NULL;
+      } catch (Exception $e) {
+        return NULL;
       }
 
       return $frequentUsers;

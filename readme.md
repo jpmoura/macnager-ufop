@@ -13,8 +13,8 @@ a geração e manipulação de informações sobre esses dispositivos. Outro mot
 foi a possibilidade de histórico da relação usuário e endereço IP atribuído ao
 mesmo em um determinado intervalo de tempo.
 
-Sua necessidade surgiu dada a dificuldadede se gerenciar todos os dispositivos e
-arquivos de configurações entre os servidores de Firewall e DHCP, onde cada
+Sua necessidade surgiu dada a dificuldade de se gerenciar todos os dispositivos
+e arquivos de configurações entre os servidores de Firewall e DHCP, onde cada
 inserção ou remoção eram bastante custosas, necessitando edição de linhas em
 diferentes arquivos e execuções de comandos em diferentes servidores com o
 objetivo de proibir ou conceder acesso a um dado dispositivo. Existia
