@@ -133,7 +133,7 @@ class RequisicaoController extends Controller
     SSH::into('dhcp')->put('/var/www/html/macnager/storage/app/public/temp_dhcp', '/usr/local/etc/dhcpd.conf'); // transfere o arquivo
     SSH::into('dhcp')->run('/usr/local/etc/rc.d/isc-dhcpd restart', function($line) { $this->result = $this->result. $line . "<br />"; }); // reinicia o servidor DHCP
     if($this->result == "") $this->result = "Arquivo criado e transferido com sucesso.";
-    return $result;
+    return $this->$result;
   }
 
   private function formatToArp($record)
