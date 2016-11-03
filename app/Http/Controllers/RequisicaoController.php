@@ -119,6 +119,7 @@ class RequisicaoController extends Controller
     SSH::into('firewall')->run('cp /usr/local/etc/arp_icea /usr/local/etc/arp_icea.backup');
     SSH::into('firewall')->put('/var/www/html/macnager/storage/app/public/temp_arp', '/usr/local/etc/arp_icea'); // transfere o arquivo
     SSH::into('firewall')->run('sudo arp -f /usr/local/etc/arp_icea', function($line) { $this->result = $this->result . $line . "<br />"; } ); // recarrega a whitelist do Firewall
+    if($this->result == "") $this->result = "Arquivo criado e transferido com sucesso.";
     return $this->result;
   }
 
@@ -130,7 +131,8 @@ class RequisicaoController extends Controller
     $this->result = '';
     SSH::into('dhcp')->run('cp /usr/local/etc/dhcp.conf /usr/local/etc/dhcpd.conf.backup');
     SSH::into('dhcp')->put('/var/www/html/macnager/storage/app/public/temp_dhcp', '/usr/local/etc/dhcpd.conf'); // transfere o arquivo
-    $result = SSH::into('dhcp')->run('/usr/local/etc/rc.d/isc-dhcpd restart', function($line) { $this->result = $this->result. $line . "<br />"; }); // reinicia o servidor DHCP
+    SSH::into('dhcp')->run('/usr/local/etc/rc.d/isc-dhcpd restart', function($line) { $this->result = $this->result. $line . "<br />"; }); // reinicia o servidor DHCP
+    if($this->result == "") $this->result = "Arquivo criado e transferido com sucesso.";
     return $result;
   }
 
