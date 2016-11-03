@@ -19,6 +19,7 @@ use Response;
 use SSH;
 use File;
 use DB;
+use Exception;
 
 class RequisicaoController extends Controller
 {
@@ -359,10 +360,10 @@ class RequisicaoController extends Controller
 
         $record->save();
 
-        //$responseArp = $this->updateArp();
-        //$responseDhcp = $this->updateDhcp();
+        $responseArp = $this->updateArp();
+        $responseDhcp = $this->updateDhcp();
 
-        //Session::flash('mensagem', "<p>ARP: " . $responseArp . "</p><p>DHCP: " . $responseDhcp . "</p>");
+        Session::flash('mensagem', "<p>ARP: " . $responseArp . "</p><p>DHCP: " . $responseDhcp . "</p>");
         Session::flash('tipo', 'Informação');
       }
       else  {
@@ -714,31 +715,32 @@ class RequisicaoController extends Controller
 
       try {
         $loadSuccess = $dom->loadHTML($content);
+      } catch (Exception $e) {
+        $loadSuccess = false;
+      }
 
-        if($loadSuccess == true) {
-          $rows = $dom->getElementsByTagName('td');
-          $frequentUsers = array();
-          $frequentUsersTransfers = array();
+      if($loadSuccess == true) {
+        $rows = $dom->getElementsByTagName('td');
+        $frequentUsers = array();
+        $frequentUsersTransfers = array();
 
-          for($i=10; $rows->item($i) != NULL; $i+=10) {
-            // $rows->item(11)->nodeValue; // Total
-            // $rows->item(12)->nodeValue; // Total Sent
-            // $rows->item(13)->nodeValue; // Total Received
-            // $rows->item($i)->nodeValue; // IP
+        for($i=10; $rows->item($i) != NULL; $i+=10) {
+          // $rows->item(11)->nodeValue; // Total
+          // $rows->item(12)->nodeValue; // Total Sent
+          // $rows->item(13)->nodeValue; // Total Received
+          // $rows->item($i)->nodeValue; // IP
 
-            $user = Requisicao::where('ip', $rows->item($i)->nodeValue)->where('status', 1)->first();
-            if(!is_null($user)) {
-              $user['totalTransferred'] = $rows->item($i + 1)->nodeValue;
-              $user['sent'] = $rows->item($i + 2)->nodeValue;
-              $user['received'] = $rows->item($i + 3)->nodeValue;
-              array_push($frequentUsers, $user);
-            }
+          $user = Requisicao::where('ip', $rows->item($i)->nodeValue)->where('status', 1)->first();
+          if(!is_null($user)) {
+            $user['totalTransferred'] = $rows->item($i + 1)->nodeValue;
+            $user['sent'] = $rows->item($i + 2)->nodeValue;
+            $user['received'] = $rows->item($i + 3)->nodeValue;
+            array_push($frequentUsers, $user);
           }
         }
-        else $frequentUsers = NULL;
-      } catch (Exception $e) {
-        return NULL;
       }
+      else $frequentUsers = NULL;
+
 
       return $frequentUsers;
     }

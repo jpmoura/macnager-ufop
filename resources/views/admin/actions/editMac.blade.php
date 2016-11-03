@@ -116,7 +116,7 @@
               <button type="button" class="btn bg-black" data-toggle="modal" data-target="#disableModal"><i class="fa fa-power-off"> Desativar</i></button>
             @endif
             <button type="reset" class="btn bg-gray"><i class="fa fa-eraser"></i> Resetar</button>
-            <button id="edit" type="submit" class="btn btn-success"><i class="fa fa-check"></i> Editar</button>
+            <button id="edit" type="submit" class="btn btn-success"><i class="fa fa-check"></i> Aplicar</button>
           </div>
 
         </div>
