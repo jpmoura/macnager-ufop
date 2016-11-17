@@ -184,7 +184,7 @@
                                     "<p><i class='fa fa-users'></i> " + response.group + "</p>" +
                                     "</div>" +
                                     "</div>");
-                            $('input[name=usuarioNome').val(response.name);
+                            $('input[name=usuarioNome]').val(response.name);
                         }
                         else { // Não encontrou ninguém
                             $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'>" +
@@ -227,7 +227,7 @@
                                     "<p><i class='fa fa-users'></i> " + response.group + "</p>" +
                                     "</div>" +
                                     "</div>");
-                            $('input[name=responsavelNome').val(response.name);
+                            $('input[name=responsavelNome]').val(response.name);
                         }
                         else { // Não encontrou ninguém
                             $("#responsibleDetails").html("<div class='panel panel-info'><div class='panel-heading'>" +
