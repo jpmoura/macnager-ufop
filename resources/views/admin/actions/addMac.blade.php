@@ -120,7 +120,6 @@
                             <button type="button" class="btn btn-warning" onClick="history.back()">Cancelar <i class='fa fa-times'></i></button>
                             <button type="reset" class="btn btn-info">Limpar <i class='fa fa-eraser'></i></button>
                             <button type="button" onclick="submitModal();" class="btn btn-success">Confirmar <i class='fa fa-check'></i></button>
-                            <button type="button" onclick="submitModal();" class="btn btn-success">Teste <i class='fa fa-check'></i></button>
                         </div>
                     </form>
                 </div>
