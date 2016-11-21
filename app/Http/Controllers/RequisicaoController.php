@@ -618,15 +618,20 @@ class RequisicaoController extends Controller
         else return redirect('/login');
     }
 
-    public function getMonthlyActiveUsers()
+    public function getMonthlyActiveUsers($id)
     {
-        $content = file_get_contents("http://200.239.152.2:8080/trafego-nti/Subnet-3-200.239.152.0.html");
+        if ($id == 1) $url = "http://200.239.152.2:8080/trafego-nti/Subnet-1-200.239.152.0.html"; //diário
+        elseif ($id == 2) $url = "http://200.239.152.2:8080/trafego-nti/Subnet-2-200.239.152.0.html"; //semanal
+        else $url = "http://200.239.152.2:8080/trafego-nti/Subnet-3-200.239.152.0.html"; // mensal e inativos;
+
+        $content = file_get_contents($url);
 
         if($content != false) {
             $dom = new \DOMDocument;
             $dom->preserveWhiteSpace = false;
 
             try {
+                libxml_use_internal_errors(true); // ignora erros de formatação provenientes do Bandwidthd
                 $loadSuccess = $dom->loadHTML($content);
             } catch (Exception $e) {
                 $loadSuccess = false;
@@ -635,7 +640,6 @@ class RequisicaoController extends Controller
             if($loadSuccess == true) {
                 $rows = $dom->getElementsByTagName('td');
                 $frequentUsers = array();
-                $frequentUsersTransfers = array();
 
                 for($i=10; $rows->item($i) != NULL; $i+=10) {
                     // $rows->item(11)->nodeValue; // Total
@@ -644,44 +648,62 @@ class RequisicaoController extends Controller
                     // $rows->item($i)->nodeValue; // IP
 
                     $user = Requisicao::where('ip', $rows->item($i)->nodeValue)->where('status', 1)->first();
-                    if(!is_null($user)) {
-                        $user['totalTransferred'] = $rows->item($i + 1)->nodeValue;
-                        $user['sent'] = $rows->item($i + 2)->nodeValue;
-                        $user['received'] = $rows->item($i + 3)->nodeValue;
-                        array_push($frequentUsers, $user);
+
+                    // Se o usuário não existe no banco, é uma falha de segurança na rede
+                    if(is_null($user))
+                    {
+                        $user = new Requisicao();
+                        $user->id = -1;
+                        $user->ip = $rows->item($i)->nodeValue;
+                        $user->responsavelNome = "Inexistente no banco";
+                        $user->usuarioNome = "Inexistente no banco";
+                        $user->descricao_dispositivo = "Desconhecido";
                     }
+
+                    // Adição de dados de uso
+                    $user['totalTransferred'] = $rows->item($i + 1)->nodeValue;
+                    $user['sent'] = $rows->item($i + 2)->nodeValue;
+                    $user['received'] = $rows->item($i + 3)->nodeValue;
+
+                    array_push($frequentUsers, $user);
                 }
             }
-            else $frequentUsers = NULL;
-
+            else {
+                $frequentUsers = NULL;
+                Session::flash('tipo', 'Erro');
+                Session::flash('mensagem', 'O servidor do Bandwidthd não formatou corretamente a sua saída. Verifique a página gerada pelo Bandwidthd');
+            }
 
             return $frequentUsers;
         }
-        else return NULL;
+        else {
+            Session::flash('tipo', 'Erro');
+            Session::flash('mensagem', 'O servidor do Bandwidthd não respondeu a solicitação. Tente novamente em alguns instantes.');
+            return NULL;
+        }
     }
 
     public function getUsersList($id)
     {
         if(UserController::checkLogin()) {
             if (UserController::checkPermissions(1)) {
-                $frequentUsers = $this->getMonthlyActiveUsers();
 
-                if($frequentUsers == NULL) {
-                    Session::flash('tipo', 'Erro');
-                    Session::flash('mensagem', 'O servidor do Bandwidthd não respondeu a solicitação. Tente novamente em alguns instantes.');
-                    $id = 1;
-                }
+                $frequentUsers = $this->getMonthlyActiveUsers($id);
 
-                if($id == 1) return View::make('admin.actions.listUsers')->with(['id' => $id, 'usuarios' => $frequentUsers]);
+                if($id < 4) return View::make('admin.actions.listUsers')->with(['id' => $id, 'usuarios' => $frequentUsers]);
                 else {
-                    //pegar os usuarios que tem status == 1 mas não tem o ip na lista
-                    $frequentIPs = array();
+                    if(is_null($frequentUsers)) $nonFrequentUsers = null;
+                    else
+                    {
+                        //pegar os usuarios que tem status == 1 mas não tem o ip na lista
+                        $frequentIPs = array();
 
-                    // Obtém todos os IPs frequentes
-                    foreach ($frequentUsers as $user) array_push($frequentIPs, $user->ip);
+                        // Obtém todos os IPs frequentes
+                        foreach ($frequentUsers as $user) array_push($frequentIPs, $user->ip);
 
-                    //Obtém todos os usuários aprovados que não estão na lista de frequentes
-                    $nonFrequentUsers = Requisicao::where('status', 1)->whereNotIn('ip', $frequentIPs)->get();
+                        //Obtém todos os usuários aprovados que não estão na lista de frequentes
+                        $nonFrequentUsers = Requisicao::where('status', 1)->whereNotIn('ip', $frequentIPs)->get();
+                    }
 
                     return View::make('admin.actions.listUsers')->with(['id' => $id, 'usuarios' => $nonFrequentUsers]);
                 }
