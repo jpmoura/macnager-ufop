@@ -19,20 +19,18 @@
     <link rel="shortcut icon" href="{{url('public/favicon.ico')}}" type="image/x-icon">
     <link rel="icon" href="{{url('public/favicon.ico')}}" type="image/x-icon">
 
-
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-    <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
     <![endif]-->
 </head>
-<body class="skin-ufop hold-transition sidebar-mini @if(!Session::has("id")) guest @endif">
+<body class="skin-ufop hold-transition sidebar-mini @if(!Auth::check()) guest @endif">
 
 @yield('prescripts')
 
-@if(Session::has("id"))
-  <div class="wrapper">
+<div class="wrapper">
 
     <!-- Header -->
     @include('admin.header')
@@ -40,35 +38,29 @@
     <!-- Sidebar -->
     @include('admin.sidebar')
 
-      <!-- Content Wrapper. Contains page content -->
-      <div class="content-wrapper">
-          <!-- Content Header (Page header) -->
-          <section class="content-header">
-              <h1>@yield('title')
+<!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+            <h1>@yield('title')
                 <small>@yield('description')</small>
-              </h1>
-
-              <ol class="breadcrumb">
-                  <li><a href="{{url('/')}}"><i class="fa fa-home"></i> Início</a></li>
-                  @yield('breadcrumb')
-              </ol>
-          </section>
-@endif
-
+            </h1>
+            <ol class="breadcrumb">
+                <li><a href="{{url('/')}}"><i class="fa fa-home"></i> Início</a></li>
+                @yield('breadcrumb')
+            </ol>
+        </section>
 
         <!-- Main content -->
         <section class="content">
             @yield('content')
         </section><!-- /.content -->
-@if(Session::has("id"))
     </div><!-- /.content-wrapper -->
-@endif
 
-    <!-- Footer -->
+<!-- Footer -->
     @include('admin.footer')
-@if(Session::has("id"))
-  </div><!-- ./wrapper -->
-@endif
+</div><!-- ./wrapper -->
 
 <!-- REQUIRED JS SCRIPTS -->
 

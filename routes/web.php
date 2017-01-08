@@ -13,10 +13,18 @@
 
 // Rotas somente para usuários autenticados
 Route::group(['middleware' => 'auth'], function() {
-    Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 
-    Route::get('/', ['as' => 'home', 'uses' => 'RequisicaoController@getIndex']);
-    Route::get('/forceReload', ['as' => 'forceReload', 'uses' => 'RequisicaoController@forceReload']);
+    // Rotas disponíveis somente para administradores
+    Route::group(['middelaware' => 'can:administrate'], function() {
+        Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
+
+        Route::get('/force', ['as' => 'forceReload', 'uses' => 'RequisicaoController@forceReload']);
+        Route::get('/listUsers/{id}', ['as' => 'showUsers', 'uses' => 'RequisicaoController@getUsersList']);
+    });
+
+    Route::get('/', ['as' => 'home', 'uses' => 'PagesController@home']);
+    Route::get('/home', 'PagesController@home');
+
 
     Route::get('/addMac', ['as' => 'getAddMac', 'uses' => 'RequisicaoController@getAddMac']);
     Route::post('/addMac', ['as' => 'postAddMac', 'uses' => 'RequisicaoController@doAddMac']);
@@ -26,8 +34,8 @@ Route::group(['middleware' => 'auth'], function() {
 
     Route::get('deleteMac/{id}', ['as' => 'deleteMac', 'uses' => 'RequisicaoController@deleteMac']);
 
-    Route::get('/exportArp', function() { return response()->download('/var/www/html/macnager/storage/app/public/temp_arp', 'arp_icea'); });
-    Route::get('/exportDhcp', function() { return response()->download('/var/www/html/macnager/storage/app/public/temp_dhcp', 'dhcp.conf'); });
+    Route::get('/exportArp', ['as' => 'exportArp', 'uses' => 'PagesController@exportArp']);
+    Route::get('/exportDhcpd', ['as' => 'exportDhcpd', 'uses' => 'PagesController@exportDhcpd']);
 
     Route::get('/listMac/{type}', ['as' => 'listMac', 'uses' => 'RequisicaoController@getListMac']);
 
@@ -63,7 +71,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/request/edit/{id}', ['as' => 'getEditRequest', 'uses' => 'RequisicaoController@getEditRequest']);
     Route::post('/request/edit', ['as' => 'doEditRequest', 'uses' => 'RequisicaoController@doEditRequest']);
 
-    Route::get('/listUsers/{id}', ['as' => 'getUsersList', 'uses' => 'RequisicaoController@getUsersList']);
+
 });
 
 Route::get('/login', ['as' => 'showLogin', 'uses' => 'Auth\LoginController@showLogin']);
@@ -71,6 +79,4 @@ Route::post('/login', ['as' => 'login', 'uses' => 'Auth\LoginController@postLogi
 Route::get('/sair', ['as' => 'logout', 'uses' => 'Auth\LoginController@logout']);
 
 Route::get('/teste', ['as' => 'teste', 'uses' => 'RequisicaoController@test']);
-Route::get('/sobre', function() { return View::make('about'); });
-
-//Route::auth();
+Route::get('/sobre', ['as' => 'about', 'uses' => 'PagesController@about']);

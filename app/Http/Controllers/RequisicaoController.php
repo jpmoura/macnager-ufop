@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
-use App\Http\Controllers\UserController;
 use App\Requisicao;
 use App\TipoDispositivo;
 use App\TipoUsuario;
@@ -20,6 +19,7 @@ use SSH;
 use File;
 use DB;
 use Exception;
+use Auth;
 
 class RequisicaoController extends Controller
 {
@@ -86,13 +86,13 @@ class RequisicaoController extends Controller
         if($successful) $successful = $this->tryToDelete($dhcpFile);
 
         $dhcpDocument = "option domain-name-servers " . PHP_EOL . PHP_EOL .
-                        "189.38.95.95,189.38.95.96,8.8.8.8,8.8.4.4;" . PHP_EOL . PHP_EOL .
-                        "default-lease-time 99999999;" . PHP_EOL . PHP_EOL .
-                        "max-lease-time 99999999;" . PHP_EOL . PHP_EOL .
-                        "log-facility local7;" . PHP_EOL . PHP_EOL .
-                        "subnet 200.239.152.0 netmask 255.255.252.0 {" . PHP_EOL .
-                        "\toption routers 200.239.152.2;" . PHP_EOL .
-                        "}" . PHP_EOL . PHP_EOL;
+            "189.38.95.95,189.38.95.96,8.8.8.8,8.8.4.4;" . PHP_EOL . PHP_EOL .
+            "default-lease-time 99999999;" . PHP_EOL . PHP_EOL .
+            "max-lease-time 99999999;" . PHP_EOL . PHP_EOL .
+            "log-facility local7;" . PHP_EOL . PHP_EOL .
+            "subnet 200.239.152.0 netmask 255.255.252.0 {" . PHP_EOL .
+            "\toption routers 200.239.152.2;" . PHP_EOL .
+            "}" . PHP_EOL . PHP_EOL;
 
         $arpDocument = "";
 
@@ -124,35 +124,6 @@ class RequisicaoController extends Controller
             return View::make('admin.actions.listMac')->with(['liberados' => $requests, 'tipo' => $type]);
         }
         else return redirect('/login');
-    }
-
-    public function getIndex()
-    {
-
-        if(UserController::checkLogin()) {
-
-            if(Session::get('nivel') == 1) {
-                for ($faixa=152; $faixa < 156; $faixa++) {
-                    $count = Requisicao::where('ip', 'like', '200.239.' . $faixa . '.%')->where('status', 1)->count();
-                    $used[$faixa] = $count;
-                }
-
-                Session::put('novosPedidos', Requisicao::where('status', '=', 0)->count());
-
-                return View::make('index')->with(['faixa' => $used]);
-            }
-            else {
-                $accepted = Requisicao::where('status', 1)->where('responsavel', Session::get('id'))->count();
-                $rejected = Requisicao::where('status', 2)->where('responsavel', Session::get('id'))->count();
-                $oudated = Requisicao::where('status', 3)->where('responsavel', Session::get('id'))->count();
-                $blocked = Requisicao::where('status', 4)->where('responsavel', Session::get('id'))->count();
-
-                return View::make('index')->with(['aceitas' => $accepted, 'rejeitadas' => $rejected, 'vencidas' => $oudated, 'bloqueadas' => $blocked]);
-            }
-
-        }
-        else return redirect('/login');
-
     }
 
     public static function getFreeIPs() {

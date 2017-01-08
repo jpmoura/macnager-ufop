@@ -1,12 +1,12 @@
 <!-- Main Header -->
 <header class="main-header">
 
-    <a href="{{url('/')}}" class="logo">
-      <!-- mini logo for sidebar mini 50x50 pixels -->
-      <span class="logo-mini"><i class="fa fa-desktop"></i></span>
-      <!-- logo for regular state and mobile devices -->
-      <span class="logo-lg"><i class="fa fa-desktop"></i> MACnager</span>
-   </a>
+    <a href="{{ route('home') }}" class="logo">
+        <!-- mini logo for sidebar mini 50x50 pixels -->
+        <span class="logo-mini"><i class="fa fa-desktop"></i></span>
+        <!-- logo for regular state and mobile devices -->
+        <span class="logo-lg"><i class="fa fa-desktop"></i> MACnager</span>
+    </a>
 
     <!-- Header Navbar -->
     <nav class="navbar navbar-static-top" role="navigation">
@@ -17,11 +17,11 @@
 
         <!-- Navbar Right Menu -->
         <div class="navbar-custom-menu">
-          <ul class="nav navbar-nav">
-            <li>
-              <a href="{{url('sair')}}"><i class="fa fa-sign-out"></i> Sair</a>
-            </li>
-          </ul>
+            <ul class="nav navbar-nav">
+                <li>
+                    <a href="{{ route('logout') }}"><i class="fa fa-sign-out"></i> Sair</a>
+                </li>
+            </ul>
         </div>
     </nav>
 </header>
