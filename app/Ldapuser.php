@@ -2,20 +2,32 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Ldapuser extends Model
+class Ldapuser extends Authenticatable
 {
-  protected $table = "ldapusers";
-  public $timestamps = false;
-  protected $primaryKey = 'cpf';
 
-  public function requestsAsOwner() {
-    return $this->hasMany('App\Requisicao', 'cpf', 'responsavel');
-  }
+    use Notifiable;
 
-  public function requestsAsUser()
-  {
-    return $this->hasMany('App\Requisicao', 'cpf', 'usuario');
-  }
+    protected $table = "ldapusers";
+    protected $primaryKey = 'id';
+    public $timestamps = false;
+
+    protected $fillable = [
+        'cpf', 'nome', 'email', 'nivel', 'status',
+    ];
+
+    protected $hiddem = [
+        'id', 'remember_token'
+    ];
+
+    public function requestsAsOwner() {
+        return $this->hasMany('App\Requisicao', 'cpf', 'responsavel');
+    }
+
+    public function requestsAsUser()
+    {
+        return $this->hasMany('App\Requisicao', 'cpf', 'usuario');
+    }
 }

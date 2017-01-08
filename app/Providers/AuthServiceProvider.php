@@ -25,6 +25,9 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        //
+        // Define se um usuário pode administrar o sistema
+        Gate::define('administrate', function ($user) {
+            return $user->nivel == 1;
+        });
     }
 }

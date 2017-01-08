@@ -43,11 +43,11 @@
           {{ csrf_field() }}
           <div class="input-group @if(Session::get('erro') == 1) has-error @endif">
             <span class="input-group-addon"><i class="fa fa-user"></i></span>
-            <input type="text" name="login" class="form-control" maxlength="11" minlength="11" placeholder="CPF do Minha UFOP (Sem números)" required value="{{Input::old('login')}}" @if(Session::get('erro') != 2)  autofocus @endif data-toggle="tooltip" data-placement="right" title="CPF do Minha UFOP" >
+            <input type="text" name="username" class="form-control" maxlength="11" minlength="11" placeholder="CPF do Minha UFOP (Sem números)" required value="{{Input::old('username')}}" @if(Session::get('erro') != 2)  autofocus @endif data-toggle="tooltip" data-placement="right" title="CPF do Minha UFOP" >
           </div>
           <div class="input-group @if(Session::get('erro') == 2) has-error @endif">
             <span class="input-group-addon"><i class="fa fa-lock"></i></span>
-            <input type="password" name="senha" class="form-control" placeholder="Senha do Minha UFOP" required @if(Session::get('erro') == 2) autofocus @endif data-toggle="tooltip" data-placement="right" title="Senha do Minha UFOP">
+            <input type="password" name="password" class="form-control" placeholder="Senha do Minha UFOP" required @if(Session::get('erro') == 2) autofocus @endif data-toggle="tooltip" data-placement="right" title="Senha do Minha UFOP">
           </div>
           @if(Session::has("mensagem"))
             <h5 class="text-center text-danger"><b>{{ Session::get("mensagem") }}</b></h5>

@@ -16,3 +16,10 @@ use Illuminate\Foundation\Inspiring;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 });
+
+/**
+ * Teste de rotas para comandos artisan
+ */
+Artisan::command('helloworld', function() {
+    $this->comment('Hello World');
+});

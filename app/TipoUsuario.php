@@ -10,6 +10,7 @@ class TipoUsuario extends Model
   public $timestamps = false;
 
   protected $fillable = ['id', 'descricao'];
+  protected $hidden = ['id'];
 
   public function requisicoes()
   {
