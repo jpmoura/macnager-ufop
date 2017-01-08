@@ -39,7 +39,7 @@
       <p class="login-box-msg">Use o <span class="text-bold">mesmo CPF</span> e a <span class="text-bold">mesma senha</span><br /> do <a href="http://www.minha.ufop.br/" target="_blank"><i class="fa fa-home"></i>Minha UFOP</a></p>
 
       <div class="form">
-        <form class="form" action="{{url('/login')}}" method="post">
+        <form class="form" action="{{ route('login') }}" method="post">
           {{ csrf_field() }}
           <div class="input-group @if(Session::get('erro') == 1) has-error @endif">
             <span class="input-group-addon"><i class="fa fa-user"></i></span>
