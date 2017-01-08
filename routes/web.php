@@ -20,7 +20,22 @@ Route::group(['middleware' => 'auth'], function() {
 
         Route::get('/force', ['as' => 'forceReload', 'uses' => 'RequisicaoController@forceReload']);
         Route::get('/listUsers/{id}', ['as' => 'showUsers', 'uses' => 'RequisicaoController@getUsersList']);
+
+        Route::get('/requests/{type}', ['as' => 'showRequest', 'uses' => 'RequisicaoController@show']);
+        Route::group(['prefix' => 'request'], function() {
+            Route::get('/request/details/{id}', ['as' => 'detailsRequest', 'uses' => 'RequisicaoController@getRequestDetails']);
+            Route::post('/request/approve', ['as' => 'doApproveRequest', 'uses' => 'RequisicaoController@doApproveRequest']);
+            Route::post('/request/suspend', ['as' => 'doSuspendRequest', 'uses' => 'RequisicaoController@doSuspendRequest']);
+            Route::post('/request/disable', ['as' => 'doDisableRequest', 'uses' => 'RequisicaoController@doDisableRequest']);
+            Route::post('/request/deny', ['as' => 'doSuspendRequest', 'uses' => 'RequisicaoController@doDenyRequest']);
+            Route::get('/request/reactive/{id}', ['as' => 'doReactiveRequest', 'uses' => 'RequisicaoController@doReactiveRequest']);
+            Route::post('/request/delete', ['as' => 'doDeleteRequest', 'uses' => 'RequisicaoController@doDeleteRequest']);
+            Route::get('/request/edit/{id}', ['as' => 'getEditRequest', 'uses' => 'RequisicaoController@getEditRequest']);
+            Route::post('/request/edit', ['as' => 'doEditRequest', 'uses' => 'RequisicaoController@doEditRequest']);
+        });
     });
+
+
 
     Route::get('/', ['as' => 'home', 'uses' => 'PagesController@home']);
     Route::get('/home', 'PagesController@home');
@@ -60,16 +75,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('/editDeviceType', ['as' => 'doEditDeviceType', 'uses' => 'TipoDispositivoController@doEditDeviceType']);
     Route::get('/deleteDeviceType/{id}', ['as' => 'deleteDeviceType', 'uses' => 'TipoDispositivoController@deleteDeviceType']);
 
-    Route::get('/requests/{type}', ['as' => 'requests', 'uses' => 'RequisicaoController@getListRequests']);
-    Route::get('/request/details/{id}', ['as' => 'getRequestDetails', 'uses' => 'RequisicaoController@getRequestDetails']);
-    Route::post('/request/approve', ['as' => 'doApproveRequest', 'uses' => 'RequisicaoController@doApproveRequest']);
-    Route::post('/request/suspend', ['as' => 'doSuspendRequest', 'uses' => 'RequisicaoController@doSuspendRequest']);
-    Route::post('/request/disable', ['as' => 'doDisableRequest', 'uses' => 'RequisicaoController@doDisableRequest']);
-    Route::post('/request/deny', ['as' => 'doSuspendRequest', 'uses' => 'RequisicaoController@doDenyRequest']);
-    Route::get('/request/reactive/{id}', ['as' => 'doReactiveRequest', 'uses' => 'RequisicaoController@doReactiveRequest']);
-    Route::post('/request/delete', ['as' => 'doDeleteRequest', 'uses' => 'RequisicaoController@doDeleteRequest']);
-    Route::get('/request/edit/{id}', ['as' => 'getEditRequest', 'uses' => 'RequisicaoController@getEditRequest']);
-    Route::post('/request/edit', ['as' => 'doEditRequest', 'uses' => 'RequisicaoController@doEditRequest']);
+
 
 
 });

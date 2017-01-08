@@ -37,11 +37,11 @@
       <div class="box box-primary-ufop">
         <div class="box-header">
           <ul class="nav nav-tabs">
-            <li role="presentation" @if($tipo == 0) class="active" @endif><a href="{{url('/requests/0')}}">Em aberto @if(Session::has('novosPedidos') && Session::get('novosPedidos') > 0) <span class="label label-success">{{Session::get('novosPedidos')}}</span> @endif</a></li>
-            <li role="presentation" @if($tipo == 1) class="active" @endif><a href="{{url('/requests/1')}}"><i class="fa fa-check"></i> Aprovadas</a></li>
-            <li role="presentation" @if($tipo == 2) class="active" @endif><a href="{{url('/requests/2')}}"><i class="fa fa-times"></i> Negadas</a></li>
-            <li role="presentation" @if($tipo == 3) class="active" @endif><a href="{{url('/requests/3')}}"><i class="fa fa-history"></i> Vencidas</a></li>
-            <li role="presentation" @if($tipo == 4) class="active" @endif><a href="{{url('/requests/4')}}"><i class="fa fa-ban"></i> Suspensas</a></li>
+            <li role="presentation" @if($tipo == 0) class="active" @endif><a href="{{ route('showRequest', 0)}}">Em aberto @if(Session::has('novosPedidos') && Session::get('novosPedidos') > 0) <span class="label label-success">{{Session::get('novosPedidos')}}</span> @endif</a></li>
+            <li role="presentation" @if($tipo == 1) class="active" @endif><a href="{{ route('showRequest', 1)}}"><i class="fa fa-check"></i> Aprovadas</a></li>
+            <li role="presentation" @if($tipo == 2) class="active" @endif><a href="{{ route('showRequest', 2)}}"><i class="fa fa-times"></i> Negadas</a></li>
+            <li role="presentation" @if($tipo == 3) class="active" @endif><a href="{{ route('showRequest', 3)}}"><i class="fa fa-history"></i> Vencidas</a></li>
+            <li role="presentation" @if($tipo == 4) class="active" @endif><a href="{{ route('showRequest', 4)}}"><i class="fa fa-ban"></i> Suspensas</a></li>
           </ul>
         </div>
         <div class="box-body">
@@ -69,9 +69,9 @@
                     <td>{{ date_format(date_create($requisicao->submissao),"d/m/Y H:i:s") }}</td>
                     <td>
                       @if($tipo == 0)
-                        <a href="{{url('/request/details/' . $requisicao->id)}}" class="btn btn-success btn-xs"><i class="fa fa-legal"></i> Avaliar</a>
+                        <a href="{{ route('detailsRequest', $requisicao->id) }}" class="btn btn-success btn-xs"><i class="fa fa-legal"></i> Avaliar</a>
                       @else
-                        <a href="{{url('/request/details/' . $requisicao->id)}}" class="btn btn-xs btn-ufop "><i class="fa fa-search-plus"></i> Detalhes</a>
+                        <a href="{{ route('detailsRequest', $requisicao->id) }}" class="btn btn-xs btn-ufop "><i class="fa fa-search-plus"></i> Detalhes</a>
                       @endif
                     </td>
                   </tr>

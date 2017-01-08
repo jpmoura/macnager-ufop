@@ -8,7 +8,9 @@
         <ul class="sidebar-menu">
             @can('administrate')
                 <li class="header text-center">ADMINISTRAÇÃO</li>
-                <li class="@yield('pedidos')"><a href="{{url('/requests/0')}}"><i class="fa fa-legal"></i> <span>Pedidos</span> @if(Session::has('novosPedidos') && Session::get('novosPedidos') > 0) <span class="label label-success pull-right">{{Session::get('novosPedidos')}}</span> @endif</a></li>
+
+                <li class="@yield('pedidos')"><a href="{{ route('showRequest', 0) }}"><i class="fa fa-legal"></i> <span>Pedidos</span> @if(Session::has('novosPedidos') && Session::get('novosPedidos') > 0) <span class="label label-success pull-right">{{Session::get('novosPedidos')}}</span> @endif</a></li>
+
                 <li class="treeview @yield('dispositivo')">
                     <a href="#">
                         <i class="fa fa-laptop"></i><span>Dispositivos</span>

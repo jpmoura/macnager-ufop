@@ -333,22 +333,19 @@ class RequisicaoController extends Controller
         return Response::make(file_get_contents(storage_path('app/' . base64_decode($filepath))), 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => "inline; filename='termo.pdf'"] );
     }
 
-    public function getListRequests($type)
+    public function show($type)
     {
-        if(UserController::checkLogin()) {
-            if(UserController::checkPermissions(1)) {
-                Session::put('novosPedidos', Requisicao::where('status', '=', 0)->count());
-                if(!isset($type)) $type = 0;
-                $requests = DB::table('requisicoes')->join('tipo_dispositivo', 'requisicoes.tipo_dispositivo', '=', 'tipo_dispositivo.id')
-                    ->join('tipo_usuario', 'requisicoes.tipo_usuario', '=', 'tipo_usuario.id')
-                    ->select('requisicoes.id as id', 'responsavelNome', 'usuarioNome', 'tipo_usuario.descricao as tipousuario', 'tipo_dispositivo.descricao as tipodispositivo', 'submissao', 'avaliacao')
-                    ->where('status', $type)
-                    ->get();
-                return View::make('admin.actions.listRequests')->with(['requisicoes' => $requests, 'tipo' => $type]);
-            }
-            else abort(403);
-        }
-        else return redirect('/login');
+        session()->put('novosPedidos', Requisicao::where('status', '=', 0)->count());
+
+        if(!isset($type)) $type = 0;
+
+        $requests = DB::table('requisicoes')->join('tipo_dispositivo', 'requisicoes.tipo_dispositivo', '=', 'tipo_dispositivo.id')
+            ->join('tipo_usuario', 'requisicoes.tipo_usuario', '=', 'tipo_usuario.id')
+            ->select('requisicoes.id as id', 'responsavelNome', 'usuarioNome', 'tipo_usuario.descricao as tipousuario', 'tipo_dispositivo.descricao as tipodispositivo', 'submissao', 'avaliacao')
+            ->where('status', $type)
+            ->get();
+
+        return View::make('requisicao.show')->with(['requisicoes' => $requests, 'tipo' => $type]);
     }
 
     public function getRequestDetails($id)
