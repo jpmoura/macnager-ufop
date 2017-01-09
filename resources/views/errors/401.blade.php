@@ -1,7 +1,7 @@
 @extends('layout.base')
 
 @section('title')
-  401
+  Erro 401
 @endsection
 
 @section('content')

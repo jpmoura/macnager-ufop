@@ -60,7 +60,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/', ['as' => 'home', 'uses' => 'PagesController@home']);
     Route::get('/home', 'PagesController@home');
     Route::get('/sobre', ['as' => 'about', 'uses' => 'PagesController@about']);
-    Route::post('/searchperson', ['as' => 'doSearch', 'uses' => 'UserController@searchPerson']);
+    Route::post('/searchperson', ['as' => 'searchLdapUser', 'uses' => 'UserController@searchPerson']);
 
     Route::group(['prefix' => 'request'], function(){
         Route::get('add', ['as' => 'showAddRequest', 'uses' => 'RequisicaoController@showAdd']);

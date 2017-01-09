@@ -25,6 +25,115 @@
     <li><i class="fa fa-plus"></i> Adicionar</li>
 @endsection
 
+@push('extra-css')
+    {!! HTML::style('public/js/plugins/jQueryUI/jquery-ui.min.css') !!}
+@endpush
+
+@push('extra-scripts')
+    {!! HTML::script('public/js/plugins/jQueryMask/jquery.mask.min.js') !!}
+    {!! HTML::script('public/js/plugins/jQueryUI/jquery-ui.min.js') !!}
+    {!! HTML::script('public/js/plugins/jQueryUI/datepicker-pt-BR.js') !!}
+    <script>
+        submitModal = function(){
+            $('#loadingModal').modal({backdrop: 'static', keyboard: false});
+            document.forms['addmac'].submit();
+        }
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );
+            $( "#datepicker" ).datepicker($.datepicker.regional['pt-BR']);
+        });
+    </script>
+    <script type="text/javascript">
+        $(function(){
+            $('#usuario').blur(function(){
+                console.log('Fazendo requisição');
+                $("#userDetails").html("<img width='36px' height='36px' alt='Carregando...' src='{{ asset('public/img/loading.gif') }}'/>"); // ícone mostrando o carregamento da informação
+                $.ajax({
+                    url: '{{ route('searchLdapUser') }}', // url
+                    type: "post", // método
+                    data: {'cpf':$('input[name=usuario]').val(), '_token': $('input[name=_token]').val()}, // dados para o método post
+
+                    success: function(response){
+                        $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'><h3 class='panel-title'>Detalhes do Usuário</h3></div><div class='panel-body text-justify'>");
+
+                        // Se a resposta for OK
+                        if(response.status == 'success') { // Achou o usuário
+                            $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'><h3 class='panel-title'>Detalhes do Usuário</h3></div>" +
+                                "<div class='panel-body'>" +
+                                "<p><i class='fa fa-user'></i> " + response.name + "</p>" +
+                                "<p><i class='fa fa-envelope'></i> " + response.email + "</p>" +
+                                "<p><i class='fa fa-users'></i> " + response.group + "</p>" +
+                                "</div>" +
+                                "</div>");
+                            $('input[name=usuarioNome]').val(response.name);
+                        }
+                        else { // Não encontrou ninguém
+                            $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'>" +
+                                "<h3 class='panel-title'>Detalhes do Responsável</h3></div><div class='panel-body'>" +
+                                "<p>" + response.msg + "</p><p>É <span class='text-bold'>necessário</span> que o futuro usuário esteja cadastrado no servidor LDAP.</p>" +
+                                "</div></div>");
+                        }
+                    },
+
+                    // Se houver erro na requisição (e.g. 404)
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        $("#userDetails").html(XMLHttpRequest.responseText);
+                    },
+
+                    complete: function(data){
+                        console.log(data);
+                    }
+                });
+            });
+        });
+    </script>
+    <script type="text/javascript">
+        $(function(){
+            $('#responsavel').blur(function(){
+                console.log('Fazendo requisição');
+                $("#responsibleDetails").html("<img width='36px' height='36px' alt='Carregando...' src='{{ asset('public/img/loading.gif') }}'/>"); // ícone mostrando o carregamento da informação
+                $.ajax({
+                    url: '{{ route('searchLdapUser') }}', // url
+                    type: "post", // método
+                    data: {'cpf':$('input[name=responsavel]').val(), '_token': $('input[name=_token]').val()}, // dados para o método post
+
+                    success: function(response){
+
+                        // Se a resposta for OK
+                        if(response.status == 'success') { // Achou o usuário
+                            $("#responsibleDetails").html("<div class='panel panel-info'><div class='panel-heading'><h3 class='panel-title'>Detalhes do Responsável</h3></div>" +
+                                "<div class='panel-body'>" +
+                                "<p><i class='fa fa-user'></i> " + response.name + "</p>" +
+                                "<p><i class='fa fa-envelope'></i> " + response.email + "</p>" +
+                                "<p><i class='fa fa-users'></i> " + response.group + "</p>" +
+                                "</div>" +
+                                "</div>");
+                            $('input[name=responsavelNome]').val(response.name);
+                        }
+                        else { // Não encontrou ninguém
+                            $("#responsibleDetails").html("<div class='panel panel-info'><div class='panel-heading'>" +
+                                "<h3 class='panel-title'>Detalhes do Responsável</h3></div><div class='panel-body'>" +
+                                "<p>" + response.msg + "</p><p>É <span class='text-bold'>necessário</span> que o responsável esteja cadastrado no servidor LDAP.</p>" +
+                                "</div></div><br />");
+                        }
+                    },
+
+                    // Se houver erro na requisição (e.g. 404)
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        $("#responsibleDetails").html(XMLHttpRequest.responseText);
+                    },
+
+                    complete: function(data){
+                        console.log(data);
+                    }
+                });
+            });
+        });
+    </script>
+@endpush
+
 @section('content')
     <div class='row'>
         <div class='col-lg-12'>
@@ -143,109 +252,4 @@
             </div>
         </div>
     </div>
-@endsection
-
-@section('extrascripts')
-    <script src="{{ asset ('public/plugins/jQueryMask/jquery.mask.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset ('public/plugins/jQueryUI/jquery-ui.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset ('public/plugins/jQueryUI/datepicker-pt-BR.js') }}" type="text/javascript"></script>
-    <script>
-        submitModal = function(){
-            $('#loadingModal').modal({backdrop: 'static', keyboard: false});
-            document.forms['addmac'].submit();
-        }
-    </script>
-    <script>
-        $(document).ready(function() {
-            $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );
-            $( "#datepicker" ).datepicker($.datepicker.regional['pt-BR']);
-        });
-    </script>
-    <script type="text/javascript">
-        $(function(){
-            $('#usuario').blur(function(){
-                console.log('Fazendo requisição');
-                $("#userDetails").html("<img width='36px' height='36px' alt='Carregando...' src='{{ asset('img/loading.gif') }}'/>"); // ícone mostrando o carregamento da informação
-                $.ajax({
-                    url: '{{url('/searchperson')}}', // url
-                    type: "post", // método
-                    data: {'cpf':$('input[name=usuario]').val(), '_token': $('input[name=_token]').val()}, // dados para o método post
-
-                    success: function(response){
-                        $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'><h3 class='panel-title'>Detalhes do Usuário</h3></div><div class='panel-body text-justify'>");
-
-                        // Se a resposta for OK
-                        if(response.status == 'success') { // Achou o usuário
-                            $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'><h3 class='panel-title'>Detalhes do Usuário</h3></div>" +
-                                    "<div class='panel-body'>" +
-                                    "<p><i class='fa fa-user'></i> " + response.name + "</p>" +
-                                    "<p><i class='fa fa-envelope'></i> " + response.email + "</p>" +
-                                    "<p><i class='fa fa-users'></i> " + response.group + "</p>" +
-                                    "</div>" +
-                                    "</div>");
-                            $('input[name=usuarioNome]').val(response.name);
-                        }
-                        else { // Não encontrou ninguém
-                            $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'>" +
-                                    "<h3 class='panel-title'>Detalhes do Responsável</h3></div><div class='panel-body'>" +
-                                    "<p>" + response.msg + "</p><p>É <span class='text-bold'>necessário</span> que o futuro usuário esteja cadastrado no servidor LDAP.</p>" +
-                                    "</div></div>");
-                        }
-                    },
-
-                    // Se houver erro na requisição (e.g. 404)
-                    error: function (XMLHttpRequest, textStatus, errorThrown) {
-                        $("#userDetails").html(XMLHttpRequest.responseText);
-                    },
-
-                    complete: function(data){
-                        console.log(data);
-                    }
-                });
-            });
-        });
-    </script>
-    <script type="text/javascript">
-        $(function(){
-            $('#responsavel').blur(function(){
-                console.log('Fazendo requisição');
-                $("#responsibleDetails").html("<img width='36px' height='36px' alt='Carregando...' src='{{ asset('img/loading.gif') }}'/>"); // ícone mostrando o carregamento da informação
-                $.ajax({
-                    url: '{{url('/searchperson')}}', // url
-                    type: "post", // método
-                    data: {'cpf':$('input[name=responsavel]').val(), '_token': $('input[name=_token]').val()}, // dados para o método post
-
-                    success: function(response){
-
-                        // Se a resposta for OK
-                        if(response.status == 'success') { // Achou o usuário
-                            $("#responsibleDetails").html("<div class='panel panel-info'><div class='panel-heading'><h3 class='panel-title'>Detalhes do Responsável</h3></div>" +
-                                    "<div class='panel-body'>" +
-                                    "<p><i class='fa fa-user'></i> " + response.name + "</p>" +
-                                    "<p><i class='fa fa-envelope'></i> " + response.email + "</p>" +
-                                    "<p><i class='fa fa-users'></i> " + response.group + "</p>" +
-                                    "</div>" +
-                                    "</div>");
-                            $('input[name=responsavelNome]').val(response.name);
-                        }
-                        else { // Não encontrou ninguém
-                            $("#responsibleDetails").html("<div class='panel panel-info'><div class='panel-heading'>" +
-                                    "<h3 class='panel-title'>Detalhes do Responsável</h3></div><div class='panel-body'>" +
-                                    "<p>" + response.msg + "</p><p>É <span class='text-bold'>necessário</span> que o responsável esteja cadastrado no servidor LDAP.</p>" +
-                                    "</div></div><br />");
-                        }
-                    },
-
-                    // Se houver erro na requisição (e.g. 404)
-                    error: function (XMLHttpRequest, textStatus, errorThrown) {
-                        $("#responsibleDetails").html(XMLHttpRequest.responseText);
-                    },
-
-                    complete: function(data){
-                        console.log(data);
-                    }
-                });
-            });
-        });
-    </script>
 @endsection

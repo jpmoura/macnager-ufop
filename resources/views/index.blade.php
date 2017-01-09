@@ -8,11 +8,9 @@
     Bem-vindo {!! Auth::user()->nome !!}, você está na página inicial.
 @endsection
 
-@section('prescripts')
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-@endsection
-
 @section('content')
+    {!! HTML::script('https://www.gstatic.com/charts/loader.js') !!}
+
     <div class='col-lg-12'>
         @if(Session::has("tipo"))
             <div class="row">

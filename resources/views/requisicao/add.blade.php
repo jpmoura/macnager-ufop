@@ -8,14 +8,6 @@
     active
 @endsection
 
-@section('extracss')
-    <link href="{{ asset("public/plugins/jQueryUI/jquery-ui.min.css")}}" rel="stylesheet" type="text/css" />
-@endsection
-
-@section('prescripts')
-    <link rel="stylesheet" href="{{asset('public/plugins/datatables/dataTables.bootstrap.css')}}">
-@endsection
-
 @section('title')
     Nova Requisição
 @endsection
@@ -28,6 +20,86 @@
     <li><i class="fa fa-laptop"></i> Dispositivos</li>
     <li><i class="fa fa-plus"></i> Adicionar</li>
 @endsection
+
+@push('extra-css')
+    {!! HTML::style('public/js/plugins/jQueryUI/jquery-ui.min.css') !!}
+    {!! HTML::style('public/js/plugins/datatables/dataTables.bootstrap.css') !!}
+@endpush
+
+@push('extra-scripts')
+    {!! HTML::script('public/js/plugins/datatables/jquery.dataTables.min.js') !!}
+    {!! HTML::script('public/js/plugins/datatables/dataTables.bootstrap.min.js') !!}
+    {!! HTML::script('public/js/plugins/jQueryMask/jquery.mask.min.js') !!}
+    <script>
+        $(document).ready(function() {
+            $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );
+        });
+    </script>
+    <script type="text/javascript">
+        $(function(){
+            $('#usuario').blur(function(){
+                console.log('Fazendo requisição');
+                $("#userDetails").html("<img width='36px' height='36px' alt='Carregando...' src='{{ asset('public/img/loading.gif') }}'/>"); // ícone mostrando o carregamento da informação
+                $.ajax({
+                    url: '{{ route('searchLdapUser') }}', // url
+                    type: "post", // método
+                    data: {'cpf':$('input[name=usuario]').val(), '_token': $('input[name=_token]').val()}, // dados para o método post
+
+                    success: function(response){
+                        $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'><h3 class='panel-title'>Detalhes do Usuário</h3></div><div class='panel-body text-justify'>");
+
+                        // Se a resposta for OK
+                        if(response.status == 'success') { // Achou o usuário
+                            $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'><h3 class='panel-title'>Detalhes do Usuário</h3></div>" +
+                                "<div class='panel-body'>" +
+                                "<p><i class='fa fa-user'></i> " + response.name + "</p>" +
+                                "<p><i class='fa fa-envelope'></i> " + response.email + "</p>" +
+                                "<p><i class='fa fa-users'></i> " + response.group + "</p>" +
+                                "</div>" +
+                                "</div>");
+                            $('input[name=usuarioNome]').val(response.name);
+                        }
+                        else { // Não encontrou ninguém
+                            $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'>" +
+                                "<h3 class='panel-title'>Detalhes do Responsável</h3></div><div class='panel-body'>" +
+                                "<p>" + response.msg + "</p><p>É <span class='text-bold'>necessário</span> que o futuro usuário esteja cadastrado no servidor LDAP.</p>" +
+                                "</div></div>");
+                        }
+                    },
+
+                    // Se houver erro na requisição (e.g. 404)
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        $("#userDetails").html(XMLHttpRequest.responseText);
+                    },
+
+                    complete: function(data){
+                        console.log(data);
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        $(function () {
+            $("#organizacoes").DataTable( {
+                "language": {
+                    "lengthMenu": "Mostrar _MENU_ registros por página",
+                    "zeroRecords": "Nada encontrado.",
+                    "info": "Mostrando página _PAGE_ de _PAGES_",
+                    "infoEmpty": "Nenhum registro disponível",
+                    "infoFiltered": "(Filtrado de _MAX_ registros)",
+                    "search": "Procurar:",
+                    "paginate": {
+                        "next": "Próximo",
+                        "previous": "Anterior"
+                    }
+                },
+                "autoWidth" : true,
+                "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tudo"]]
+            });
+        });
+    </script>
+@endpush
 
 @section('content')
     <div class='row'>
@@ -187,80 +259,4 @@
             </div>
         </div>
     </div>
-@endsection
-
-@section('extrascripts')
-    <script src="{{ asset ('public/plugins/jQueryMask/jquery.mask.min.js') }}" type="text/javascript"></script>
-    <script>
-        $(document).ready(function() {
-            $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );
-        });
-    </script>
-    <script type="text/javascript">
-        $(function(){
-            $('#usuario').blur(function(){
-                console.log('Fazendo requisição');
-                $("#userDetails").html("<img width='36px' height='36px' alt='Carregando...' src='{{ asset('img/loading.gif') }}'/>"); // ícone mostrando o carregamento da informação
-                $.ajax({
-                    url: '{{url('/searchperson')}}', // url
-                    type: "post", // método
-                    data: {'cpf':$('input[name=usuario]').val(), '_token': $('input[name=_token]').val()}, // dados para o método post
-
-                    success: function(response){
-                        $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'><h3 class='panel-title'>Detalhes do Usuário</h3></div><div class='panel-body text-justify'>");
-
-                        // Se a resposta for OK
-                        if(response.status == 'success') { // Achou o usuário
-                            $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'><h3 class='panel-title'>Detalhes do Usuário</h3></div>" +
-                                "<div class='panel-body'>" +
-                                "<p><i class='fa fa-user'></i> " + response.name + "</p>" +
-                                "<p><i class='fa fa-envelope'></i> " + response.email + "</p>" +
-                                "<p><i class='fa fa-users'></i> " + response.group + "</p>" +
-                                "</div>" +
-                                "</div>");
-                            $('input[name=usuarioNome]').val(response.name);
-                        }
-                        else { // Não encontrou ninguém
-                            $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'>" +
-                                "<h3 class='panel-title'>Detalhes do Responsável</h3></div><div class='panel-body'>" +
-                                "<p>" + response.msg + "</p><p>É <span class='text-bold'>necessário</span> que o futuro usuário esteja cadastrado no servidor LDAP.</p>" +
-                                "</div></div>");
-                        }
-                    },
-
-                    // Se houver erro na requisição (e.g. 404)
-                    error: function (XMLHttpRequest, textStatus, errorThrown) {
-                        $("#userDetails").html(XMLHttpRequest.responseText);
-                    },
-
-                    complete: function(data){
-                        console.log(data);
-                    }
-                });
-            });
-        });
-    </script>
-
-    <script src="{{ asset('public/plugins/datatables/jquery.dataTables.min.js')}}"></script>
-    <script src="{{ asset('public/plugins/datatables/dataTables.bootstrap.min.js')}}"></script>
-    <script>
-        $(function () {
-            $("#organizacoes").DataTable( {
-                "language": {
-                    "lengthMenu": "Mostrar _MENU_ registros por página",
-                    "zeroRecords": "Nada encontrado.",
-                    "info": "Mostrando página _PAGE_ de _PAGES_",
-                    "infoEmpty": "Nenhum registro disponível",
-                    "infoFiltered": "(Filtrado de _MAX_ registros)",
-                    "search": "Procurar:",
-                    "paginate": {
-                        "next": "Próximo",
-                        "previous": "Anterior"
-                    }
-                },
-                "autoWidth" : true,
-                "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tudo"]]
-            });
-        });
-    </script>
 @endsection

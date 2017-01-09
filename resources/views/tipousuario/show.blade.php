@@ -25,9 +25,34 @@
     <li><i class="fa fa-th-list"></i> Listar</li>
 @endsection
 
-@section('prescripts')
-    <link rel="stylesheet" href="{{asset('public/plugins/datatables/dataTables.bootstrap.css')}}">
-@endsection
+@push('extra-css')
+    {!! HTML::style('public/js/plugins/datatables/dataTables.bootstrap.css') !!}
+@endpush
+
+@push('extra-scripts')
+    {!! HTML::script('public/js/plugins/datatables/jquery.dataTables.min.js') !!}
+    {!! HTML::script('public/js/plugins/datatables/dataTables.bootstrap.min.js') !!}
+    <script>
+        $(function () {
+            $("#tipos").DataTable( {
+                "language": {
+                    "lengthMenu": "Mostrar _MENU_ registros por página",
+                    "zeroRecords": "Nada encontrado.",
+                    "info": "Mostrando página _PAGE_ de _PAGES_",
+                    "infoEmpty": "Nenhum registro disponível",
+                    "infoFiltered": "(Filtrado de _MAX_ registros)",
+                    "search": "Procurar:",
+                    "paginate": {
+                        "next": "Próximo",
+                        "previous": "Anterior"
+                    }
+                },
+                "autoWidth" : true,
+                "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tudo"]]
+            });
+        });
+    </script>
+@endpush
 
 @section('content')
     <div class="row">
@@ -82,26 +107,5 @@
 @endsection
 
 @section('extrascripts')
-    <script src="{{ asset('public/plugins/datatables/jquery.dataTables.min.js')}}"></script>
-    <script src="{{ asset('public/plugins/datatables/dataTables.bootstrap.min.js')}}"></script>
-    <script>
-        $(function () {
-            $("#tipos").DataTable( {
-                "language": {
-                    "lengthMenu": "Mostrar _MENU_ registros por página",
-                    "zeroRecords": "Nada encontrado.",
-                    "info": "Mostrando página _PAGE_ de _PAGES_",
-                    "infoEmpty": "Nenhum registro disponível",
-                    "infoFiltered": "(Filtrado de _MAX_ registros)",
-                    "search": "Procurar:",
-                    "paginate": {
-                        "next": "Próximo",
-                        "previous": "Anterior"
-                    }
-                },
-                "autoWidth" : true,
-                "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tudo"]]
-            });
-        });
-    </script>
+
 @endsection

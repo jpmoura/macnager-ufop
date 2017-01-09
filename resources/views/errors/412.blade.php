@@ -1,7 +1,7 @@
 @extends('layout.base')
 
 @section('title')
-  412
+  Erro 412
 @endsection
 
 @section('content')

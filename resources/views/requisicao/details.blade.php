@@ -13,11 +13,6 @@
     <li><i class="fa fa-search"></i> Detalhes</li>
 @endsection
 
-@section('prescripts')
-    <link rel="stylesheet" href="{{asset('public/plugins/datatables/dataTables.bootstrap.css')}}">
-    <link href="{{ asset("public/plugins/jQueryUI/jquery-ui.min.css")}}" rel="stylesheet" type="text/css" />
-@endsection
-
 @section('content')
     <div class="row">
         <div class="col-lg-12">
@@ -128,6 +123,21 @@
                         {{-- Se a requisição estiver em espera --}}
                         @if($requisicao->status == 0)
                             @if(Auth::user()->isAdmin()) {{-- Se o usuário for administrador, mostra formulário de autenticação  --}}
+
+                                @push('extra-css')
+                                    {!! HTML::style('public/js/plugins/jQueryUI/jquery-ui.min.css') !!}
+                                @endpush
+
+                                @push('extra-scripts')
+                                    {!! HTML::script('public/js/plugins/jQueryUI/jquery-ui.min.js') !!}
+                                    {!! HTML::script('public/js/plugins/jQueryUI/datepicker-pt-BR.js') !!}
+                                    <script>
+                                        $(document).ready(function() {
+                                            $( "#datepicker" ).datepicker($.datepicker.regional['pt-BR']);
+                                        });
+                                    </script>
+                                @endpush
+
                                 <form class="form" action="{{ route('approveRequest') }}" method="post">
 
                                     {{ csrf_field() }}
@@ -233,39 +243,4 @@
             </div>
         </div>
     @endif
-@endsection
-
-@section('extrascripts')
-    <script src="{{ asset('public/plugins/datatables/jquery.dataTables.min.js')}}"></script>
-    <script src="{{ asset('public/plugins/datatables/dataTables.bootstrap.min.js')}}"></script>
-    <script src="{{ asset ('public/plugins/jQueryMask/jquery.mask.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset ('public/plugins/jQueryUI/jquery-ui.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset ('public/plugins/jQueryUI/datepicker-pt-BR.js') }}" type="text/javascript"></script>
-    <script>
-        $(function () {
-            $("#tipos").DataTable( {
-                "language": {
-                    "lengthMenu": "Mostrar _MENU_ registros por página",
-                    "zeroRecords": "Nada encontrado.",
-                    "info": "Mostrando página _PAGE_ de _PAGES_",
-                    "infoEmpty": "Nenhum registro disponível",
-                    "infoFiltered": "(Filtrado de _MAX_ registros)",
-                    "search": "Procurar:",
-                    "paginate": {
-                        "next": "Próximo",
-                        "previous": "Anterior"
-                    }
-                },
-                "autoWidth" : true,
-                "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tudo"]]
-            });
-        });
-    </script>
-
-    <script>
-        $(document).ready(function() {
-            $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );
-            $( "#datepicker" ).datepicker($.datepicker.regional['pt-BR']);
-        });
-    </script>
 @endsection
