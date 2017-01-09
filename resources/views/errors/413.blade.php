@@ -1,4 +1,4 @@
-@extends('admin.admin_base')
+@extends('layout.base')
 
 @section('title')
   413

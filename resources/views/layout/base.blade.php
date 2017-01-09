@@ -7,17 +7,17 @@
     <!-- Bootstrap 3.3.2 -->
     <link href="{{ asset("public/bootstrap/css/bootstrap.min.css") }}" rel="stylesheet" type="text/css" />
     <!-- Font Awesome Icons -->
-    <link href="{{asset('public/dist/css/font-awesome.min.css')}}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('public/dist/css/font-awesome.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- Theme style -->
-    <link href="{{ asset("public/dist/css/AdminLTE.min.css")}}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset("public/dist/css/AdminLTE.min.css") }}" rel="stylesheet" type="text/css" />
     <!-- AdminLTE Skins -->
-    <link href="{{ asset("public/dist/css/skins/skin-ufop.css")}}" rel="stylesheet" type="text/css" />
-    <link href="{{ asset("public/dist/css/custom.css")}}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset("public/dist/css/skins/skin-ufop.css") }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset("public/dist/css/custom.css") }}" rel="stylesheet" type="text/css" />
 
     @yield('extracss')
 
-    <link rel="shortcut icon" href="{{url('public/favicon.ico')}}" type="image/x-icon">
-    <link rel="icon" href="{{url('public/favicon.ico')}}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('public/favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ asset('public/favicon.ico') }}" type="image/x-icon">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -33,10 +33,10 @@
 <div class="wrapper">
 
     <!-- Header -->
-    @include('admin.header')
+    @include('layout.header')
 
     <!-- Sidebar -->
-    @include('admin.sidebar')
+    @include('layout.sidebar')
 
 <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
@@ -59,7 +59,7 @@
     </div><!-- /.content-wrapper -->
 
 <!-- Footer -->
-    @include('admin.footer')
+    @include('layout.footer')
 </div><!-- ./wrapper -->
 
 <!-- REQUIRED JS SCRIPTS -->

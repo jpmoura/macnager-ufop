@@ -1,4 +1,4 @@
-@extends('admin.admin_base')
+@extends('layout.base')
 
 @section('title')
     Detalhes do pedido #{{ $requisicao->id }}
