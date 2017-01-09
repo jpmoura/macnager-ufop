@@ -22,12 +22,18 @@ class Ldapuser extends Authenticatable
         'id', 'remember_token'
     ];
 
-    public function requestsAsOwner() {
+    public function requestsAsOwner()
+    {
         return $this->hasMany('App\Requisicao', 'cpf', 'responsavel');
     }
 
     public function requestsAsUser()
     {
         return $this->hasMany('App\Requisicao', 'cpf', 'usuario');
+    }
+
+    public function isAdmin()
+    {
+        return $this->nivel == 1;
     }
 }

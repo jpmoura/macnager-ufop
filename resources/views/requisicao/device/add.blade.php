@@ -40,7 +40,7 @@
 
             <div class="box box-primary-ufop">
                 <div class="box-body">
-                    <form class="form" action="{{url('/addMac')}}" accept-charset="UTF-8" method="post" id="addmac">
+                    <form class="form" action="{{ route('addDevice') }}" accept-charset="UTF-8" method="post" id="addmac">
                         {{ csrf_field() }}
 
                         <div class="input-group">
@@ -138,7 +138,7 @@
                     Gerando novos arquivos ARP e DHCP e enviando para os servidores.
                     <br />
                     <br />
-                    <img src="{{asset('public/img/bigloading.gif')}}" />
+                    <img src="{{ asset('public/img/bigloading.gif') }}" />
                 </div>
             </div>
         </div>

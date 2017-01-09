@@ -15,13 +15,13 @@
 @section('description')
     Essa é a lista com todos os usuários
     @if($id < 4) ativos
-    @if($id == 1)
-        hoje
-    @elseif($id == 2)
-        essa semana
-    @else
-        esse mês
-    @endif
+        @if($id == 1)
+            hoje
+        @elseif($id == 2)
+            essa semana
+        @else
+            esse mês
+        @endif
     @else
         inativos a um mês ou mais
     @endif
@@ -52,10 +52,10 @@
             <div class="box box-primary-ufop">
                 <div class="box-header">
                     <ul class="nav nav-tabs">
-                        <li role="presentation" @if($id == 1) class="active" @endif><a href="{{url('/listUsers/1')}}"><i class="fa fa-calendar-check-o"></i> Hoje</a></li>
-                        <li role="presentation" @if($id == 2) class="active" @endif><a href="{{url('/listUsers/2')}}"><i class="fa fa-calendar-minus-o"></i> Semana</a></li>
-                        <li role="presentation" @if($id == 3) class="active" @endif><a href="{{url('/listUsers/3')}}"><i class="fa fa-calendar"></i> Mês</a></li>
-                        <li role="presentation" @if($id == 4) class="active" @endif><a href="{{url('/listUsers/4')}}"><i class="fa fa-history"></i> Inativos</a></li>
+                        <li role="presentation" @if($id == 1) class="active" @endif><a href="{{ route('showUsageRequest', 1) }}"><i class="fa fa-calendar-check-o"></i> Hoje</a></li>
+                        <li role="presentation" @if($id == 2) class="active" @endif><a href="{{ route('showUsageRequest', 2) }}"><i class="fa fa-calendar-minus-o"></i> Semana</a></li>
+                        <li role="presentation" @if($id == 3) class="active" @endif><a href="{{ route('showUsageRequest', 3) }}"><i class="fa fa-calendar"></i> Mês</a></li>
+                        <li role="presentation" @if($id == 4) class="active" @endif><a href="{{ route('showUsageRequest', 4) }}"><i class="fa fa-history"></i> Inativos</a></li>
                     </ul>
                 </div>
                 <div class="box-body">
@@ -88,7 +88,7 @@
                                             <td>{{ $usuario->received }}</td>
                                             <td>{{ $usuario->totalTransferred }}</td>
                                         @endif
-                                        <td><a href="{{ url("editMac" . "/" . $usuario->id) }}" class="btn btn-xs btn-default bg-ufop"><i class="fa fa-edit"></i> Editar</a></td>
+                                        <td><a href="{{ route("showEditDevice", $usuario->id) }}" class="btn btn-xs btn-default bg-ufop"><i class="fa fa-edit"></i> Editar</a></td>
                                     </tr>
                                 @endforeach
                             @endif
@@ -114,8 +114,8 @@
         </div>
     </div>
 
-    <div id="processingIndicator">
-    </div>
+    {{--<div id="processingIndicator">--}}
+    {{--</div>--}}
 @endsection
 
 @section('extrascripts')

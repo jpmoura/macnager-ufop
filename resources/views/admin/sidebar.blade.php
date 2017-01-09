@@ -17,16 +17,16 @@
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li class="@yield('addMac')"><a href="{{url('/addMac')}}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
-                        <li class="@yield('listMac')"><a href="{{url('/listMac/1')}}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
+                        <li class="@yield('addMac')"><a href="{{ route('showAddDevice') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
+                        <li class="@yield('listMac')"><a href="{{ route('listDevice', 1)}}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
                         <li class="treeview @yield('tipodispositivo')">
                             <a href="#">
                                 <i class="fa fa-puzzle-piece"></i><span>Tipos</span>
                                 <i class="fa fa-angle-left pull-right"></i>
                             </a>
                             <ul class="treeview-menu">
-                                <li class="@yield('addDeviceType')"><a href="{{url('/addDeviceType')}}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
-                                <li class="@yield('listDeviceType')"><a href="{{url('/listDeviceType')}}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
+                                <li class="@yield('addDeviceType')"><a href="{{ route('showAddDeviceType') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
+                                <li class="@yield('listDeviceType')"><a href="{{ route('listDeviceType') }}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
                             </ul>
                         </li>
                     </ul>
@@ -38,15 +38,15 @@
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li class="@yield('listUsers')"><a href="{{url('/listUsers/1')}}"><i class="fa fa-th-list"></i> <span>Listar Frequentes</span></a></li>
+                        <li class="@yield('listUsers')"><a href="{{ route('showUsageRequest', 1) }}"><i class="fa fa-th-list"></i> <span>Listar Frequentes</span></a></li>
                         <li class="treeview @yield('tipousuario')">
                             <a href="#">
                                 <i class="fa fa-puzzle-piece"></i><span>Tipos de usuários</span>
                                 <i class="fa fa-angle-left pull-right"></i>
                             </a>
                             <ul class="treeview-menu">
-                                <li class="@yield('addUserType')"><a href="{{url('/addUserType')}}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
-                                <li class="@yield('listUserType')"><a href="{{url('/listUserType')}}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
+                                <li class="@yield('addUserType')"><a href="{{ route('showAddUserType') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
+                                <li class="@yield('listUserType')"><a href="{{ route('listUserType') }}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
                             </ul>
                         </li>
                     </ul>
@@ -71,8 +71,8 @@
                 </a>
 
                 <ul class="treeview-menu">
-                    <li class="@yield('addRequest')"><a href="{{url('/addRequest')}}"><i class="fa fa-plus"></i> <span>Nova requisição</span></a></li>
-                    <li class="@yield('listUserRequests')"><a href="{{url('/listUserRequests')}}"><i class="fa fa-th-list"></i> <span>Minhas requisições</span></a></li>
+                    <li class="@yield('addRequest')"><a href="{{ route('showAddRequest') }}"><i class="fa fa-plus"></i> <span>Nova requisição</span></a></li>
+                    <li class="@yield('listUserRequests')"><a href="{{ route('listUserRequests') }}"><i class="fa fa-th-list"></i> <span>Minhas requisições</span></a></li>
                 </ul>
             </li>
             <li><a href="{{ route('logout') }}"><i class="fa fa-sign-out" aria-hidden="true"></i><span>Sair</span></a></li>

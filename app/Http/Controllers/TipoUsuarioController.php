@@ -14,17 +14,19 @@ use App\TipoUsuario;
 class TipoUsuarioController extends Controller
 {
 
-    public function getAddUserType()
+    /**
+     * Renderiza a view com o formulário de adição.
+     */
+    public function showAdd()
     {
-      if(UserController::checkLogin()) {
-        return View::make('admin.actions.addUserType');
-      }
-      else return redirect('/login');
+        return View::make('tipousuario.add');
     }
 
-    public function doAddUserType()
+    /**
+     * Adiciona uma nova instância ao banco de dados.
+     */
+    public function add()
     {
-      if(UserController::checkLogin()) {
         $newUserType = new TipoUsuario;
         $newUserType->descricao = Input::get('descricao');
         $newUserType->save();
@@ -33,29 +35,31 @@ class TipoUsuarioController extends Controller
         Session::flash('mensagem', 'Novo tipo de usuário adicionado.');
 
         return Redirect::route('listUserType');
-      }
-      else return redirect('/login');
     }
 
-    public function listUserType()
+    /**
+     * Renderiza aview com todos os tipos cadastrados.
+     */
+    public function show()
     {
-      if(UserController::checkLogin()) {
-        return View::make('admin.actions.listUserType')->with('tipos', TipoUsuario::all());
-      }
-      else return redirect('/login');
+        return View::make('tipousuario.show')->with('tipos', TipoUsuario::all());
     }
 
-    public function getEditUserType($id)
+    /**
+     * Renderiza a view com o formulário de edição.
+     * @param $id ID da instância a ser editada
+     * @return Redirect
+     */
+    public function showEdit($id)
     {
-      if(UserController::checkLogin()) {
-        return View::make('admin.actions.editUserType')->with('tipo', TipoUsuario::find($id));
-      }
-      else return redirect('/login');
+        return View::make('tipousuario.edit')->with('tipo', TipoUsuario::find($id));
     }
 
-    public function doEditUserType()
+    /**
+     * Edita dos dados de uma instância.
+     */
+    public function edit()
     {
-      if(UserController::checkLogin()) {
         $toEdit = TipoUsuario::find(Input::get('id'));
         $toEdit->descricao = Input::get('descricao');
         $toEdit->save();
@@ -63,22 +67,20 @@ class TipoUsuarioController extends Controller
         Session::flash('tipo', 'Sucesso');
         Session::flash('mensagem', 'O tipo foi editado.');
 
-        return Redirect::route('listUserType');
-      }
-      else return redirect('/login');
+        return Redirect::back();
     }
 
+    /**
+     * Deleta uma instância do banco de dados.
+     * @param $id ID da instância a ser deletada
+     */
     public function deleteUserType($id)
     {
-      if(UserController::checkLogin()) {
-
         TipoUsuario::destroy($id);
 
         Session::flash('tipo', 'Sucesso');
         Session::flash('mensagem', 'O tipo foi excluído.');
 
         return Redirect::route('listUserType');
-      }
-      else return redirect('/login');
     }
 }

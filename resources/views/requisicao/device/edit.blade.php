@@ -34,7 +34,7 @@
                 </div>
             @endif
 
-            <form class="form" action="{{url('/editMac')}}" method="post" id="editForm">
+            <form class="form" action="{{ route('editDevice') }}" method="post" id="editForm">
                 {{ csrf_field() }}
                 <div class="box box-primary-ufop">
                     <div class="box-body">
@@ -110,10 +110,10 @@
                         @if($requisicao->status == 1)
                             <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#suspendModal"><i class="fa fa-ban"> Suspender</i></button>
                         @elseif ($requisicao->status == 4)
-                            <a href="{{url('/request/reactive' . "/" . $requisicao->id)}}" class="btn btn-primary"><i class="fa fa-power-off"></i> Reativar</a>
+                            <a href="{{ route('reactiveRequest', $requisicao->id)}}" class="btn btn-primary"><i class="fa fa-power-off"></i> Reativar</a>
                         @endif
                         @if($requisicao->status < 5 && $requisicao->status != 3)
-                            <button type="button" class="btn bg-black" data-toggle="modal" data-target="#disableModal"><i class="fa fa-power-off"> Desativar</i></button>
+                            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#disableModal"><i class="fa fa-times"> Remover</i></button>
                         @endif
                         <button type="reset" class="btn bg-gray"><i class="fa fa-eraser"></i> Resetar</button>
                         <button id="edit" type="button" onclick="submitEditModal();" class="btn btn-success"><i class="fa fa-check"></i> Aplicar</button>
@@ -132,7 +132,7 @@
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                         <h4 class="modal-title text-center"><i class="fa fa-ban"></i> Suspender Acesso</h4>
                     </div>
-                    <form class="form" action="{{url('/request/suspend')}}" method="post" id="suspendForm">
+                    <form class="form" action="{{ route('suspendRequest') }}" method="post" id="suspendForm">
                         {{ csrf_field() }}
 
                         <input type="hidden" name="id" value="{{$requisicao->id}}">
@@ -162,10 +162,10 @@
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                         <h4 class="modal-title text-center"><i class="fa fa-power-off"></i> Desativar Dispositivo</h4>
                     </div>
-                    <form class="form" action="{{url('/request/disable')}}" method="post" id="disableForm">
+                    <form class="form" action="{{ route('disableRequest') }}" method="post" id="disableForm">
                         {{ csrf_field() }}
 
-                        <input type="hidden" name="id" value="{{$requisicao->id}}">
+                        <input type="hidden" name="id" value="{{ $requisicao->id }}">
 
                         <div class="modal-body">
                             <p class="text-justify">O dispositivo será desligado da rede, o IP ficará disponível para ser atribuído a outro dispositivo. Essa ação <span class="text-bold">não</span> pode ser desfeita.</p>

@@ -4,29 +4,21 @@
   active
 @endsection
 
-@section('addRequest')
-  active
-@endsection
-
 @section('extracss')
   <link href="{{ asset("public/plugins/jQueryUI/jquery-ui.min.css")}}" rel="stylesheet" type="text/css" />
 @endsection
 
-@section('prescripts')
-  <link rel="stylesheet" href="{{asset('public/plugins/datatables/dataTables.bootstrap.css')}}">
-@endsection
-
 @section('title')
-  Nova Requisição
+  Editar Requisição
 @endsection
 
 @section('description')
-  Complete os campos para requerer que um dispostivo seja adicionado na rede da UFOP.
+  Modifique os campos para editar a requisição.
 @endsection
 
 @section('breadcrumb')
-  <li><i class="fa fa-laptop"></i> Dispositivos</li>
-  <li><i class="fa fa-plus"></i> Adicionar</li>
+  <li><i class="fa fa-hand-o-up"></i> Requisições</li>
+  <li><i class="fa fa-edit"></i> Editar</li>
 @endsection
 
 @section('content')
@@ -44,28 +36,29 @@
 
       <div class="box box-primary-ufop">
         <div class="box-body">
-          <h4 class="text-center text-bold">Todos os campos são obrigatórios</h4>
-
-          <br />
-
-          <form class="form" action="{{url('/addRequest')}}" accept-charset="UTF-8" method="post" enctype="multipart/form-data">
+          <form class="form" action="{{url('/request/edit')}}" accept-charset="UTF-8" method="post" enctype="multipart/form-data">
             {{ csrf_field() }}
 
-            <input type="hidden" name="responsavel" value="{{ Session::get('id') }}">
-            <input type="hidden" name="responsavelNome" value="{{ Session::get('nome') }}">
+            <input type="hidden" name="id" value="{{$requisicao->id}}">
 
             <div class="form-group">
               <div class="input-group">
                 <span class="input-group-addon"><i class="fa fa-lock"></i></span>
                 <input type="text" value="{{Session::get('nome')}}" disabled class="form-control" title="Pessoa responsável pelo usuário" required data-toggle="tooltip" data-placement="top">
               </div>
-              <p class="help-block">Lembre-se que você será o responsável por todo e qualquer desvio de conduta por parte do usuário.</p>
+              <p class="help-block">
+              @if (Session::get('nivel') > 1)
+                Lembre-se que você será o responsável por todo e qualquer desvio de conduta por parte do usuário.
+              @else
+                O responsável pelo usuário <span class="text-bold">não</span> pode ser alterado.
+              @endif
+              </p>
             </div>
 
             <div class="form-group">
               <div class="input-group">
                 <span class="input-group-addon"><i class="fa fa-user"></i></span>
-                <input id="usuario" name="usuario" type="text" minlength="11" maxlength="11" name="usuario" value="{{old('usuario')}}" placeholder="CPF do usuário que irá utilizar o dispositivo" required class="form-control"required>
+                <input id="usuario" name="usuario" type="text" minlength="11" maxlength="11" name="usuario" value="{{$requisicao->usuario}}" placeholder="CPF do usuário que irá utilizar o dispositivo" required class="form-control"required>
               </div>
               <p class="help-block">
                 Caso o usuário não seja uma pessoa e sim todo um laboratório, por exemplo, você pode clicar
@@ -75,7 +68,7 @@
 
             <div class="row">
               <div id='userDetails' class="col-lg-12"></div>
-              <input type="hidden" name="usuarioNome" value="{{old('usuarioNome')}}">
+              <input type="hidden" name="usuarioNome" value="{{$requisicao->usuarioNome}}">
             </div>
 
             <div class="form-group">
@@ -84,7 +77,7 @@
                 <select name="tipousuario" class="form-control" required>
                   <option value="">Selecione um tipo de usuário</option>
                   @foreach ($usuarios as $usuario)
-                    <option value="{{$usuario->id}}" @if(old('tipousuario') == $usuario->id) selected @endif>{!! $usuario->descricao !!}</option>
+                    <option value="{{$usuario->id}}" @if($requisicao->tipo_usuario == $usuario->id) selected @endif>{!! $usuario->descricao !!}</option>
                   @endforeach
                 </select>
               </div>
@@ -97,7 +90,7 @@
                 <select name="tipodispositivo" class="form-control" required>
                   <option value="">Selecione um tipo de dispositivo</option>
                   @foreach ($dispositivos as $dispositivo)
-                    <option value="{{$dispositivo->id}}" @if (old('tipodispositivo') == $dispositivo->id) selected @endif>{!! $dispositivo->descricao !!}</option>
+                    <option value="{{$dispositivo->id}}" @if ($requisicao->tipo_dispositivo == $dispositivo->id) selected @endif>{!! $dispositivo->descricao !!}</option>
                   @endforeach
                 </select>
               </div>
@@ -107,7 +100,7 @@
             <div class="form-group">
               <div class="input-group">
                 <span class="input-group-addon"><i class="fa fa-hashtag"></i></span>
-                <input id="macAddress" name="mac" type='text' class='form-control' value="{{old('mac')}}" placeholder="Endereço MAC da placa de rede" minlength="17" maxlength="17" required>
+                <input id="macAddress" name="mac" type='text' class='form-control' value="{{$requisicao->mac}}" placeholder="Endereço MAC da placa de rede" minlength="17" maxlength="17" required>
               </div>
               <p class="help-block">Você pode encontrar o endereço MAC da placa de rede do dispositivo seguindo <a target="_blank" href="{{url('request/' . base64_encode('tutorial-mac.pdf'))}}">este tutorial.</a></p>
             </div>
@@ -115,7 +108,7 @@
             <div class="form-group">
               <div class="input-group">
                 <span class="input-group-addon"><i class="fa fa-search"></i></span>
-                <input name="descricao" type='text' value="{{old('descricao')}}" class='form-control' placeholder="Descrição do dispositivo" required>
+                <input name="descricao" type='text' value="{{$requisicao->descricao_dispositivo}}" class='form-control' placeholder="Descrição do dispositivo" required>
               </div>
               <p class="help-block">Forneça uma breve descrição do dispositivo para que ele possa ser facilmente identificado posteriormente.</p>
             </div>
@@ -123,7 +116,7 @@
             <div class="form-group">
               <div class="input-group">
                 <span class="input-group-addon"><i class="fa fa-comment"></i></span>
-                <textarea name="justificativa" class="form-control" style="resize: none;" placeholder="Justificativa para adição do dispositivo" maxlength="100" required>{{old('justificativa')}}</textarea>
+                <textarea name="justificativa" class="form-control" style="resize: none;" placeholder="Justificativa para adição do dispositivo" maxlength="100" required>{{$requisicao->justificativa}}</textarea>
               </div>
               <p class="help-block">Explique sucintamente a importância deste dispositivo ter acesso a rede da UFOP.</p>
             </div>
@@ -137,7 +130,7 @@
               <div class="panel-body">
                 <p>Selecione o arquivo em formato PDF que corresponde ao termo de compromisso devidamente preenchido e assinado.</p>
                 <p>O modelo do termo pode ser encontrado neste <a target="_blank" href="{{url('request/' . base64_encode('termos/default.pdf'))}}">link</a>.</p>
-                <input name="termo" type='file' title="Arquivo PDF do termo de compromisso assinado" required>
+                <input name="termo" type='file' title="Arquivo PDF do termo de compromisso assinado">
               </div>
             </div>
 
@@ -173,7 +166,7 @@
               <tbody>
                 @foreach ($organizacoes as $organizacao)
                 <tr>
-                  <td>{{ str_pad($organizacao->cpf, 11, "0", STR_PAD_LEFT) }}</td>
+                  <td>{{ $organizacao->cpf }}</td>
                   <td>{!! $organizacao->nome !!}</td>
                 </tr>
                 @endforeach
@@ -218,7 +211,7 @@
                                           "<p><i class='fa fa-users'></i> " + response.group + "</p>" +
                                         "</div>" +
                                       "</div>");
-              $('input[name=usuarioNome').val(response.name);
+              $('input[name=usuarioNome]').val(response.name);
             }
             else { // Não encontrou ninguém
               $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'>" +
@@ -239,28 +232,5 @@
         });
       });
     });
-  </script>
-
-  <script src="{{ asset('public/plugins/datatables/jquery.dataTables.min.js')}}"></script>
-  <script src="{{ asset('public/plugins/datatables/dataTables.bootstrap.min.js')}}"></script>
-  <script>
-  $(function () {
-    $("#organizacoes").DataTable( {
-      "language": {
-        "lengthMenu": "Mostrar _MENU_ registros por página",
-        "zeroRecords": "Nada encontrado.",
-        "info": "Mostrando página _PAGE_ de _PAGES_",
-        "infoEmpty": "Nenhum registro disponível",
-        "infoFiltered": "(Filtrado de _MAX_ registros)",
-        "search": "Procurar:",
-        "paginate": {
-          "next": "Próximo",
-          "previous": "Anterior"
-        }
-      },
-      "autoWidth" : true,
-      "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tudo"]]
-    });
-  });
   </script>
 @endsection

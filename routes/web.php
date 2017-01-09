@@ -18,71 +18,67 @@ Route::group(['middleware' => 'auth'], function() {
     Route::group(['middelaware' => 'can:administrate'], function() {
         Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 
-        Route::get('/force', ['as' => 'forceReload', 'uses' => 'RequisicaoController@forceReload']);
-        Route::get('/listUsers/{id}', ['as' => 'showUsers', 'uses' => 'RequisicaoController@getUsersList']);
+        //Route::get('force', ['as' => 'forceReload', 'uses' => 'RequisicaoController@forceReload']);
 
-        Route::get('/requests/{type}', ['as' => 'showRequest', 'uses' => 'RequisicaoController@show']);
         Route::group(['prefix' => 'request'], function() {
-            Route::get('/request/details/{id}', ['as' => 'detailsRequest', 'uses' => 'RequisicaoController@getRequestDetails']);
-            Route::post('/request/approve', ['as' => 'doApproveRequest', 'uses' => 'RequisicaoController@doApproveRequest']);
-            Route::post('/request/suspend', ['as' => 'doSuspendRequest', 'uses' => 'RequisicaoController@doSuspendRequest']);
-            Route::post('/request/disable', ['as' => 'doDisableRequest', 'uses' => 'RequisicaoController@doDisableRequest']);
-            Route::post('/request/deny', ['as' => 'doSuspendRequest', 'uses' => 'RequisicaoController@doDenyRequest']);
-            Route::get('/request/reactive/{id}', ['as' => 'doReactiveRequest', 'uses' => 'RequisicaoController@doReactiveRequest']);
-            Route::post('/request/delete', ['as' => 'doDeleteRequest', 'uses' => 'RequisicaoController@doDeleteRequest']);
-            Route::get('/request/edit/{id}', ['as' => 'getEditRequest', 'uses' => 'RequisicaoController@getEditRequest']);
-            Route::post('/request/edit', ['as' => 'doEditRequest', 'uses' => 'RequisicaoController@doEditRequest']);
+            Route::get('list/all/{type}', ['as' => 'showRequest', 'uses' => 'RequisicaoController@show']);
+            Route::post('approve', ['as' => 'approveRequest', 'uses' => 'RequisicaoController@approve']);
+            Route::post('suspend', ['as' => 'suspendRequest', 'uses' => 'RequisicaoController@suspend']);
+            Route::post('disable', ['as' => 'disableRequest', 'uses' => 'RequisicaoController@disable']);
+            Route::post('deny', ['as' => 'denyRequest', 'uses' => 'RequisicaoController@deny']);
+            Route::get('reactive/{id}', ['as' => 'reactiveRequest', 'uses' => 'RequisicaoController@reactive']);
+            Route::get('list/usage/{id}', ['as' => 'showUsageRequest', 'uses' => 'RequisicaoController@showUsage']);
+        });
+
+        Route::group(['prefix' => 'device'], function(){
+            Route::get('add', ['as' => 'showAddDevice', 'uses' => 'RequisicaoController@showAddDevice']);
+            Route::post('add', ['as' => 'addDevice', 'uses' => 'RequisicaoController@addDevice']);
+            Route::get('edit/{id}', ['as' => 'showEditDevice', 'uses' => 'RequisicaoController@showEditDevice']);
+            Route::post('edit', ['as' => 'editDevice', 'uses' => 'RequisicaoController@editDevice']);
+            Route::get('list/{status}', ['as' => 'listDevice', 'uses' => 'RequisicaoController@listDevices']);
+
+            Route::group(['prefix' => 'type'], function(){
+                Route::get('add', ['as' => 'showAddDeviceType', 'uses' => 'TipoDispositivoController@showAdd']);
+                Route::post('add', ['as' => 'addDeviceType', 'uses' => 'TipoDispositivoController@add']);
+                Route::get('list', ['as' => 'listDeviceType', 'uses' => 'TipoDispositivoController@show']);
+                Route::get('edit/{id}', ['as' => 'showEditDeviceType', 'uses' => 'TipoDispositivoController@showEdit']);
+                Route::post('edit', ['as' => 'editDeviceType', 'uses' => 'TipoDispositivoController@edit']);
+                Route::get('delete/{id}', ['as' => 'deleteDeviceType', 'uses' => 'TipoDispositivoController@delete']);
+            });
+        });
+
+        Route::group(['prefix' => 'user/type'], function(){
+            Route::get('add', ['as' => 'showAddUserType', 'uses' => 'TipoUsuarioController@showAdd']);
+            Route::post('add', ['as' => 'addUserType', 'uses' => 'TipoUsuarioController@add']);
+            Route::get('list', ['as' => 'listUserType', 'uses' => 'TipoUsuarioController@show']);
+            Route::get('edit/{id}', ['as' => 'showEditUserType', 'uses' => 'TipoUsuarioController@showEdit']);
+            Route::post('edit', ['as' => 'editUserType', 'uses' => 'TipoUsuarioController@edit']);
+            Route::get('delete/{id}', ['as' => 'deleteUserType', 'uses' => 'TipoUsuarioController@delete']);
         });
     });
 
-
-
     Route::get('/', ['as' => 'home', 'uses' => 'PagesController@home']);
     Route::get('/home', 'PagesController@home');
-
-
-    Route::get('/addMac', ['as' => 'getAddMac', 'uses' => 'RequisicaoController@getAddMac']);
-    Route::post('/addMac', ['as' => 'postAddMac', 'uses' => 'RequisicaoController@doAddMac']);
-
-    Route::get('/editMac/{id}', ['as' => 'getEditMac', 'uses' => 'RequisicaoController@getEditMac']);
-    Route::post('/editMac', ['as' => 'doEditMac', 'uses' => 'RequisicaoController@doEditMac']);
-
-    Route::get('deleteMac/{id}', ['as' => 'deleteMac', 'uses' => 'RequisicaoController@deleteMac']);
-
-    Route::get('/exportArp', ['as' => 'exportArp', 'uses' => 'PagesController@exportArp']);
-    Route::get('/exportDhcpd', ['as' => 'exportDhcpd', 'uses' => 'PagesController@exportDhcpd']);
-
-    Route::get('/listMac/{type}', ['as' => 'listMac', 'uses' => 'RequisicaoController@getListMac']);
-
-    Route::get('/addRequest', ['as' => 'addRequest', 'uses' => 'RequisicaoController@getAddRequest']);
-    Route::post('/addRequest', ['as' => 'addRequest', 'uses' => 'RequisicaoController@doAddRequest']);
-    Route::get('/listUserRequests', ['as' => 'listUserRequests', 'uses' => 'RequisicaoController@getListUserRequests']);
-
+    Route::get('/sobre', ['as' => 'about', 'uses' => 'PagesController@about']);
     Route::post('/searchperson', ['as' => 'doSearch', 'uses' => 'UserController@searchPerson']);
-    Route::get('/request/{filepath}', ['as' => 'showFile', 'uses' => 'RequisicaoController@showFile']);
 
-    Route::get('/addUserType', ['as' => 'getAddUserType', 'uses' => 'TipoUsuarioController@getAddUserType']);
-    Route::post('/addUserType', ['as' => 'doAddUserType', 'uses' => 'TipoUsuarioController@doAddUserType']);
-    Route::get('/listUserType', ['as' => 'listUserType', 'uses' => 'TipoUsuarioController@listUserType']);
-    Route::get('/editUserType/{id}', ['as' => 'getEditUserType', 'uses' => 'TipoUsuarioController@getEditUserType']);
-    Route::post('/editUserType', ['as' => 'doEditUserType', 'uses' => 'TipoUsuarioController@doEditUserType']);
-    Route::get('/deleteUserType/{id}', ['as' => 'deleteUserType', 'uses' => 'TipoUsuarioController@deleteUserType']);
+    Route::group(['prefix' => 'request'], function(){
+        Route::get('add', ['as' => 'showAddRequest', 'uses' => 'RequisicaoController@showAdd']);
+        Route::post('add', ['as' => 'storeRequest', 'uses' => 'RequisicaoController@store']);
+        Route::get('details/{id}', ['as' => 'detailsRequest', 'uses' => 'RequisicaoController@details']);
+        Route::post('delete', ['as' => 'deleteRequest', 'uses' => 'RequisicaoController@delete']);
+        Route::get('edit/{id}', ['as' => 'showEditRequest', 'uses' => 'RequisicaoController@showEdit']);
+        Route::post('edit', ['as' => 'editRequest', 'uses' => 'RequisicaoController@edit']);
+        Route::get('list/user', ['as' => 'listUserRequests', 'uses' => 'RequisicaoController@showFromUser']);
+        Route::get('term/{filepath}', ['as' => 'showTermRequest', 'uses' => 'RequisicaoController@showTerm']);
+    });
 
-    Route::get('/addDeviceType', ['as' => 'getAddDeviceType', 'uses' => 'TipoDispositivoController@getAddDeviceType']);
-    Route::post('/addDeviceType', ['as' => 'doAddDeviceType', 'uses' => 'TipoDispositivoController@doAddDeviceType']);
-    Route::get('/listDeviceType', ['as' => 'listDeviceType', 'uses' => 'TipoDispositivoController@listDeviceType']);
-    Route::get('/editDeviceType/{id}', ['as' => 'getEditDeviceType', 'uses' => 'TipoDispositivoController@getEditDeviceType']);
-    Route::post('/editDeviceType', ['as' => 'doEditDeviceType', 'uses' => 'TipoDispositivoController@doEditDeviceType']);
-    Route::get('/deleteDeviceType/{id}', ['as' => 'deleteDeviceType', 'uses' => 'TipoDispositivoController@deleteDeviceType']);
-
-
-
-
+    Route::group(['prefix' =>'export'], function(){
+        Route::get('arp', ['as' => 'exportArp', 'uses' => 'PagesController@exportArp']);
+        Route::get('dhcpd', ['as' => 'exportDhcpd', 'uses' => 'PagesController@exportDhcpd']);
+    });
 });
 
 Route::get('/login', ['as' => 'showLogin', 'uses' => 'Auth\LoginController@showLogin']);
 Route::post('/login', ['as' => 'login', 'uses' => 'Auth\LoginController@postLogin']);
 Route::get('/sair', ['as' => 'logout', 'uses' => 'Auth\LoginController@logout']);
-
-Route::get('/teste', ['as' => 'teste', 'uses' => 'RequisicaoController@test']);
-Route::get('/sobre', ['as' => 'about', 'uses' => 'PagesController@about']);

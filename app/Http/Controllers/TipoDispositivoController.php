@@ -13,71 +13,72 @@ use App\TipoDispositivo;
 
 class TipoDispositivoController extends Controller
 {
-  public function getAddDeviceType()
-  {
-    if(UserController::checkLogin()) {
-      return View::make('admin.actions.addDeviceType');
+    /**
+     * Renderiza a view com o formulário de adição.
+     */
+    public function showAdd()
+    {
+        return View::make('tipodispositivo.add');
     }
-    else return redirect('/login');
-  }
 
-  public function doAddDeviceType()
-  {
-    if(UserController::checkLogin()) {
-      $newDeviceType = new TipoDispositivo;
-      $newDeviceType->descricao = Input::get('descricao');
-      $newDeviceType->save();
+    /**
+     * Adiciona uma nova instância ao banco de dados
+     */
+    public function add()
+    {
+        $newDeviceType = new TipoDispositivo;
+        $newDeviceType->descricao = Input::get('descricao');
+        $newDeviceType->save();
 
-      Session::flash('tipo', 'Sucesso');
-      Session::flash('mensagem', 'Novo tipo de dispostivo adicionado.');
+        Session::flash('tipo', 'Sucesso');
+        Session::flash('mensagem', 'Novo tipo de dispostivo adicionado.');
 
-      return Redirect::route('listDeviceType');
+        return Redirect::route('listDeviceType');
     }
-    else return redirect('/login');
-  }
 
-  public function listDeviceType()
-  {
-    if(UserController::checkLogin()) {
-      return View::make('admin.actions.listDeviceType')->with('tipos', TipoDispositivo::all());
+    /**
+     *  Renderiza a view com a lista dos tipos.
+     */
+    public function show()
+    {
+        return View::make('tipodispositivo.show')->with('tipos', TipoDispositivo::all());
     }
-    else return redirect('/login');
-  }
 
-  public function getEditDeviceType($id)
-  {
-    if(UserController::checkLogin()) {
-      return View::make('admin.actions.editDeviceType')->with('tipo', TipoDispositivo::find($id));
+    /**
+     * Renderiza a view com o formulário de edição de um novo tipo.
+     * @param $id ID do tipo do dispositivo
+     */
+    public function showEdit($id)
+    {
+        return View::make('tipodispositivo.edit')->with('tipo', TipoDispositivo::find($id));
     }
-    else return redirect('/login');
-  }
 
-  public function doEditDeviceType()
-  {
-    if(UserController::checkLogin()) {
-      $toEdit = TipoDispositivo::find(Input::get('id'));
-      $toEdit->descricao = Input::get('descricao');
-      $toEdit->save();
+    /**
+     * Edita as informações de uma instância.
+     */
+    public function edit()
+    {
+        $toEdit = TipoDispositivo::find(Input::get('id'));
+        $toEdit->descricao = Input::get('descricao');
+        $toEdit->save();
 
-      Session::flash('tipo', 'Sucesso');
-      Session::flash('mensagem', 'O tipo foi editado.');
+        Session::flash('tipo', 'Sucesso');
+        Session::flash('mensagem', 'O tipo foi editado.');
 
-      return Redirect::route('listDeviceType');
+        return Redirect::back();
     }
-    else return redirect('/login');
-  }
 
-  public function deleteDeviceType($id)
-  {
-    if(UserController::checkLogin()) {
+    /**
+     * Deleta uma instância.
+     * @param $id ID da instância
+     */
+    public function delete($id)
+    {
+        TipoDispositivo::destroy($id);
 
-      TipoDispositivo::destroy($id);
+        Session::flash('tipo', 'Sucesso');
+        Session::flash('mensagem', 'O tipo foi excluído.');
 
-      Session::flash('tipo', 'Sucesso');
-      Session::flash('mensagem', 'O tipo foi excluído.');
-
-      return Redirect::route('listDeviceType');
+        return Redirect::route('listDeviceType');
     }
-    else return redirect('/login');
-  }
 }
