@@ -1,0 +1,1 @@
+Isso é uma view de teste. {{ $user->cpf }}

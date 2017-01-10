@@ -56,8 +56,8 @@ return [
     */
 
     'from' => [
-        'address' => 'hello@example.com',
-        'name' => 'Example',
+        'address' => 'suporteinformatica@decea.ufop.br',
+        'name' => 'Suporte Informática - ICEA/JM',
     ],
 
     /*
