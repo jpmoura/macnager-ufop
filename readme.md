@@ -104,11 +104,11 @@ enviado os novos arquivos de configuração da tabela ARP e DHCP aos servidores;
 
 ## TODO
 
+* ~~Utilizar middlewares de autenticação e autorização nativos do Laravel;~~
+* ~~Otimização do carregamento dos elementos CSS e Javascript usando Gulp
+juntamente com SASS ou LESS.~~
 * Permitir a importação dos arquivos de configuração;
 * Permitir que as configurações dos bancos possam ser alteradas sem a
 necessidade de manipulação direta do arquivo .ENV;
 * Otimizar a renderização da página para tabelas com grande quantidade de dados
 (tabelas de pedidos e de dispositivos ativos);
-* Utilizar middlewares de autenticação e autorização nativos do Laravel;
-* Otimização do carregamento dos elementos CSS e Javascript usando Gulp
-juntamente com SASS ou LESS.
