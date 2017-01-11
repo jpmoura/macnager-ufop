@@ -58,11 +58,13 @@ alterando-se basicamente só a palheta de cores do tema.
 
 ## Instalação
 Para instalação é necessário ter o gerenciador de dependências [Composer](https://getcomposer.org/)
-instalado, de preferência globalmente, e a partir dele usar o comando de
-instalação na raiz do projeto:
+instalado e também o [Node.js](https://nodejs.org/) entre as versões 0.12 e 6.9.4, de preferência globalmente, e ainda o
+[Gulp.js](http://gulpjs.com/). No diretório raiz do projeto, execute os seguintes comandos:
 
 ```bash
-composer install
+$ composer install
+$ npm install
+$ gulp --prod
 ```
 
 Para usuários de sistemas UNIX, será necessário conceder permissão de leitura,
