@@ -51,7 +51,7 @@
                 </div>
 
                 @if(Session::has("mensagem"))
-                    <h5 class="text-center text-danger"><b>{{ Session::get("mensagem") }}</b></h5>
+                    <h5 class="text-center text-danger"><b>{!! Session::get("mensagem") !!}</b></h5>
                 @endif
 
                 <br />

@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use App\Ldapuser;
 use Auth;
 use Event;
+use Illuminate\Support\Facades\Config;
 use Input;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
@@ -79,8 +80,6 @@ class LoginController extends Controller
      */
     public function postLogin() {
         $input = Input::all();
-        $ldapi_user = env('LDAPI_USER', 'test');
-        $ldapi_password = env('LDAPI_PASSWORD', 'test');
 
         // Componentes do corpo da requisição
         $requestBody['user'] = $input['username'];
@@ -92,7 +91,7 @@ class LoginController extends Controller
         try
         {
             $response = $httpClient->request("POST", "http://200.239.152.5/ldapi/auth", [
-                "auth" => [$ldapi_user, $ldapi_password, "Basic"],
+                "auth" => [Config::get('ldapi.user'), Config::get('ldapi.password'), "Basic"],
                 "body" => json_encode($requestBody),
                 "headers" => [
                     "Content-type" => "application/json",
@@ -105,9 +104,12 @@ class LoginController extends Controller
 
             // TODO Criar evento de falha de login
             //Event::fire(new LoginFailed($credentials));
+            $responseBody = $ex->getResponse()->getBody()->getContents();
+            if(is_null($responseBody)) $requestBody = "Erro desconhecido.";
 
             session()->flash('erro', 1);
-            session()->flash('mensagem', $ex->getResponse()->getBody()->getContents());
+            session()->flash('mensagem', $responseBody);
+
             return redirect()->back();
         }
         catch (RequestException $ex) { // Erros relacionados ao servidor
