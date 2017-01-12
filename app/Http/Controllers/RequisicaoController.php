@@ -7,7 +7,6 @@ use App\Mail\RequestExcluded;
 use App\Mail\RequestReactivated;
 use App\Mail\RequestSuspended;
 use Illuminate\Http\Request;
-
 use App\Http\Requests;
 use App\Requisicao;
 use App\TipoDispositivo;

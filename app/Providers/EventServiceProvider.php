@@ -13,8 +13,53 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $listen = [
-        'App\Events\SomeEvent' => [
-            'App\Listeners\EventListener',
+        'Illuminate\Auth\Events\Login' => [
+            'App\Listeners\LogSuccessfulLogin',
+        ],
+        'Illuminate\Auth\Events\Logout' => [
+            'App\Listeners\LogSuccessfulLogout',
+        ],
+        'App\Events\LoginFailed' => [
+            'App\Listeners\LogFailedLogin',
+        ],
+        'App\Events\RequestStored' => [
+            'App\Listeners\LogRequestStored',
+        ],
+        'App\Events\RequestApproved' => [
+            'App\Listeners\LogRequestApproved',
+        ],
+        'App\Events\RequestDenied' => [
+            'App\Listeners\LogRequestDenied',
+        ],
+        'App\Events\RequestExcluded' => [
+            'App\Listeners\LogRequestExcluded',
+        ],
+        'App\Events\RequestReactivated' => [
+            'App\Listeners\LogRequestReactivated',
+        ],
+        'App\Events\RequestSuspended' => [
+            'App\Listeners\LogRequestSuspended',
+        ],
+        'App\Events\DeviceStored' => [
+            'App\Listeners\LogDeviceStored',
+        ],
+        'App\Events\DeviceEdited' => [
+            'App\Listeners\LogDeviceEdited',
+        ],
+        'App\Events\RequestExpired' => [
+            'App\Listeners\LogRequestExpired'
+        ],
+        'App\Events\LdapiErrorOnLogin' => [
+            'App\Listeners\LogLdapiErrorOnLogin'
+        ],
+        'App\Events\LdapiErrorOnSearch' => [
+            'App\Listeners\LogLdapiErrorOnSearch'
+        ],
+        'App\Events\NewUserCreated' => [
+            'App\Listeners\LogNewUserCreated'
+        ],
+        'App\Events\NewConfigurationFile' => [
+            'App\Events\LogNewConfigurationFile',
         ],
     ];
 
