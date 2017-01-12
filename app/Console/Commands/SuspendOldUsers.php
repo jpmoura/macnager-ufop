@@ -39,26 +39,26 @@ class SuspendOldUsers extends Command
      */
     public function handle()
     {
-      $activeRequests = Requisicao::where('status', 1)->where('validade', '<>', null)->get();
-      $today = date("Y-m-d H:i:s", time());
+        $activeRequests = Requisicao::where('status', 1)->where('validade', '<>', null)->get();
+        $today = date("Y-m-d H:i:s", time());
 
-      foreach ($activeRequests as $request) {
-        if($today >= $request->validade) {
-          $request->status = 3;
-          $request->avaliacao = $today;
-          $request->juizMotivo = 'Data de validade da concessão expirou.';
-          $request->save();
-          $this->info('O acesso de ' . $request->usuarioNome . ' foi suspenso.');
-          Log::info('O acesso de ' . $request->usuarioNome . ' através do IP '. $request->ip . ' e MAC ' . $request->mac . ' foi suspenso.');
+        foreach ($activeRequests as $request) {
+            if($today >= $request->validade) {
+                $request->status = 3;
+                $request->avaliacao = $today;
+                $request->juizMotivo = 'Data de validade da concessão expirou.';
+                $request->save();
+                $this->info('O acesso de ' . $request->usuarioNome . ' foi suspenso.');
+                Log::info('O acesso de ' . $request->usuarioNome . ' através do IP '. $request->ip . ' e MAC ' . $request->mac . ' foi suspenso.');
+            }
         }
-      }
 
-      $this->line('Comando de suspensão executado.');
+        $this->line('Comando de suspensão executado.');
 
-      // Enviar e-mail de suspensão
-      // executar arp e dhcp (controller)
+        // Enviar e-mail de suspensão
+        // executar arp e dhcp (controller)
 
-      return;
+        return;
 
     }
 }

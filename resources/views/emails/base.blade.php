@@ -107,12 +107,13 @@
                                 <tr>
                                     <td>
                                         <br>
-                                        <img src="https://cdn2.iconfinder.com/data/icons/circle-icons-1/64/dolly-128.png" width="128" height="128" alt="Recebemos sua requisição">
+                                        @yield('image')
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="headline">
-                                        TITULO DA MENSAGEM
+                                        <br />
+                                        @yield('title')
                                     </td>
                                 </tr>
                                 <tr>
@@ -122,7 +123,7 @@
                                                 <tr>
                                                     <td style="color:#ffffff;">
                                                         <br>
-                                                        CORPO DA MENSAGEM.
+                                                        @yield('body')
                                                         <br>
                                                         <br>
                                                     </td>
@@ -138,9 +139,9 @@
                                                 <w:anchorlock/>
                                                 <center>
                                             <![endif]-->
-                                            <a href="http://"
+                                            <a href="http://200.239.152.5/macnager/@yield('button-link')"
                                                style="background-color:dimgray;border-radius:4px;color:#ffffff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:16px;font-weight:bold;line-height:50px;text-align:center;text-decoration:none;width:200px;-webkit-text-size-adjust:none;">
-                                                TEXTO DO BOTÃO
+                                                @yield('button-title')
                                             </a>
                                             <!--[if mso]>
                                             </center>
@@ -152,17 +153,6 @@
                                 </tr>
                             </table>
                             <table style="margin: 0 auto;" cellpadding="0" cellspacing="0" class="force-full-width" bgcolor="#414141" style="margin: 0 auto">
-                                {{--<tr>--}}
-                                    {{--<td style="background-color:#414141;">--}}
-                                        {{--<br>--}}
-                                        {{--<br>--}}
-                                        {{--<img src="https://www.filepicker.io/api/file/R4VBTe2UQeGdAlM7KDc4" alt="google+">--}}
-                                        {{--<img src="https://www.filepicker.io/api/file/cvmSPOdlRaWQZnKFnBGt" alt="facebook">--}}
-                                        {{--<img src="https://www.filepicker.io/api/file/Gvu32apSQDqLMb40pvYe" alt="twitter">--}}
-                                        {{--<br>--}}
-                                        {{--<br>--}}
-                                    {{--</td>--}}
-                                {{--</tr>--}}
                                 <tr>
                                     <td style="color:#bbbbbb; font-size:12px;">
                                         <br />
@@ -172,7 +162,7 @@
                                 </tr>
                                 <tr>
                                     <td style="color:#bbbbbb; font-size:12px;">
-                                        Suporte de Informática | Instituto de Ciências Exatas e Aplicadas | UFOP
+                                        <a href="mailto:suporteinformatica@decsi.ufop.br">Suporte de Informática</a> | <a href="http://www.icea.ufop.br/site/" target="_blank">Instituto de Ciências Exatas e Aplicadas</a> | <a href="http://ufop.br/" target="_blank">UFOP</a>
                                         <br>
                                         <br>
                                     </td>
