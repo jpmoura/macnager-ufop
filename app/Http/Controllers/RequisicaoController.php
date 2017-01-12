@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\RequestDenied;
+use App\Mail\RequestExcluded;
+use App\Mail\RequestReactivated;
+use App\Mail\RequestSuspended;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -9,23 +13,26 @@ use App\Requisicao;
 use App\TipoDispositivo;
 use App\TipoUsuario;
 use App\Ldapuser;
-use Session;
-use View;
-use Input;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Input;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Redirect;
-use Response;
+use Illuminate\Support\Facades\Response;
 use SSH;
-use File;
-use DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 use Exception;
-use Auth;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\RequestApproved;
 
 class RequisicaoController extends Controller
 {
 
     // Tenta deletar um determinado arquivo em 'attempts' vezes
-    private function tryToDelete($file, $attempts = 10) {
+    private function tryToDelete($file, $attempts = 10)
+    {
         while(File::exists($file) && $attempts > 0) File::delete($file);
         return !File::exists($file);
     }
@@ -194,9 +201,9 @@ class RequisicaoController extends Controller
                 // Criar requisição para o novo dispositivo
                 $newRequest = new Requisicao;
                 $newRequest->responsavel = $input['responsavel'];
-                $newRequest->responsavelNome = $input['responsavelNome'];
+                $newRequest->responsavelNome = ucwords(strtolower($input['responsavelNome']));
                 $newRequest->usuario = $input['usuario'];
-                $newRequest->usuarioNome = $input['usuarioNome'];
+                $newRequest->usuarioNome = ucwords(strtolower($input['usuarioNome']));
                 $newRequest->tipo_usuario = $input['tipousuario'];
                 $newRequest->tipo_dispositivo = $input['tipodispositivo'];
                 $newRequest->mac = $input['mac'];
@@ -214,7 +221,6 @@ class RequisicaoController extends Controller
                 else $newRequest->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
 
                 $newRequest->save();
-
                 $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
 
                 Session::flash('mensagem', "<p>ARP: " . $arpResponse . "</p><p>DHCP: " . $dhcpResponse . "</p>");
@@ -228,16 +234,6 @@ class RequisicaoController extends Controller
         }
 
         return Redirect::back();
-    }
-
-    /**
-     * Força que o sistema reserte toda sua tabela de requisição a partir dos dados do servidor de Firewall
-     */
-    public function forceReset()
-    {
-        $successful = true;
-        $this->loadArpTableFromServer($successful);
-        return Redirect::route('home');
     }
 
     /**
@@ -266,10 +262,10 @@ class RequisicaoController extends Controller
         { // Se a data for válida ou em branco
             $record = Requisicao::find($input['id']);
             $record->ip = $input['ip'];
-            $record->responsavel = $input['responsavel'];
-            $record->responsavelNome = $input['responsavelNome'];
+            $record->responsavel = ucwords(strtolower($input['responsavel']));
+            $record->responsavelNome = ucwords(strtolower($input['responsavelNome']));
             $record->usuario = $input['usuario'];
-            $record->usuarioNome = $input['usuarioNome'];
+            $record->usuarioNome = ucwords(strtolower($input['usuarioNome']));
             $record->mac = $input['mac'];
             $record->descricao_dispositivo = $input['descricao'];
             $record->tipo_dispositivo = $input['tipodispositivo'];
@@ -305,9 +301,9 @@ class RequisicaoController extends Controller
             if($form['termo']->getMimeType() == 'application/pdf') {
                 $newRequest = new Requisicao;
                 $newRequest->responsavel = $form['responsavel'];
-                $newRequest->responsavelNome = $form['responsavelNome'];
+                $newRequest->responsavelNome = ucwords(strtolower($form['responsavelNome']));
                 $newRequest->usuario = $form['usuario'];
-                $newRequest->usuarioNome = $form['usuarioNome'];
+                $newRequest->usuarioNome = ucwords(strtolower($form['usuarioNome']));
                 $newRequest->tipo_usuario = $form['tipousuario'];
                 $newRequest->tipo_dispositivo = $form['tipodispositivo'];
                 $newRequest->mac = $form['mac'];
@@ -319,7 +315,9 @@ class RequisicaoController extends Controller
                 Session::flash('tipo', 'Sucesso');
                 Session::flash('mensagem', 'Seu pedido foi enviado com sucesso. Aguarde pela resposta.');
 
-                // TODO Enviar e-mail de confirmação para quem está requirindo caso ele não seja uma organização
+                // Envio de e-mail avisando que a requisição foi aprovada.
+                $user = Ldapuser::where('cpf', $form['responsavel'])->first();
+                if(!is_null($user->email) || !empty($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $newRequest));
             }
             else Session::flash('mensagem', 'O arquivo enviado ou não está em formato PDF ou não foi codificado corretamente.');
         }
@@ -438,10 +436,11 @@ class RequisicaoController extends Controller
             else $request->validade = date("Y-m-d H:i:s", time());
 
             $request->save();
-
             $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
 
-            // TODO Enviar email notificando da aprovação
+            // Envio de e-mail avisando que a requisição foi aprovada.
+            $user = Ldapuser::where('cpf', $request->responsavel)->first();
+            if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $request));
 
             Session::flash('tipo', 'Sucesso');
             Session::flash('mensagem', '<p>A requisição foi aprovada.</p><p>Saída do ARP: ' . $arpResponse  . '</p>Saída do DHCPD: ' . $dhcpResponse . '</p>');
@@ -466,7 +465,9 @@ class RequisicaoController extends Controller
         $requisicao->status = 2;
         $requisicao->save();
 
-        // TODO Enviar e-mail com o motivo da negação da requisição
+        // Envio de e-mail avisando que a requisição foi aprovada.
+        $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
+        if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestDenied($user, $requisicao));
 
         Session::flash('tipo', 'Sucesso');
         Session::flash('mensagem', 'O pedido de liberação do dispositivo foi negado.');
@@ -486,7 +487,10 @@ class RequisicaoController extends Controller
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
 
-        // TODO Enviar e-mail ao dono da requisição e ao usuário informando que o dispositivo foi desativado da rede caso não sejam organizações
+        // Envio de e-mail avisando que a requisição foi aprovada.
+        $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
+        if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestSuspended($user, $requisicao));
+
         // TODO Criar Evento
 
         $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
@@ -511,7 +515,10 @@ class RequisicaoController extends Controller
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
 
-        // TODO Enviar e-mail ao dono da requisição e ao usuário informando que o dispositivo foi desativado da rede caso não sejam organizações
+        // Envio de e-mail avisando que a requisição foi aprovada.
+        $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
+        if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $requisicao));
+
         // TODO Criar evento
 
         $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
@@ -535,7 +542,9 @@ class RequisicaoController extends Controller
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
 
-        // TODO Enviar e-mail informando que o dispositivo doi reativado
+        // Envio de e-mail avisando que a requisição foi aprovada.
+        $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
+        if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestReactivated($user, $requisicao));
 
         $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
 
@@ -639,8 +648,6 @@ class RequisicaoController extends Controller
 
                     Session::flash('tipo', 'Sucesso');
                     Session::flash('mensagem', 'Seu pedido foi atualizado com sucesso. Aguarde pela resposta.');
-
-                    // TODO Enviar email de atualização
                 }
                 else
                 {

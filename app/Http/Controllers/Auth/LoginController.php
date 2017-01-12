@@ -130,7 +130,7 @@ class LoginController extends Controller
                 $user = Ldapuser::create([
                     'cpf' => $userData->cpf,
                     'email' => $userData->email,
-                    'nome' => $userData->nomecompleto,
+                    'nome' => ucwords(strtolower($userData->nomecompleto)),
                     'nivel' => 2,
                     'status' => 1
                 ]);

@@ -120,7 +120,7 @@
 
                     <br />
 
-                    <form class="form" action="{{ route('addDevice') }}" accept-charset="UTF-8" method="post" enctype="multipart/form-data">
+                    <form class="form" action="{{ route('storeRequest') }}" accept-charset="UTF-8" method="post" enctype="multipart/form-data">
                         {{ csrf_field() }}
 
                         <input type="hidden" name="responsavel" value="{{ Auth::user()->cpf }}">
