@@ -27,6 +27,6 @@ class LogFailedLogin
      */
     public function handle(LoginFailed $event)
     {
-        Log::warning('Login falhou.', ['usuario' => $event->credentials['user'], 'senha' => $event->credentials['password']]);
+        Log::warning('Login falhou.', ['usuario' => $event->credentials['username'], 'senha' => $event->credentials['password']]);
     }
 }

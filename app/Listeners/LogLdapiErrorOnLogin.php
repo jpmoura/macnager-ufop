@@ -27,6 +27,6 @@ class LogLdapiErrorOnLogin
      */
     public function handle(LdapiErrorOnLogin $event)
     {
-        Log::critical('Erro do LDAPI durante login.', ['usuario' => $event->credentials['user'], 'senha' => $event->credentials['password']]);
+        Log::critical('Erro do LDAPI durante login.', ['usuario' => $event->credentials['username'], 'senha' => $event->credentials['password']]);
     }
 }

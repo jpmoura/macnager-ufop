@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\LdapiErrorOnSearch;
 use Illuminate\Http\Request;
 use App\Http\Requests;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Input;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
@@ -37,6 +40,7 @@ class UserController extends Controller
             ]);
         } catch (RequestException $ex) {
             // TODO log do erro
+            Event::fire(new LdapiErrorOnSearch(Auth::user()));
             return response()->json(['status' => 'danger', 'msg' => 'Erro de conexão com o servidor LDAP.']);
         }
         $result = json_decode($response->getBody()->getContents(), true);

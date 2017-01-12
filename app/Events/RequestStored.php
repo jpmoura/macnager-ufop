@@ -16,17 +16,17 @@ class RequestStored
     use InteractsWithSockets, SerializesModels;
 
     public $request;
-    public $judge;
+    public $user;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(Requisicao $request, Ldapuser $judge)
+    public function __construct(Requisicao $request, Ldapuser $user)
     {
         $this->request = $request;
-        $this->judge = $judge;
+        $this->user = $user;
     }
 
     /**

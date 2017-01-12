@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Events\LdapiErrorOnLogin;
+use App\Events\LoginFailed;
+use App\Events\NewUserCreated;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use App\Ldapuser;
 use Auth;
-use Event;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Event;
 use Input;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
@@ -102,8 +105,8 @@ class LoginController extends Controller
             $credentials['username'] = $input["username"];
             $credentials['password'] = $input['password'];
 
-            // TODO Criar evento de falha de login
-            //Event::fire(new LoginFailed($credentials));
+            Event::fire(new LoginFailed($credentials));
+
             $responseBody = $ex->getResponse()->getBody()->getContents();
             if(is_null($responseBody)) $requestBody = "Erro desconhecido.";
 
@@ -113,11 +116,19 @@ class LoginController extends Controller
             return redirect()->back();
         }
         catch (RequestException $ex) { // Erros relacionados ao servidor
+            $credentials['username'] = $input["username"];
+            $credentials['password'] = $input['password'];
+
+            Event::fire(new LdapiErrorOnLogin($credentials));
+
             session()->flash('mensagem', $ex->getResponse()->getBody()->getContents());
+
             return redirect()->back();
         }
+
         // Se nenhuma excessão foi jogada, então o usuário está autenticado
         $user = Ldapuser::where('cpf', $input['username'])->first();
+
         // Se o usuário é NULL então ou ele não é cadastrado no sistema ainda ou não tem permissão
         if(is_null($user))
         {
@@ -135,8 +146,7 @@ class LoginController extends Controller
                     'status' => 1
                 ]);
 
-                // TODO Criar evento de usuário criado
-                // Event::fire(new NewUserCreated($user));
+                Event::fire(new NewUserCreated($user));
             }
             else
             {

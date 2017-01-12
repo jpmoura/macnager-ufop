@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\DeviceEdited;
+use App\Events\DeviceStored;
+use App\Events\NewConfigurationFile;
+use App\Events\RequestStored;
 use App\Mail\RequestDenied;
 use App\Mail\RequestExcluded;
 use App\Mail\RequestReactivated;
@@ -12,6 +16,7 @@ use App\Requisicao;
 use App\TipoDispositivo;
 use App\TipoUsuario;
 use App\Ldapuser;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Input;
@@ -58,6 +63,8 @@ class RequisicaoController extends Controller
         SSH::into('dhcp')->run('/usr/local/etc/rc.d/isc-dhcpd restart', function($line) { $this->result = $this->result. $line . "<br />"; }); // reinicia o servidor DHCP
         if($this->result == "") $this->result = "Arquivo criado e transferido com sucesso.";
         $dhcpResponse = $this->result;
+
+        Event::fire(new NewConfigurationFile());
 
         return;
     }
@@ -220,6 +227,9 @@ class RequisicaoController extends Controller
                 else $newRequest->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
 
                 $newRequest->save();
+
+                Event::fire(new DeviceStored($newRequest));
+
                 $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
 
                 Session::flash('mensagem', "<p>ARP: " . $arpResponse . "</p><p>DHCP: " . $dhcpResponse . "</p>");
@@ -275,6 +285,8 @@ class RequisicaoController extends Controller
 
             $record->save();
 
+            Event::fire(new DeviceEdited($record));
+
             $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
 
             Session::flash('mensagem', "<p>ARP: " . $arpResponse . "</p><p>DHCP: " . $dhcpResponse . "</p>");
@@ -310,6 +322,8 @@ class RequisicaoController extends Controller
                 $newRequest->descricao_dispositivo = $form['descricao'];
                 $newRequest->justificativa = $form['justificativa'];
                 $newRequest->save();
+
+                Event::fire(new RequestStored($newRequest, Auth::user()));
 
                 Session::flash('tipo', 'Sucesso');
                 Session::flash('mensagem', 'Seu pedido foi enviado com sucesso. Aguarde pela resposta.');
@@ -435,6 +449,9 @@ class RequisicaoController extends Controller
             else $request->validade = date("Y-m-d H:i:s", time());
 
             $request->save();
+
+            Event::fire(new RequestApproved($request, Auth::user()));
+
             $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
 
             // Envio de e-mail avisando que a requisição foi aprovada.
@@ -464,6 +481,8 @@ class RequisicaoController extends Controller
         $requisicao->status = 2;
         $requisicao->save();
 
+        Event::fire(new RequestDenied($requisicao, Auth::user()));
+
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestDenied($user, $requisicao));
@@ -486,11 +505,11 @@ class RequisicaoController extends Controller
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
 
+        Event::fire(new RequestSuspended($requisicao, Auth::user()));
+
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestSuspended($user, $requisicao));
-
-        // TODO Criar Evento
 
         $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
 
@@ -514,11 +533,11 @@ class RequisicaoController extends Controller
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
 
+        Event::fire(new RequestExcluded($requisicao, Auth::user()));
+
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $requisicao));
-
-        // TODO Criar evento
 
         $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
 
@@ -540,6 +559,8 @@ class RequisicaoController extends Controller
         $requisicao->status = 1;
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
+
+        Event::fire(new RequestReactivated($requisicao, Auth::user()));
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();

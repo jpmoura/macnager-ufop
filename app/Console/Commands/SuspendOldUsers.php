@@ -2,8 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Events\RequestExpired;
+use App\Ldapuser;
+use App\Mail\RequestExcluded;
 use Illuminate\Console\Command;
 use App\Requisicao;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
 use Log;
 
 class SuspendOldUsers extends Command
@@ -46,17 +51,23 @@ class SuspendOldUsers extends Command
             if($today >= $request->validade) {
                 $request->status = 3;
                 $request->avaliacao = $today;
+                $request->juizCPF = '00000000001';
                 $request->juizMotivo = 'Data de validade da concessão expirou.';
                 $request->save();
                 $this->info('O acesso de ' . $request->usuarioNome . ' foi suspenso.');
+
+                Event::fire(new RequestExpired($request));
+
+                $user = Ldapuser::where('cpf', $request->responsavel)->first();
+                if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $request));
+
                 Log::info('O acesso de ' . $request->usuarioNome . ' através do IP '. $request->ip . ' e MAC ' . $request->mac . ' foi suspenso.');
             }
         }
 
         $this->line('Comando de suspensão executado.');
 
-        // Enviar e-mail de suspensão
-        // executar arp e dhcp (controller)
+        // TODO método para gerar novamente o arquivo de configuração e enviar ao servidor
 
         return;
 

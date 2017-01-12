@@ -27,6 +27,6 @@ class LogRequestStored
      */
     public function handle(RequestStored $event)
     {
-        Log::info('Requisição criada', ['requisição' => $event->request->id, 'juiz' => $event->judge->nome]);
+        Log::info('Requisição criada', ['requisição' => $event->request->id, 'autor' => $event->user->nome]);
     }
 }
