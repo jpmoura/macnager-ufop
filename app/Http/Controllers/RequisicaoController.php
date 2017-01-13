@@ -34,109 +34,46 @@ use App\Mail\RequestApproved;
 class RequisicaoController extends Controller
 {
 
-    // Tenta deletar um determinado arquivo em 'attempts' vezes
-    private function tryToDelete($file, $attempts = 10)
+    /**
+     * Gera o arquivo de configuração para  PfSense
+     * @return bool True se bem sucedido e False caso contrário
+     */
+    private function generateFile()
     {
-        while(File::exists($file) && $attempts > 0) File::delete($file);
-        return !File::exists($file);
-    }
+        // $requestsAllowed = Requisicao::where('status', 1)->orderBy(DB::raw('INET_ATON(ip)'))->get();
 
-    // Gera a tabela ARP de whitelist do firewall, envia para o servidor e reinicia o serviço
-    public function updateArpAndDhcp(&$arpResponse, &$dhcpResponse)
-    {
-        $successful = true;
-        $this->generateFiles(); // gera os arquivos
-
-        // Sincronizando ARP
-
-        $this->result = '';
-        SSH::into('firewall')->run('cp /usr/local/etc/arp_icea /usr/local/etc/arp_icea.' . date("d-m-Y-H-i-s", time()) . '.backup');
-        SSH::into('firewall')->put('/var/www/html/macnager/storage/app/public/temp_arp', '/usr/local/etc/arp_icea'); // transfere o arquivo
-        SSH::into('firewall')->run('sudo arp -f /usr/local/etc/arp_icea', function($line) { $this->result = $this->result . $line . "<br />"; } ); // recarrega a whitelist do Firewall
-        if($this->result == "") $this->result = "Arquivo criado e transferido com sucesso.";
-        $arpResponse = $this->result;
-
-        // Sincronizando DHCP
-        $this->result = '';
-        SSH::into('dhcp')->run('cp /usr/local/etc/dhcp.conf /usr/local/etc/dhcpd.conf.' . date("d-m-Y-H-i-s", time()) . '.backup');
-        SSH::into('dhcp')->put('/var/www/html/macnager/storage/app/public/temp_dhcp', '/usr/local/etc/dhcpd.conf'); // transfere o arquivo
-        SSH::into('dhcp')->run('/usr/local/etc/rc.d/isc-dhcpd restart', function($line) { $this->result = $this->result. $line . "<br />"; }); // reinicia o servidor DHCP
-        if($this->result == "") $this->result = "Arquivo criado e transferido com sucesso.";
-        $dhcpResponse = $this->result;
-
-        Event::fire(new NewConfigurationFile());
+        // TODO criar o arquivo XML de configuração do PfSense
+        // TODO Verificar sintaxe
 
         return;
     }
 
-    /**
-     * Formata um registro como uma linha da tabela de IP do Firewall
-     * @param $record Requisição que será formarado
-     * @return string Requisição formatada devidademente para a tabela ARP do servidor ARP
-     */
-    private function formatToArp($record)
+    // Gera a tabela ARP de whitelist do firewall, envia para o servidor e reinicia o serviço
+    public function refreshPfsense()
     {
-        $formatted = str_replace(' ', '', $record->ip) . ' ' . str_replace(' ', '', $record->mac) . ' #Requisicao-' . $record->id . PHP_EOL;
-        return $formatted;
-    }
+        $log = '';
 
-    /**
-     * Formata uma requisição como uma entrada da tabela do servidor DHCP
-     * @param $record Requisição a ser formatada
-     * @return string Requisição formatada como uma entrada do arquivo DHCPD
-     */
-    private function formatToDhcp($record)
-    {
-        $explodedIP = explode('.', $record->ip);
-        $suffixIP = $explodedIP[2] . '.' . $explodedIP[3];
+        $this->generateFile();
+        $newConfigurationFile = storage_path('app/config.xml');
 
-        $formatted = 'host ' . $suffixIP . ' {' . PHP_EOL .
-            "\thardware ethernet " . str_replace(' ', '', $record->mac) . ';' . PHP_EOL .
-            "\tfixed-address " . str_replace(' ', '', $record->ip). ';' . PHP_EOL .
-            "}" . PHP_EOL;
+        // TODO Conectar usando usuário root, pois ele faz um bypass do menu interativo original do pfSense
+        // TODO Transferência do arquivo para o servidor
+        SSH::into('pfsense')->put($newConfigurationFile, '/config'); // Path do arquivo local e path do arquivo remoto
 
-        return $formatted;
-    }
+        // TODO Criar uma Session usando o PfSesnse PHP Shell
+        // TODO Depois de enviar o arquivo, executar essa session através da sintaxe pfSsh.php playback NOME_SESSION
+        // TODO Detalhes osbre session no link https://doc.pfsense.org/index.php/Using_the_PHP_pfSense_Shell
+        // TODO Verificar mais detalhes sobre a session 'svc', parece  um canivete suiço
 
-    /**
-     * Gera os arquivos ARP e DHACPD para os devidos servidores
-     * @return bool True se bem sucedido e False caso contrário
-     */
-    private function generateFiles()
-    {
-        $requestsAllowed = Requisicao::where('status', 1)->orderBy(DB::raw('INET_ATON(ip)'))->get();
-
-        $dhcpFile = storage_path('app/public/temp_dhcp');
-        $arpFile = storage_path('app/public/temp_arp');
-
-        $successful = $this->tryToDelete($arpFile);
-        if($successful) $successful = $this->tryToDelete($dhcpFile);
-
-        $dhcpDocument = "option domain-name-servers " . PHP_EOL . PHP_EOL .
-            "189.38.95.95,189.38.95.96,8.8.8.8,8.8.4.4;" . PHP_EOL . PHP_EOL .
-            "default-lease-time 99999999;" . PHP_EOL . PHP_EOL .
-            "max-lease-time 99999999;" . PHP_EOL . PHP_EOL .
-            "log-facility local7;" . PHP_EOL . PHP_EOL .
-            "subnet 200.239.152.0 netmask 255.255.252.0 {" . PHP_EOL .
-            "\toption routers 200.239.152.2;" . PHP_EOL .
-            "}" . PHP_EOL . PHP_EOL;
-
-        $arpDocument = "";
-
-        if($successful == true)
+        $commands = ["pfSsh.php playback NOME_SESSAO_PREVIAMENTE_GRAVADA"];
+        SSH::into('pfsense')->run($commands, function($line)
         {
-            // Itera sobre todos os registros, formatando-os para a escrita
-            foreach ($requestsAllowed as $entry)
-            {
-                $dhcpDocument .= $this->formatToDhcp($entry) . PHP_EOL;
-                $arpDocument .= $this->formatToArp($entry) . PHP_EOL;
-            }
+            echo $line . PHP_EOL;
+        });
 
-            $successful = File::append($arpFile, $arpDocument);
-            if($successful) $successful = File::append($dhcpFile, $dhcpDocument);
-        }
+        //Event::fire(new NewConfigurationFile());
 
-        return $successful;
+        return $log;
     }
 
     /**

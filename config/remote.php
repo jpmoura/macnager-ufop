@@ -41,6 +41,13 @@ return [
             'key'       => env('DHCP_PATH', ''),
             'keyphrase' => '',
         ],
+        'pfsense' => [
+            'host'      => env('PFSENSE_HOST'),
+            'username'  => env('PFSENSE_USER'),
+            'password'  => env('PFSENSE_PASS', ''),
+            'key'       => env('PFSENSE_PATH', ''),
+            'keyphrase' => '',
+        ]
     ],
 
     /*

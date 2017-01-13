@@ -78,7 +78,7 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('dhcpd', ['as' => 'exportDhcpd', 'uses' => 'PagesController@exportDhcpd']);
     });
 
-    Route::get('test', 'Test@send');
+    Route::get('test', 'RequisicaoController@refreshPfsense');
 });
 
 Route::get('/login', ['as' => 'showLogin', 'uses' => 'Auth\LoginController@showLogin']);
