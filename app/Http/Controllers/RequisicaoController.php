@@ -40,13 +40,15 @@ class RequisicaoController extends Controller
      */
     private function rebuildStaticMap()
     {
-         $requestsAllowed = Requisicao::where('status', 1)->orderBy(DB::raw('INET_ATON(ip)'))->get();
+        $requestsAllowed = Requisicao::where('status', 1)->orderBy(DB::raw('INET_ATON(ip)'))->get();
+        $pathConfigFile = storage_path("app/config/config.xml");
 
-        $configXML = simplexml_load_file(storage_path("app/config/config.xml"));
-        unset($configXML->dhcpd->lan->staticmap);
+        $configXML = simplexml_load_file($pathConfigFile);
+        unset($configXML->dhcpd->lan->staticmap); // Apaga o static map atual
 
         $iterator = 0;
 
+        // Para cada requisição liberada é criada uma nova entrada no static map
         foreach ($requestsAllowed as $request)
         {
             $configXML->dhcpd->lan->staticmap[$iterator]->mac = $request->mac;
@@ -71,7 +73,7 @@ class RequisicaoController extends Controller
         }
 
         // Salva o arquivo de configuração, sobreescrevendo o antigo;
-        $configXML->saveXML(storage_path("app/config/config.xml"));
+        $configXML->saveXML($pathConfigFile);
 
         return true;
     }
@@ -110,7 +112,7 @@ class RequisicaoController extends Controller
 
     /**
      * Renderiza a view da lista de dispositivos cadastrados
-     * @param $type Status do dispositivo
+     * @param $status Status do dispositivo
      */
     public function listDevices($status)
     {
@@ -131,8 +133,10 @@ class RequisicaoController extends Controller
     public static function getFreeIPs() {
         $freeIPs = array();
 
-        for ($faixa=152; $faixa < 156; $faixa++) {
-            for ($id=1; $id < 256; $id++) {
+        for ($faixa=152; $faixa < 156; $faixa++)
+        {
+            for ($id=1; $id < 256; $id++)
+            {
                 $tempIP = '200.239.' . $faixa . '.' . $id;
                 $count = Requisicao::where('ip', $tempIP)->whereRaw("(`status` = 1 or `status` = 2)")->count();
                 if($count == 0 && $tempIP != '200.239.155.255') array_push($freeIPs, $tempIP);
@@ -172,7 +176,6 @@ class RequisicaoController extends Controller
 
             if(empty($input['validade']) || checkdate($date[1], $date[0], $date[2]) )
             {
-
                 // Criar requisição para o novo dispositivo
                 $newRequest = new Requisicao;
                 $newRequest->responsavel = $input['responsavel'];
@@ -261,7 +264,8 @@ class RequisicaoController extends Controller
             Session::flash('mensagem', "Servidor pfSense atualizado");
             Session::flash('tipo', 'Informação');
         }
-        else  {
+        else
+        {
             Session::flash('mensagem', 'A data informada é inválida.');
             Session::flash('tipo', 'Erro');
         }
@@ -277,8 +281,10 @@ class RequisicaoController extends Controller
         Session::flash('tipo', 'Erro');
         $form = Input::all();
 
-        if($form['termo']->isValid()) {
-            if($form['termo']->getMimeType() == 'application/pdf') {
+        if($form['termo']->isValid())
+        {
+            if($form['termo']->getMimeType() == 'application/pdf')
+            {
                 $newRequest = new Requisicao;
                 $newRequest->responsavel = $form['responsavel'];
                 $newRequest->responsavelNome = ucwords(strtolower($form['responsavelNome']));
@@ -390,12 +396,12 @@ class RequisicaoController extends Controller
      */
     public function details($id)
     {
-            $freeIPs = null;
-            $requisicao = Requisicao::find($id);
+        $freeIPs = null;
+        $requisicao = Requisicao::find($id);
 
-            if(Auth::user()->isAdmin() == 1 && $requisicao->status == 0) $freeIPs = $this->getFreeIPs();
+        if(Auth::user()->isAdmin() == 1 && $requisicao->status == 0) $freeIPs = $this->getFreeIPs();
 
-            return View::make('requisicao.details')->with(['requisicao' => $requisicao, 'ipsLivre' => $freeIPs]);
+        return View::make('requisicao.details')->with(['requisicao' => $requisicao, 'ipsLivre' => $freeIPs]);
     }
 
     /**
@@ -599,54 +605,54 @@ class RequisicaoController extends Controller
 
     public function edit()
     {
-            $requisicao = Requisicao::find(Input::get('id'));
+        $requisicao = Requisicao::find(Input::get('id'));
 
-            if(Auth::user()->isAdmin() || $requisicao->responsavel == Auth::user()->cpf)
+        if(Auth::user()->isAdmin() || $requisicao->responsavel == Auth::user()->cpf)
+        {
+            if($requisicao->status == 0)
             {
-                if($requisicao->status == 0)
-                {
-                    // pegar variáveis e salvar
-                    $form = Input::all();
+                // pegar variáveis e salvar
+                $form = Input::all();
 
-                    if(Input::has('termo'))
+                if(Input::has('termo'))
+                {
+                    if($form['termo']->isValid())
                     {
-                        if($form['termo']->isValid())
-                        {
-                            if($form['termo']->getMimeType() == 'application/pdf') $requisicao->termo = $form['termo']->store('termos');
-                            else
-                            {
-                                Session::flash('tipo', 'Erro');
-                                Session::flash('mensagem', 'O formato do arquivo não é PDF ou não foi bem codificado.');
-                            }
-                        }
+                        if($form['termo']->getMimeType() == 'application/pdf') $requisicao->termo = $form['termo']->store('termos');
                         else
                         {
                             Session::flash('tipo', 'Erro');
-                            Session::flash('mensagem', 'Houve um erro no envio do arquivo e ele não pode ser validado.');
+                            Session::flash('mensagem', 'O formato do arquivo não é PDF ou não foi bem codificado.');
                         }
                     }
-
-                    $requisicao->usuario = $form['usuario'];
-                    $requisicao->usuarioNome = $form['usuarioNome'];
-                    $requisicao->tipo_usuario = $form['tipousuario'];
-                    $requisicao->tipo_dispositivo = $form['tipodispositivo'];
-                    $requisicao->mac = $form['mac'];
-                    $requisicao->descricao_dispositivo = $form['descricao'];
-                    $requisicao->justificativa = $form['justificativa'];
-                    $requisicao->save();
-
-                    Session::flash('tipo', 'Sucesso');
-                    Session::flash('mensagem', 'Seu pedido foi atualizado com sucesso. Aguarde pela resposta.');
+                    else
+                    {
+                        Session::flash('tipo', 'Erro');
+                        Session::flash('mensagem', 'Houve um erro no envio do arquivo e ele não pode ser validado.');
+                    }
                 }
-                else
-                {
-                    Session::flash('tipo', 'Erro');
-                    Session::flash('mensagem', 'Não é possível editar uma requisição que foi julgada. Edite o dispostivo ao invés disso.');
-                }
+
+                $requisicao->usuario = $form['usuario'];
+                $requisicao->usuarioNome = $form['usuarioNome'];
+                $requisicao->tipo_usuario = $form['tipousuario'];
+                $requisicao->tipo_dispositivo = $form['tipodispositivo'];
+                $requisicao->mac = $form['mac'];
+                $requisicao->descricao_dispositivo = $form['descricao'];
+                $requisicao->justificativa = $form['justificativa'];
+                $requisicao->save();
+
+                Session::flash('tipo', 'Sucesso');
+                Session::flash('mensagem', 'Seu pedido foi atualizado com sucesso. Aguarde pela resposta.');
             }
-            else abort(403);
+            else
+            {
+                Session::flash('tipo', 'Erro');
+                Session::flash('mensagem', 'Não é possível editar uma requisição que foi julgada. Edite o dispostivo ao invés disso.');
+            }
+        }
+        else abort(403);
 
-            return redirect()->back();
+        return redirect()->back();
     }
 
     /**
