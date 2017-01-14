@@ -10,10 +10,13 @@ use App\Requisicao;
 
 class PagesController extends Controller
 {
+    /**
+     * Renderiza a view da página inicial que contém informações diferentes de acordo com o tipo do usuário
+     */
     public function home()
     {
         // Se for um administrador
-        if(Auth::user()->nivel == 1)
+        if(Auth::user()->isAdmin())
         {
             // Recupera a quantidade de dispositivos alocados em cada faixa
             for ($faixa=152; $faixa < 156; $faixa++)
@@ -30,27 +33,28 @@ class PagesController extends Controller
         else
         {
             // Recupera a quantidade de cada requisição feita pelo usuário
-            $accepted = Requisicao::where('status', 1)->where('responsavel', Session::get('id'))->count();
-            $rejected = Requisicao::where('status', 2)->where('responsavel', Session::get('id'))->count();
-            $oudated = Requisicao::where('status', 3)->where('responsavel', Session::get('id'))->count();
-            $blocked = Requisicao::where('status', 4)->where('responsavel', Session::get('id'))->count();
+            $accepted = Requisicao::where('status', 1)->where('responsavel', Auth::user()->cpf)->count();
+            $rejected = Requisicao::where('status', 2)->where('responsavel', Auth::user()->cpf)->count();
+            $outdated = Requisicao::where('status', 3)->where('responsavel', Auth::user()->cpf)->count();
+            $blocked = Requisicao::where('status', 4)->where('responsavel', Auth::user()->cpf)->count();
 
-            return view('index')->with(['aceitas' => $accepted, 'rejeitadas' => $rejected, 'vencidas' => $oudated, 'bloqueadas' => $blocked]);
+            return view('index')->with(['aceitas' => $accepted, 'rejeitadas' => $rejected, 'vencidas' => $outdated, 'bloqueadas' => $blocked]);
         }
     }
 
+    /**
+     * Renderiza a view com informações sobre o sistema
+     */
     public function about()
     {
         return view('about');
     }
 
-    public function exportArp()
+    /**
+     * Exporta as últimas configurações enviadas ao servidor pfSense
+     */
+    public function exportConfig()
     {
-        return response()->download(storage_path('app/public/temp_arp'), 'arp_icea');
-    }
-
-    public function exportDhcpd()
-    {
-
+        return response()->download(storage_path('app/config/config.xml'), 'config.xml');
     }
 }

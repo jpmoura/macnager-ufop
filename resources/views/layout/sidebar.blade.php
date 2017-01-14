@@ -58,8 +58,7 @@
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="{{ route('exportArp') }}"><i class="fa fa-table"></i> <span>Tabela ARP</span></a></li>
-                        <li><a href="{{ route('exportDhcpd') }}"><i class="fa fa-gear"></i> <span>DHCPD.CONF</span></a></li>
+                        <li><a href="{{ route('exportConfig') }}"><i class="fa fa-cogs"></i> <span>Configurações do pfSense</span></a></li>
                     </ul>
                 </li>
             @endcan

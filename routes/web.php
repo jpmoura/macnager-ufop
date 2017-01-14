@@ -74,8 +74,7 @@ Route::group(['middleware' => 'auth'], function() {
     });
 
     Route::group(['prefix' =>'export'], function(){
-        Route::get('arp', ['as' => 'exportArp', 'uses' => 'PagesController@exportArp']);
-        Route::get('dhcpd', ['as' => 'exportDhcpd', 'uses' => 'PagesController@exportDhcpd']);
+        Route::get('config', ['as' => 'exportConfig', 'uses' => 'PagesController@exportConfig']);
     });
 });
 
