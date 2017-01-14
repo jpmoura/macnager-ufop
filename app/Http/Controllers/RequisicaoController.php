@@ -207,8 +207,6 @@ class RequisicaoController extends Controller
 
                 $newRequest->save();
 
-
-
                 if($this->refreshPfsense())
                 {
                     Session::flash('mensagem', "Servidor pfSense atualizado");
@@ -537,8 +535,6 @@ class RequisicaoController extends Controller
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
 
-
-
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $requisicao));
@@ -570,8 +566,6 @@ class RequisicaoController extends Controller
         $requisicao->status = 1;
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
-
-
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
