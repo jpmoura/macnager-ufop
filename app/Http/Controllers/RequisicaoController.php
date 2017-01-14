@@ -92,22 +92,29 @@ class RequisicaoController extends Controller
             File::copy($configFile, storage_path('app/config/config-' . $lastModified . '.xml'));
         }
 
-        // Obtém o arquivo de configurações mais recente
-        SSH::into('pfsense')->get("/cf/conf/config.xml", $configFile); // Path do arquivo local e path do arquivo remoto
+        try
+        {
+            // Obtém o arquivo de configurações mais recente
+            SSH::into('pfsense')->get("/cf/conf/config.xml", $configFile); // Path do arquivo local e path do arquivo remoto
 
-        // Modificar o arquivo de configuração, adicionando o novo static map
-        $this->rebuildStaticMap();
+            // Modificar o arquivo de configuração, adicionando o novo static map
+            $this->rebuildStaticMap();
 
-        // Envia o novo arquivo de configuração
-        SSH::into('pfsense')->put($configFile, '/cf/conf/config.xml');
+            // Envia o novo arquivo de configuração
+            SSH::into('pfsense')->put($configFile, '/cf/conf/config.xml');
 
-        // Remove o cache da configuração e reinicia o firewall com a nova configuração
-        $commands = ["rm /tmp/config.cache", "/etc/rc.reload_all"];
-        SSH::into('pfsense')->run($commands);
+            // Remove o cache da configuração e reinicia o firewall com a nova configuração
+            $commands = ["rm /tmp/config.cache", "/etc/rc.reload_all"];
+            SSH::into('pfsense')->run($commands);
 
-        Event::fire(new NewConfigurationFile());
+            Event::fire(new NewConfigurationFile());
+        }
+        catch (Exception $e)
+        {
+            return false;
+        }
 
-        return;
+        return true;
     }
 
     /**
@@ -200,12 +207,19 @@ class RequisicaoController extends Controller
 
                 $newRequest->save();
 
-                Event::fire(new DeviceStored($newRequest));
 
-                $this->refreshPfsense();
 
-                Session::flash('mensagem', "Servidor pfSense atualizado");
-                Session::flash('tipo', 'Informação');
+                if($this->refreshPfsense())
+                {
+                    Session::flash('mensagem', "Servidor pfSense atualizado");
+                    Session::flash('tipo', 'Informação');
+                    Event::fire(new DeviceStored($newRequest));
+                }
+                else
+                {
+                    Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+                    Session::flash('tipo', 'Erro');
+                }
             }
             else
             {
@@ -257,12 +271,17 @@ class RequisicaoController extends Controller
 
             $record->save();
 
-            Event::fire(new DeviceEdited($record));
-
-            $this->refreshPfsense();
-
-            Session::flash('mensagem', "Servidor pfSense atualizado");
-            Session::flash('tipo', 'Informação');
+            if($this->refreshPfsense())
+            {
+                Session::flash('mensagem', "Servidor pfSense atualizado");
+                Session::flash('tipo', 'Informação');
+                Event::fire(new DeviceEdited($record));
+            }
+            else
+            {
+                Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+                Session::flash('tipo', 'Erro');
+            }
         }
         else
         {
@@ -425,16 +444,21 @@ class RequisicaoController extends Controller
 
             $request->save();
 
-            Event::fire(new RequestApproved($request, Auth::user()));
-
-            $this->refreshPfsense();
+            if($this->refreshPfsense())
+            {
+                Session::flash('mensagem', "Servidor pfSense atualizado");
+                Session::flash('tipo', 'Informação');
+                Event::fire(new RequestApproved($request, Auth::user()));
+            }
+            else
+            {
+                Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+                Session::flash('tipo', 'Erro');
+            }
 
             // Envio de e-mail avisando que a requisição foi aprovada.
             $user = Ldapuser::where('cpf', $request->responsavel)->first();
             if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $request));
-
-            Session::flash('tipo', 'Sucesso');
-            Session::flash('mensagem', 'Servidor pfSense');
         }
         else
         {
@@ -480,16 +504,21 @@ class RequisicaoController extends Controller
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
 
-        Event::fire(new RequestSuspended($requisicao, Auth::user()));
-
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestSuspended($user, $requisicao));
 
-        $this->refreshPfsense();
-
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', "Servidor pfSense atualizado.");
+        if($this->refreshPfsense())
+        {
+            Session::flash('mensagem', "Servidor pfSense atualizado");
+            Session::flash('tipo', 'Informação');
+            Event::fire(new RequestSuspended($requisicao, Auth::user()));;
+        }
+        else
+        {
+            Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            Session::flash('tipo', 'Erro');
+        }
 
         return Redirect::back()->with('requisicao', $requisicao);
 
@@ -508,16 +537,23 @@ class RequisicaoController extends Controller
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
 
-        Event::fire(new RequestExcluded($requisicao, Auth::user()));
+
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $requisicao));
 
-        $this->refreshPfsense();
-
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', "O dispositivo foi desligado da rede.");
+        if($this->refreshPfsense())
+        {
+            Session::flash('mensagem', "Servidor pfSense atualizado");
+            Session::flash('tipo', 'Informação');
+            Event::fire(new RequestExcluded($requisicao, Auth::user()));
+        }
+        else
+        {
+            Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            Session::flash('tipo', 'Erro');
+        }
 
         return Redirect::route('listDevice');
     }
@@ -535,16 +571,23 @@ class RequisicaoController extends Controller
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
 
-        Event::fire(new RequestReactivated($requisicao, Auth::user()));
+
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestReactivated($user, $requisicao));
 
-        $this->refreshPfsense();
-
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', "O dispositivo teve o acesso reativado.");
+        if($this->refreshPfsense())
+        {
+            Session::flash('mensagem', "Servidor pfSense atualizado");
+            Session::flash('tipo', 'Informação');
+            Event::fire(new RequestReactivated($requisicao, Auth::user()));
+        }
+        else
+        {
+            Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            Session::flash('tipo', 'Erro');
+        }
 
         return Redirect::back();
     }
