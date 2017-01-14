@@ -35,45 +35,77 @@ class RequisicaoController extends Controller
 {
 
     /**
-     * Gera o arquivo de configuração para  PfSense
-     * @return bool True se bem sucedido e False caso contrário
+     * Reconstroi o static map (lista de ip vinculados a macs)
+     * @return bool True em todos os casos.
      */
-    private function generateFile()
+    private function rebuildStaticMap()
     {
-        // $requestsAllowed = Requisicao::where('status', 1)->orderBy(DB::raw('INET_ATON(ip)'))->get();
+         $requestsAllowed = Requisicao::where('status', 1)->orderBy(DB::raw('INET_ATON(ip)'))->get();
 
-        // TODO criar o arquivo XML de configuração do PfSense
-        // TODO Verificar sintaxe
+        $configXML = simplexml_load_file(storage_path("app/config/config.xml"));
+        unset($configXML->dhcpd->lan->staticmap);
 
-        return;
+        $iterator = 0;
+
+        foreach ($requestsAllowed as $request)
+        {
+            $configXML->dhcpd->lan->staticmap[$iterator]->mac = $request->mac;
+            $configXML->dhcpd->lan->staticmap[$iterator]->ipaddr = $request->mac;
+            $configXML->dhcpd->lan->staticmap[$iterator]->hostname = "Requisicao-" . $request->id;
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("descr");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("arp_table_static_entry");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("filename");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("rootpath");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("defaultleasetime");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("maxleasetime");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("gateway");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("domain");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("domainsearchlist");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("ddnsdomain");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("ddnsdomainprimary");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("ddnsdomainkeyname");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("ddnsdomainkey");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("tftp");
+            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("ldap");
+            ++$iterator;
+        }
+
+        // Salva o arquivo de configuração, sobreescrevendo o antigo;
+        $configXML->saveXML(storage_path("app/config/config.xml"));
+
+        return true;
     }
 
-    // Gera a tabela ARP de whitelist do firewall, envia para o servidor e reinicia o serviço
+    /**
+     * Atualiza o arquivo de configuração no pfSense
+     */
     public function refreshPfsense()
     {
-        $log = '';
+        $configFile = storage_path('app/config/config.xml');
 
-        $this->generateFile();
-        $newConfigurationFile = storage_path('app/config.xml');
-
-        // TODO Conectar usando usuário root, pois ele faz um bypass do menu interativo original do pfSense
-        // TODO Transferência do arquivo para o servidor
-        SSH::into('pfsense')->put($newConfigurationFile, '/config'); // Path do arquivo local e path do arquivo remoto
-
-        // TODO Criar uma Session usando o PfSesnse PHP Shell
-        // TODO Depois de enviar o arquivo, executar essa session através da sintaxe pfSsh.php playback NOME_SESSION
-        // TODO Detalhes osbre session no link https://doc.pfsense.org/index.php/Using_the_PHP_pfSense_Shell
-        // TODO Verificar mais detalhes sobre a session 'svc', parece  um canivete suiço
-
-        $commands = ["pfSsh.php playback NOME_SESSAO_PREVIAMENTE_GRAVADA"];
-        SSH::into('pfsense')->run($commands, function($line)
+        // Realiza o backup do arquivo de configuração anterior
+        if(File::exists($configFile))
         {
-            echo $line . PHP_EOL;
-        });
+            $lastModified = File::lastModified($configFile);
+            File::copy($configFile, storage_path('app/config/config-' . $lastModified . '.xml'));
+        }
 
-        //Event::fire(new NewConfigurationFile());
+        // Obtém o arquivo de configurações mais recente
+        SSH::into('pfsense')->get("/cf/conf/config.xml", $configFile); // Path do arquivo local e path do arquivo remoto
 
-        return $log;
+        // Modificar o arquivo de configuração, adicionando o novo static map
+        $this->rebuildStaticMap();
+
+        // Envia o novo arquivo de configuração
+        SSH::into('pfsense')->put($configFile, '/cf/conf/config.xml');
+
+        // Remove o cache da configuração e reinicia o firewall com a nova configuração
+        $commands = ["rm /tmp/config.cache", "/etc/rc.reload_all"];
+        SSH::into('pfsense')->run($commands);
+
+        Event::fire(new NewConfigurationFile());
+
+        return;
     }
 
     /**
@@ -167,9 +199,9 @@ class RequisicaoController extends Controller
 
                 Event::fire(new DeviceStored($newRequest));
 
-                $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
+                $this->refreshPfsense();
 
-                Session::flash('mensagem', "<p>ARP: " . $arpResponse . "</p><p>DHCP: " . $dhcpResponse . "</p>");
+                Session::flash('mensagem', "Servidor pfSense atualizado");
                 Session::flash('tipo', 'Informação');
             }
             else
@@ -224,9 +256,9 @@ class RequisicaoController extends Controller
 
             Event::fire(new DeviceEdited($record));
 
-            $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
+            $this->refreshPfsense();
 
-            Session::flash('mensagem', "<p>ARP: " . $arpResponse . "</p><p>DHCP: " . $dhcpResponse . "</p>");
+            Session::flash('mensagem', "Servidor pfSense atualizado");
             Session::flash('tipo', 'Informação');
         }
         else  {
@@ -389,14 +421,14 @@ class RequisicaoController extends Controller
 
             Event::fire(new RequestApproved($request, Auth::user()));
 
-            $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
+            $this->refreshPfsense();
 
             // Envio de e-mail avisando que a requisição foi aprovada.
             $user = Ldapuser::where('cpf', $request->responsavel)->first();
             if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $request));
 
             Session::flash('tipo', 'Sucesso');
-            Session::flash('mensagem', '<p>A requisição foi aprovada.</p><p>Saída do ARP: ' . $arpResponse  . '</p>Saída do DHCPD: ' . $dhcpResponse . '</p>');
+            Session::flash('mensagem', 'Servidor pfSense');
         }
         else
         {
@@ -448,10 +480,10 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestSuspended($user, $requisicao));
 
-        $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
+        $this->refreshPfsense();
 
         Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', "<p>O dispositivo teve o acesso suspenso.</p><p>ARP: " . $arpResponse . "</p><p>DHCP: " . $dhcpResponse . "</p>");
+        Session::flash('mensagem', "Servidor pfSense atualizado.");
 
         return Redirect::back()->with('requisicao', $requisicao);
 
@@ -476,10 +508,10 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $requisicao));
 
-        $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
+        $this->refreshPfsense();
 
         Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', "<p>O dispositivo foi desligado da rede.</p><p>ARP: " . $arpResponse . "</p><p>DHCP: " . $dhcpResponse . "</p>");
+        Session::flash('mensagem', "O dispositivo foi desligado da rede.");
 
         return Redirect::route('listDevice');
     }
@@ -503,10 +535,10 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestReactivated($user, $requisicao));
 
-        $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
+        $this->refreshPfsense();
 
         Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', "<p>O dispositivo teve o acesso reativado.</p><p>ARP: " . $arpResponse . "</p><p>DHCP: " . $dhcpResponse . "</p>");
+        Session::flash('mensagem', "O dispositivo teve o acesso reativado.");
 
         return Redirect::back();
     }

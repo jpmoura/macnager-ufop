@@ -77,10 +77,10 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('arp', ['as' => 'exportArp', 'uses' => 'PagesController@exportArp']);
         Route::get('dhcpd', ['as' => 'exportDhcpd', 'uses' => 'PagesController@exportDhcpd']);
     });
-
-    Route::get('test', 'RequisicaoController@refreshPfsense');
 });
 
 Route::get('/login', ['as' => 'showLogin', 'uses' => 'Auth\LoginController@showLogin']);
 Route::post('/login', ['as' => 'login', 'uses' => 'Auth\LoginController@postLogin']);
 Route::get('/sair', ['as' => 'logout', 'uses' => 'Auth\LoginController@logout']);
+
+Route::get('test', 'RequisicaoController@refreshPfsense');
