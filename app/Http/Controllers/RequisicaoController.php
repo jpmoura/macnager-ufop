@@ -52,7 +52,7 @@ class RequisicaoController extends Controller
         foreach ($requestsAllowed as $request)
         {
             $configXML->dhcpd->lan->staticmap[$iterator]->mac = $request->mac;
-            $configXML->dhcpd->lan->staticmap[$iterator]->ipaddr = $request->mac;
+            $configXML->dhcpd->lan->staticmap[$iterator]->ipaddr = $request->ip;
             $configXML->dhcpd->lan->staticmap[$iterator]->hostname = "Requisicao-" . $request->id;
             $configXML->dhcpd->lan->staticmap[$iterator]->addChild("descr");
             $configXML->dhcpd->lan->staticmap[$iterator]->addChild("arp_table_static_entry");
