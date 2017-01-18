@@ -84,6 +84,10 @@ class LoginController extends Controller
     public function postLogin() {
         $input = Input::all();
 
+        // Retirada dos pontos e hífen do CPF
+        $input['username'] = str_replace('.', '', $input['username']);
+        $input['username'] = str_replace('-', '', $input['username']);
+
         // Componentes do corpo da requisição
         $requestBody['user'] = $input['username'];
         $requestBody['password'] = $input['password'];
