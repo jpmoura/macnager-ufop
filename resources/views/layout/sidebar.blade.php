@@ -32,6 +32,28 @@
                     </ul>
                 </li>
 
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-sliders"></i><span>Faixas</span>
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="{{ route('exportConfig') }}"><i class="fa fa-th-list"></i> <span>Listar Faixas</span></a></li>
+                        <li><a href="{{ route('exportConfig') }}"><i class="fa fa-plus"></i> <span>Adicionar Faixa</span></a></li>
+                    </ul>
+                </li>
+
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-sitemap"></i><span>Subredes</span>
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="{{ route('exportConfig') }}"><i class="fa fa-th-list"></i> <span>Listar subredes</span></a></li>
+                        <li><a href="{{ route('exportConfig') }}"><i class="fa fa-plus"></i> <span>Adicionar subrede</span></a></li>
+                    </ul>
+                </li>
+
                 <li class="treeview @yield('usuarios')">
                     <a href="#">
                         <i class="fa fa-users"></i><span>Usuários</span>
