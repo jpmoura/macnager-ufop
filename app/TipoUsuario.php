@@ -14,6 +14,6 @@ class TipoUsuario extends Model
 
   public function requisicoes()
   {
-    return $this->belongsTo('App\Requisicao', 'tipo_usuario');
+    return $this->hasMany('App\Requisicao', 'tipo_usuario');
   }
 }

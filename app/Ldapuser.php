@@ -10,7 +10,6 @@ class Ldapuser extends Authenticatable
 
     use Notifiable;
 
-    protected $table = "ldapusers";
     protected $primaryKey = 'id';
     public $timestamps = false;
 

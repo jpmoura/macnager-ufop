@@ -18,8 +18,6 @@ Route::group(['middleware' => 'auth'], function() {
     Route::group(['middelaware' => 'can:administrate'], function() {
         Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 
-        //Route::get('force', ['as' => 'forceReload', 'uses' => 'RequisicaoController@forceReload']);
-
         Route::group(['prefix' => 'request'], function() {
             Route::get('list/all/{type}', ['as' => 'showRequest', 'uses' => 'RequisicaoController@show']);
             Route::post('approve', ['as' => 'approveRequest', 'uses' => 'RequisicaoController@approve']);
@@ -45,6 +43,15 @@ Route::group(['middleware' => 'auth'], function() {
                 Route::post('edit', ['as' => 'editDeviceType', 'uses' => 'TipoDispositivoController@edit']);
                 Route::get('delete/{id}', ['as' => 'deleteDeviceType', 'uses' => 'TipoDispositivoController@delete']);
             });
+        });
+
+        Route::group(['prefix' => 'subnet'], function () {
+            Route::get('list', ['as' => 'indexSubrede', 'uses' => 'SubredeController@index']);
+            Route::get('add', ['as' => 'createSubrede', 'uses' => 'SubredeController@create']);
+            Route::post('add', ['as' => 'storeSubrede', 'uses' => 'SubredeController@store']);
+            Route::get('edit/{subrede}', ['as' => 'editSubrede', 'uses' => 'SubredeController@edit']);
+            Route::post('edit', ['as' => 'updateSubrede', 'uses' => 'SubredeController@update']);
+            Route::get('delete/{subrede}', ['as' => 'destroySubrede', 'uses' => 'SubredeController@destroy']);
         });
 
         Route::group(['prefix' => 'user/type'], function(){

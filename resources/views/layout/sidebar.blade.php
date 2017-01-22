@@ -32,25 +32,14 @@
                     </ul>
                 </li>
 
-                <li class="treeview">
-                    <a href="#">
-                        <i class="fa fa-sliders"></i><span>Faixas</span>
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </a>
-                    <ul class="treeview-menu">
-                        <li><a href="{{ route('exportConfig') }}"><i class="fa fa-th-list"></i> <span>Listar Faixas</span></a></li>
-                        <li><a href="{{ route('exportConfig') }}"><i class="fa fa-plus"></i> <span>Adicionar Faixa</span></a></li>
-                    </ul>
-                </li>
-
-                <li class="treeview">
+                <li class="treeview @if(Route::is('indexSubrede') || Route::is('createSubrede')) active @endif">
                     <a href="#">
                         <i class="fa fa-sitemap"></i><span>Subredes</span>
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="{{ route('exportConfig') }}"><i class="fa fa-th-list"></i> <span>Listar subredes</span></a></li>
-                        <li><a href="{{ route('exportConfig') }}"><i class="fa fa-plus"></i> <span>Adicionar subrede</span></a></li>
+                        <li @if(Route::is('indexSubrede')) class="active" @endif><a href="{{ route('indexSubrede') }}"><i class="fa fa-th-list"></i> <span>Listar subredes</span></a></li>
+                        <li @if(Route::is('createSubrede')) class="active" @endif><a href="{{ route('createSubrede') }}"><i class="fa fa-plus"></i> <span>Adicionar subrede</span></a></li>
                     </ul>
                 </li>
 

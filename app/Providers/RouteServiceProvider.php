@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Faixa;
+use App\Subrede;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
@@ -23,7 +25,8 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        // Vínculo de modelos com ID nas rotas
+        Route::model('subrede', Subrede::class);
 
         parent::boot();
     }

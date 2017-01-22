@@ -13,6 +13,6 @@ class TipoDispositivo extends Model
 
   public function requisicoes()
   {
-    return $this->belongsTo('App\Requisicao', 'tipo_dispositivo');
+    return $this->hasMany('App\Requisicao', 'tipo_dispositivo');
   }
 }

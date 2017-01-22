@@ -9,14 +9,14 @@ class Subrede extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        "endereco", "cidr", "faixa_id", "descricao",
+        "endereco", "cidr", "tipo_subrede_id", "descricao",
     ];
 
     protected $hidden = [
-        "id", "faixa_id",
+        "id", "tipo_subrede_id",
     ];
 
-    public function faixa() {
-        return $this->belongsTo("App\\Faixa");
+    public function tipo() {
+        return $this->belongsTo('App\TipoSubrede', 'tipo_subrede_id', 'id');
     }
 }

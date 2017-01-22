@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Events\DeviceEdited;
 use App\Events\DeviceStored;
-use App\Events\NewConfigurationFile;
 use App\Events\RequestStored;
 use App\Mail\RequestDenied;
 use App\Mail\RequestExcluded;
@@ -23,8 +22,6 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Response;
-use SSH;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Facades\Auth;
@@ -33,90 +30,6 @@ use App\Mail\RequestApproved;
 
 class RequisicaoController extends Controller
 {
-
-    /**
-     * Reconstroi o static map (lista de ip vinculados a macs)
-     * @return bool True em todos os casos.
-     */
-    private function rebuildStaticMap()
-    {
-        $requestsAllowed = Requisicao::where('status', 1)->orderBy(DB::raw('INET_ATON(ip)'))->get();
-        $pathConfigFile = storage_path("app/config/config.xml");
-
-        $configXML = simplexml_load_file($pathConfigFile);
-        unset($configXML->dhcpd->lan->staticmap); // Apaga o static map atual
-
-        $iterator = 0;
-
-        // Para cada requisição liberada é criada uma nova entrada no static map
-        foreach ($requestsAllowed as $request)
-        {
-            $configXML->dhcpd->lan->staticmap[$iterator]->mac = $request->mac;
-            $configXML->dhcpd->lan->staticmap[$iterator]->ipaddr = $request->ip;
-            $configXML->dhcpd->lan->staticmap[$iterator]->hostname = "Requisicao-" . $request->id;
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("descr");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("arp_table_static_entry");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("filename");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("rootpath");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("defaultleasetime");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("maxleasetime");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("gateway");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("domain");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("domainsearchlist");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("ddnsdomain");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("ddnsdomainprimary");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("ddnsdomainkeyname");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("ddnsdomainkey");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("tftp");
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("ldap");
-            ++$iterator;
-        }
-
-        // Salva o arquivo de configuração, sobreescrevendo o antigo;
-        $configXML->saveXML($pathConfigFile);
-
-        return true;
-    }
-
-    /**
-     * Atualiza o arquivo de configuração no pfSense
-     */
-    public function refreshPfsense()
-    {
-        $configFile = storage_path('app/config/config.xml');
-
-        // Realiza o backup do arquivo de configuração anterior
-        if(File::exists($configFile))
-        {
-            $lastModified = File::lastModified($configFile);
-            File::copy($configFile, storage_path('app/config/config-' . $lastModified . '.xml'));
-        }
-
-        try
-        {
-            // Obtém o arquivo de configurações mais recente
-            SSH::into('pfsense')->get("/cf/conf/config.xml", $configFile); // Path do arquivo local e path do arquivo remoto
-
-            // Modificar o arquivo de configuração, adicionando o novo static map
-            $this->rebuildStaticMap();
-
-            // Envia o novo arquivo de configuração
-            SSH::into('pfsense')->put($configFile, '/cf/conf/config.xml');
-
-            // Remove o cache da configuração e reinicia o firewall com a nova configuração
-            $commands = ["rm /tmp/config.cache", "/etc/rc.reload_all"];
-            SSH::into('pfsense')->run($commands);
-
-            Event::fire(new NewConfigurationFile());
-        }
-        catch (Exception $e)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * Renderiza a view da lista de dispositivos cadastrados
      * @param $status Status do dispositivo
@@ -197,7 +110,7 @@ class RequisicaoController extends Controller
                 $newRequest->justificativa = $input['justificativa'];
                 $newRequest->submissao = date("Y-m-d H:i:s", time());
                 $newRequest->avaliacao = date("Y-m-d H:i:s", time());
-                $newRequest->juizCPF = Session::get('id');
+                $newRequest->juizCPF = Auth::user()->cpf;
                 $newRequest->juizMotivo = 'Adição manual.';
                 $newRequest->ip = $input['ip'];
                 $newRequest->status = 1;
@@ -207,7 +120,7 @@ class RequisicaoController extends Controller
 
                 $newRequest->save();
 
-                if($this->refreshPfsense())
+                if(PfsenseController::refreshPfsense())
                 {
                     Session::flash('mensagem', "Servidor pfSense atualizado");
                     Session::flash('tipo', 'Informação');
@@ -269,7 +182,7 @@ class RequisicaoController extends Controller
 
             $record->save();
 
-            if($this->refreshPfsense())
+            if(PfsenseController::refreshPfsense())
             {
                 Session::flash('mensagem', "Servidor pfSense atualizado");
                 Session::flash('tipo', 'Informação');
@@ -442,7 +355,7 @@ class RequisicaoController extends Controller
 
             $request->save();
 
-            if($this->refreshPfsense())
+            if(PfsenseController::refreshPfsense())
             {
                 Session::flash('mensagem', "Servidor pfSense atualizado");
                 Session::flash('tipo', 'Informação');
@@ -506,7 +419,7 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestSuspended($user, $requisicao));
 
-        if($this->refreshPfsense())
+        if(PfsenseController::refreshPfsense())
         {
             Session::flash('mensagem', "Servidor pfSense atualizado");
             Session::flash('tipo', 'Informação');
@@ -539,7 +452,7 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $requisicao));
 
-        if($this->refreshPfsense())
+        if(PfsenseController::refreshPfsense())
         {
             Session::flash('mensagem', "Servidor pfSense atualizado");
             Session::flash('tipo', 'Informação');
@@ -571,7 +484,7 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestReactivated($user, $requisicao));
 
-        if($this->refreshPfsense())
+        if(PfsenseController::refreshPfsense())
         {
             Session::flash('mensagem', "Servidor pfSense atualizado");
             Session::flash('tipo', 'Informação');
@@ -640,6 +553,9 @@ class RequisicaoController extends Controller
         else abort(403);
     }
 
+    /**
+     * Edita uma instância de requisição que ainda não foi julgada.
+     */
     public function edit()
     {
         $requisicao = Requisicao::find(Input::get('id'));
