@@ -6,5 +6,5 @@
 /public/fonts
 /public/img
 /vendor
-/.idea
+.idea/
 .env

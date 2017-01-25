@@ -33,18 +33,63 @@
     {!! HTML::script('public/js/plugins/jQueryMask/jquery.mask.min.js') !!}
     {!! HTML::script('public/js/plugins/jQueryUI/jquery-ui.min.js') !!}
     {!! HTML::script('public/js/plugins/jQueryUI/datepicker-pt-BR.js') !!}
+
+    {{-- Modal de loading --}}
     <script>
         submitModal = function(){
             $('#loadingModal').modal({backdrop: 'static', keyboard: false});
             document.forms['addmac'].submit();
         }
     </script>
+
+    {{-- Máscara de Endereço MAC --}}
     <script>
         $(document).ready(function() {
             $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );
             $( "#datepicker" ).datepicker($.datepicker.regional['pt-BR']);
         });
     </script>
+
+    {{-- AJAX de recuperação de IPs não usados de acordo com a Subrede --}}
+    <script>
+        $(function(){
+            $('#subrede').change(function(){
+                console.log('Fazendo requisição');
+                $("#ips").empty();
+                $.ajax({
+                    url: '{{ url('test') }}' + '/' + this.selectedIndex, // url
+                    type: "get", // método
+
+                    success: function(response)
+                    {
+                        // Se a resposta for OK
+                        if(response.count > 0)
+                        { // Verificar se o count  é maior que 0
+                            $("#ips").empty();
+                            $.each(response.ips, function () {
+                                $("#ips").append('<option value="'+ this.value +'">'+ this +'</option>')
+                            });
+                        }
+                        else
+                        { // Nenhum IP está livre
+                            $("#ips").append('<option value="">Nehum endereço IP disponível para essa subrede</option>')
+                        }
+                    },
+
+                    // Se houver erro na requisição (e.g. 404)
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        $("#ips").append('<option value="">Erro durante requisição</option>');
+                        console.log('Error in Subnet:' + errorThrown);
+                    },
+
+                    complete: function(data){
+                        console.log(data);
+                    }
+                });
+            });
+        });
+    </script>
+
     <script type="text/javascript">
         $(function(){
             $('#usuario').blur(function(){
@@ -89,6 +134,7 @@
             });
         });
     </script>
+
     <script type="text/javascript">
         $(function(){
             $('#responsavel').blur(function(){
@@ -153,12 +199,19 @@
                         {{ csrf_field() }}
 
                         <div class="input-group">
-                            <span class="input-group-addon">IP</span>
-                            <select name="ip" class="form-control" required data-toggle="tooltip" data-placement="top" title="Endereço IP destinado ao dispositvo">
-                                <option value="">Selecione um IP</option>
-                                @foreach ($ipsLivre as $ip)
-                                    <option value="{{$ip}}">{{$ip}}</option>
+                            <span class="input-group-addon"><i class="fa fa-sitemap"></i></span>
+                            <select id="subrede" name="subrede" class="form-control" required data-toggle="tooltip" data-placement="top" title="Suberede a qual o dispositivo fará parte">
+                                <option value="">Selecione a Subrede</option>
+                                @foreach($subredes as $subrede)
+                                    <option value="{{ $subrede->id }}">{{ $subrede->tipo->descricao }} - {!! $subrede->descricao !!}</option>
                                 @endforeach
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <span class="input-group-addon">IP</span>
+                            <select id="ips" name="ip" class="form-control" required data-toggle="tooltip" data-placement="top" title="Endereço IP destinado ao dispositvo">
+                                <option value="">Selecione uma subrede para visualizar os IPs</option>
                             </select>
                         </div>
 

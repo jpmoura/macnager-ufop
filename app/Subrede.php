@@ -9,7 +9,7 @@ class Subrede extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        "endereco", "cidr", "tipo_subrede_id", "descricao",
+        "endereco", "cidr", "tipo_subrede_id", "descricao", "ignorar_broadcast", "ignorar_gateway",
     ];
 
     protected $hidden = [

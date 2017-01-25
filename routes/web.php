@@ -89,4 +89,4 @@ Route::get('/login', ['as' => 'showLogin', 'uses' => 'Auth\LoginController@showL
 Route::post('/login', ['as' => 'login', 'uses' => 'Auth\LoginController@postLogin']);
 Route::get('/sair', ['as' => 'logout', 'uses' => 'Auth\LoginController@logout']);
 
-Route::get('test', 'RequisicaoController@refreshPfsense');
+Route::get('test/{subrede}', 'SubredeController@getAvailableIps');

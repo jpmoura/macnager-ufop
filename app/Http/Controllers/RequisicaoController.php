@@ -9,6 +9,7 @@ use App\Mail\RequestDenied;
 use App\Mail\RequestExcluded;
 use App\Mail\RequestReactivated;
 use App\Mail\RequestSuspended;
+use App\Subrede;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Requisicao;
@@ -47,35 +48,15 @@ class RequisicaoController extends Controller
     }
 
     /**
-     * Recupera quais são os endereços IP livres para serem alocados.
-     * @return array Array com o índice sendo a faixa e o conteúdo de cada índice sendo a quantidade de IPs livre naquela faixa
-     */
-    public static function getFreeIPs() {
-        $freeIPs = array();
-
-        for ($faixa=152; $faixa < 156; $faixa++)
-        {
-            for ($id=1; $id < 256; $id++)
-            {
-                $tempIP = '200.239.' . $faixa . '.' . $id;
-                $count = Requisicao::where('ip', $tempIP)->whereRaw("(`status` = 1 or `status` = 2)")->count();
-                if($count == 0 && $tempIP != '200.239.155.255') array_push($freeIPs, $tempIP);
-            }
-        }
-
-        return $freeIPs;
-    }
-
-    /**
      * Renderiza a view de adição de um novo dispositivo.
      */
     public function showAddDevice()
     {
-        $freeIPs = $this->getFreeIPs();
         $deviceType = TipoDispositivo::all();
         $userType = TipoUsuario::all();
+        $subnetworks = Subrede::with('tipo')->get();
 
-        return View::make('requisicao.device.add')->with(['ipsLivre' => $freeIPs, 'dispositivos' => $deviceType, 'usuarios' => $userType]);
+        return View::make('requisicao.device.add')->with(['dispositivos' => $deviceType, 'usuarios' => $userType, 'subredes' => $subnetworks]);
     }
 
     /**
@@ -606,114 +587,5 @@ class RequisicaoController extends Controller
         else abort(403);
 
         return redirect()->back();
-    }
-
-    /**
-     * Recupera os usuários ativos em um determinado intervalo de tempo
-     * @param $id
-     */
-    public function getMonthlyActiveUsers($id)
-    {
-        if ($id == 1) $url = "http://200.239.152.2:8080/trafego-nti/Subnet-1-200.239.152.0.html"; //diário
-        elseif ($id == 2) $url = "http://200.239.152.2:8080/trafego-nti/Subnet-2-200.239.152.0.html"; //semanal
-        else $url = "http://200.239.152.2:8080/trafego-nti/Subnet-3-200.239.152.0.html"; // mensal e inativos;
-
-        try
-        {
-            $content = file_get_contents($url);
-        }
-        catch (Exception $e0)
-        {
-            $content = false;
-        }
-
-        if($content != false) {
-            $dom = new \DOMDocument;
-            $dom->preserveWhiteSpace = false;
-
-            try
-            {
-                libxml_use_internal_errors(true); // ignora erros de formatação provenientes do Bandwidthd
-                $loadSuccess = $dom->loadHTML($content);
-            } catch (Exception $e) {
-                $loadSuccess = false;
-            }
-
-            if($loadSuccess == true)
-            {
-                $rows = $dom->getElementsByTagName('td');
-                $frequentUsers = array();
-
-                for($i=10; $rows->item($i) != NULL; $i+=10)
-                {
-                    // $rows->item(11)->nodeValue; // Total
-                    // $rows->item(12)->nodeValue; // Total Sent
-                    // $rows->item(13)->nodeValue; // Total Received
-                    // $rows->item($i)->nodeValue; // IP
-
-                    $user = Requisicao::where('ip', $rows->item($i)->nodeValue)->where('status', 1)->first();
-
-                    // Se o usuário não existe no banco, é uma falha de segurança na rede
-                    if(is_null($user))
-                    {
-                        $user = new Requisicao();
-                        $user->id = -1;
-                        $user->ip = $rows->item($i)->nodeValue;
-                        $user->responsavelNome = "Inexistente no banco";
-                        $user->usuarioNome = "Inexistente no banco";
-                        $user->descricao_dispositivo = "Desconhecido";
-                    }
-
-                    // Adição de dados de uso
-                    $user['totalTransferred'] = $rows->item($i + 1)->nodeValue;
-                    $user['sent'] = $rows->item($i + 2)->nodeValue;
-                    $user['received'] = $rows->item($i + 3)->nodeValue;
-
-                    array_push($frequentUsers, $user);
-                }
-            }
-            else
-            {
-                $frequentUsers = NULL;
-                Session::flash('tipo', 'Erro');
-                Session::flash('mensagem', 'O servidor do Bandwidthd não formatou corretamente a sua saída. Verifique a página gerada pelo Bandwidthd');
-            }
-
-            return $frequentUsers;
-        }
-        else
-        {
-            Session::flash('tipo', 'Erro');
-            Session::flash('mensagem', 'O servidor do Bandwidthd não respondeu a solicitação. Tente novamente em alguns instantes.');
-            return NULL;
-        }
-    }
-
-    /**
-     * Renderiza a view contendo o uso da rede pelos usuários.
-     * @param $id Intervalo de usuários ativos ou inativos (1 = ativos hoje, 2 = ativos na semana, 3 = ativos no mês e 4 = inativos a um mês ou mais
-     */
-    public function showUsage($id)
-    {
-        $frequentUsers = $this->getMonthlyActiveUsers($id);
-
-        if($id < 4) return View::make('requisicao.usage')->with(['id' => $id, 'usuarios' => $frequentUsers]);
-        else
-        {
-            if(is_null($frequentUsers)) $nonFrequentUsers = null;
-            else
-            {
-                //pegar os usuarios que tem status == 1 mas não tem o ip na lista
-                $frequentIPs = array();
-
-                // Obtém todos os IPs frequentes
-                foreach ($frequentUsers as $user) array_push($frequentIPs, $user->ip);
-
-                //Obtém todos os usuários aprovados que não estão na lista de frequentes
-                $nonFrequentUsers = Requisicao::where('status', 1)->whereNotIn('ip', $frequentIPs)->get();
-            }
-
-            return View::make('requisicao.usage')->with(['id' => $id, 'usuarios' => $nonFrequentUsers]);
-        }
     }
 }
