@@ -25,8 +25,8 @@ class NewSubredeRequest extends FormRequest
     {
         return [
             'endereco' => 'required|min:7|max:15|unique:subredes',
-            'cidr' => 'required|min:0|max:32',
-            'tipo' => 'required',
+            'cidr' => 'required|between:0,32',
+            'tipo' => 'required|exists:tipo_subrede,id',
             'descricao' => 'required|max:75',
         ];
     }
@@ -34,7 +34,10 @@ class NewSubredeRequest extends FormRequest
     public function messages()
     {
         return [
+            'endereco.required' => 'O campo endereço é obrigatório.',
             'endereco.unique' => 'O endereço da subrede já está sendo usado.',
+            'descricao.required' => 'O campo descrição é obrigatório.',
+            'descricao.max' => 'A descrição deve conter no máximo 75 caracteres',
         ];
     }
 }
