@@ -49,7 +49,6 @@
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li class="@yield('listUsers')"><a href="{{ route('showUsageRequest', 1) }}"><i class="fa fa-th-list"></i> <span>Listar Frequentes</span></a></li>
                         <li class="treeview @yield('tipousuario')">
                             <a href="#">
                                 <i class="fa fa-puzzle-piece"></i><span>Tipos de usuários</span>

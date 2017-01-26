@@ -25,7 +25,6 @@ Route::group(['middleware' => 'auth'], function() {
             Route::post('disable', ['as' => 'disableRequest', 'uses' => 'RequisicaoController@disable']);
             Route::post('deny', ['as' => 'denyRequest', 'uses' => 'RequisicaoController@deny']);
             Route::get('reactive/{id}', ['as' => 'reactiveRequest', 'uses' => 'RequisicaoController@reactive']);
-            Route::get('list/usage/{id}', ['as' => 'showUsageRequest', 'uses' => 'RequisicaoController@showUsage']);
         });
 
         Route::group(['prefix' => 'device'], function(){
