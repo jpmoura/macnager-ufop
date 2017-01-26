@@ -223,12 +223,12 @@
                     <div class="box-footer text-center">
                         <button type="button" class="btn btn-ufop" onClick="history.go(-1)"><i class="fa fa-arrow-left"></i> Voltar</button>
                         @if($requisicao->status == 1)
-                            <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#suspendModal"><i class="fa fa-ban"> Suspender</i></button>
+                            <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#suspendModal"><i class="fa fa-ban"> Bloquear</i></button>
                         @elseif ($requisicao->status == 4)
-                            <a href="{{ route('reactiveRequest', $requisicao->id)}}" class="btn btn-primary"><i class="fa fa-power-off"></i> Reativar</a>
+                            <a href="{{ route('reactiveRequest', $requisicao->id)}}" class="btn btn-primary"><i class="fa fa-power-off"></i> Desbloqueado</a>
                         @endif
                         @if($requisicao->status < 5 && $requisicao->status != 3)
-                            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#disableModal"><i class="fa fa-times"> Remover</i></button>
+                            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#disableModal"><i class="fa fa-power-off"> Desativar</i></button>
                         @endif
                         <button type="reset" class="btn bg-gray"><i class="fa fa-eraser"></i> Resetar</button>
                         <button id="edit" type="button" onclick="submitEditModal();" class="btn btn-success"><i class="fa fa-check"></i> Aplicar</button>
@@ -240,12 +240,12 @@
     </div>
 
     @if($requisicao->status == 1)
-        <div class="modal fade modal-danger" id="suspendModal" tabindex="-1" role="dialog" aria-labelledby="denyModal" aria-hidden="true">
+        <div class="modal fade modal-warning" id="suspendModal" tabindex="-1" role="dialog" aria-labelledby="denyModal" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title text-center"><i class="fa fa-ban"></i> Suspender Acesso</h4>
+                        <h4 class="modal-title text-center"><i class="fa fa-ban"></i> Bloquear Acesso</h4>
                     </div>
                     <form class="form" action="{{ route('suspendRequest') }}" method="post" id="suspendForm">
                         {{ csrf_field() }}
@@ -253,7 +253,7 @@
                         <input type="hidden" name="id" value="{{$requisicao->id}}">
 
                         <div class="modal-body">
-                            <p class="text-justify">O IP será suspenso e não poderã ser usado por nenhum outro dispositivo. Essa ação pode ser desfeita posteriormente via reativação do dispositivo.</p>
+                            <p class="text-justify">O IP será bloqueado e não poderã ser usado por nenhum outro dispositivo. Essa ação pode ser desfeita posteriormente via reativação do dispositivo.</p>
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="fa fa-comment"></i></span>
                                 <textarea name="juizMotivo" class="form-control no-resize" name="juizMotivo" placeholder="Justificativa para suspender o acesso do dispositivo." required></textarea>
@@ -262,7 +262,7 @@
 
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Cancelar</button>
-                            <button type="button" onclick="submitSuspendModal();" class="btn btn-primary"><i class="fa fa-ban"></i> Suspender</button>
+                            <button type="button" onclick="submitSuspendModal();" class="btn bg-black"><i class="fa fa-ban"></i> Bloquear</button>
                         </div>
 
                     </form>
