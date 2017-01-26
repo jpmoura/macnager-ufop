@@ -6,7 +6,7 @@ use App\Requisicao;
 use App\Subrede;
 use App\TipoSubrede;
 use Illuminate\Http\Request;
-use App\Http\Requests\NewSubredeRequest;
+use App\Http\Requests\CreateSubredeRequest;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Input;
 
@@ -32,9 +32,9 @@ class SubredeController extends Controller
     /**
      * Armazena uma nova instância de subrede.
      */
-    public function store(NewSubredeRequest $request)
+    public function store(CreateSubredeRequest $request)
     {
-        $form = Input::all();
+        $form = $request->all();
 
         $newSubrede = new Subrede;
 
@@ -71,7 +71,7 @@ class SubredeController extends Controller
      */
     public function update(Request $request)
     {
-        $form = Input::all();
+        $form = $request->all();
         $subnet = Subrede::find($form['id']);
 
         $subnet->endereco = $form['endereco'];
