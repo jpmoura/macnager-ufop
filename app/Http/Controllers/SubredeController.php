@@ -6,8 +6,7 @@ use App\Requisicao;
 use App\Subrede;
 use App\TipoSubrede;
 use Illuminate\Http\Request;
-
-use App\Http\Requests;
+use App\Http\Requests\NewSubredeRequest;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Input;
 
@@ -33,7 +32,7 @@ class SubredeController extends Controller
     /**
      * Armazena uma nova instância de subrede.
      */
-    public function store(Requests\NewSubredeRequest $request)
+    public function store(NewSubredeRequest $request)
     {
         $form = Input::all();
 
