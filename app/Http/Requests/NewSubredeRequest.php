@@ -24,10 +24,17 @@ class NewSubredeRequest extends FormRequest
     public function rules()
     {
         return [
-            'endereco' => 'required|min:7|max:15|unique:subredes,endereco',
+            'endereco' => 'required|min:7|max:15|unique:subredes',
             'cidr' => 'required|min:0|max:32',
             'tipo' => 'required',
             'descricao' => 'required|max:75',
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'endereco.unique' => 'O endereço da subrede já está sendo usado.',
         ];
     }
 }
