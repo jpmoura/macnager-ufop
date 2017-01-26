@@ -47,7 +47,7 @@
                         <div class="form-group {{ $errors->has('endereco') ? ' has-error' : '' }}">
                             <div class="input-group">
                                 <span class="input-group-addon">IP</span>
-                                <input type="text" minlength="7" maxlength="15" name="endereco" class="form-control ip" placeholder="Endereço inicial da subrede" title="Endereço inicial da subrede" required data-toggle="tooltip" data-placement="top">
+                                <input type="text" minlength="7" maxlength="15" name="endereco" class="form-control ip" placeholder="Endereço inicial da subrede" title="Endereço inicial da subrede" required data-toggle="tooltip" data-placement="top" @if(!$errors->has('endereco')) value="{!! old('endereco') !!}" @endif>
                             </div>
                             @if($errors->has('endereco'))
                                 <p class="help-block">{!! $errors->first('endereco') !!}</p>
@@ -60,7 +60,7 @@
                                 <select name="cidr" class="form-control" required>
                                     <option value="">Selecione uma máscara de rede (CIDR)</option>
                                     @for($i = 32; $i > -1; --$i)
-                                        <option value="{{ $i }}">{{ $i }}</option>
+                                        <option value="{{ $i }}" @if(!$errors->has('cidr') && $i == old('cidr')) selected @endif>{{ $i }}</option>
                                     @endfor
                                 </select>
                             </div>
@@ -71,7 +71,7 @@
 
                         <div class="form-group">
                             <div class="input-group">
-                                <span class="input-group-addon"><input id="gateway" type="checkbox" name="gateway"></span>
+                                <span class="input-group-addon"><input id="gateway" type="checkbox" name="gateway" @if(old('gateway')) checked @endif></span>
                                 <input class="form-control" readonly value="Ignorar Gateway.">
                             </div>
                             <p class="help-block">Ignorar o gateway significa ter um endereço a mais disponível.</p>
@@ -79,7 +79,7 @@
 
                         <div class="form-group">
                             <div class="input-group">
-                                <span class="input-group-addon"><input type="checkbox" name="broadcast"></span>
+                                <span class="input-group-addon"><input type="checkbox" name="broadcast" @if(old('broadcast')) checked @endif></span>
                                 <input class="form-control" readonly value="Ignorar Broadcast.">
                             </div>
                             <p class="help-block">Ignorar o broadcast significa ter um endereço a mais disponível.</p>
@@ -91,7 +91,7 @@
                                 <select name="tipo" class="form-control" required>
                                     <option value="">Selecione a rede principal a qual essa subrede faz parte</option>
                                     @foreach($tipos as $tipo)
-                                        <option value="{{ $tipo->id }}">Rede {!! $tipo->descricao !!}</option>
+                                        <option value="{{ $tipo->id }}" @if(!$errors->has('tipo') && $tipo->id == old('tipo')) selected @endif>Rede {!! $tipo->descricao !!}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -104,7 +104,7 @@
                         <div class="form-group {{ $errors->has('descricao') ? ' has-error' : '' }}">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="fa fa-comment"></i></span>
-                                <input type="text" maxlength="75" class="form-control" name="descricao" required placeholder="Descrição da subrede" title="Descrição da subrede." data-toggle="tooltip" data-placement="top">
+                                <input type="text" maxlength="75" class="form-control" name="descricao" required placeholder="Descrição da subrede" title="Descrição da subrede." data-toggle="tooltip" data-placement="top" @if(!$errors->has('descricao')) value="{!! old('descricao') !!}" @endif>
                             </div>
                             @if($errors->has('descricao'))
                                 <p class="help-block">{!! $errors->first('descricao') !!}</p>
