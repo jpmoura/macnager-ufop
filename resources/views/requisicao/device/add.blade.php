@@ -42,7 +42,7 @@
         }
     </script>
 
-    {{-- Máscara de Endereço MAC --}}
+    {{-- Máscara de Endereço MAC e selecionador de datas em português --}}
     <script>
         $(document).ready(function() {
             $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );
@@ -55,7 +55,9 @@
         $(function(){
             $('#subrede').change(function(){
                 console.log('Fazendo requisição');
-                $("#ips").empty();
+
+                $("#ips").empty(); // Limpa as opções disponíveis
+
                 $.ajax({
                     url: '{{ url('test') }}' + '/' + this.selectedIndex, // url
                     type: "get", // método
@@ -65,26 +67,22 @@
                         // Se a resposta for OK
                         if(response.count > 0)
                         { // Verificar se o count  é maior que 0
-                            $("#ips").empty();
                             $.each(response.ips, function () {
-                                $("#ips").append('<option value="'+ this.value +'">'+ this +'</option>')
+                                $("#ips").append('<option value="'+ this.value +'">'+ this +'</option>') // Cria a opção para cada IP livre
                             });
                         }
                         else
                         { // Nenhum IP está livre
-                            $("#ips").append('<option value="">Nehum endereço IP disponível para essa subrede</option>')
+                            $("#ips").append('<option value="">Nehum endereço IP disponível para essa subrede</option>') // Informa que n"ao existem IPs livres para a subrede
                         }
                     },
 
                     // Se houver erro na requisição (e.g. 404)
-                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    error: function (XMLHttpRequest, textStatus, errorThrown)
+                    {
                         $("#ips").append('<option value="">Erro durante requisição</option>');
                         console.log('Error in Subnet:' + errorThrown);
                     },
-
-                    complete: function(data){
-                        console.log(data);
-                    }
                 });
             });
         });
