@@ -45,8 +45,9 @@
     {{-- Máscara de Endereço MAC e selecionador de datas em português --}}
     <script>
         $(document).ready(function() {
-            $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );
-            $( "#datepicker" ).datepicker($.datepicker.regional['pt-BR']);
+            $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} }} );
+            $('.cpf').mask('000.000.000-00', {reverse: true});
+            $("#datepicker").datepicker($.datepicker.regional['pt-BR']);
         });
     </script>
 
@@ -68,7 +69,7 @@
                         if(response.count > 0)
                         { // Verificar se o count  é maior que 0
                             $.each(response.ips, function () {
-                                $("#ips").append('<option value="'+ this.value +'">'+ this +'</option>') // Cria a opção para cada IP livre
+                                $("#ips").append('<option value="'+ this +'">'+ this +'</option>') // Cria a opção para cada IP livre
                             });
                         }
                         else
@@ -88,6 +89,7 @@
         });
     </script>
 
+    {{-- AJAX de pesquisa dos dados do responsável --}}
     <script type="text/javascript">
         $(function(){
             $('#usuario').blur(function(){
@@ -133,6 +135,7 @@
         });
     </script>
 
+    {{-- AJAX de pesquisa dos dados do usuário--}}
     <script type="text/javascript">
         $(function(){
             $('#responsavel').blur(function(){
@@ -148,7 +151,7 @@
                         // Se a resposta for OK
                         if(response.status == 'success') { // Achou o usuário
                             $("#responsibleDetails").html("<div class='panel panel-info'><div class='panel-heading'><h3 class='panel-title'>Detalhes do Responsável</h3></div>" +
-                                "<div class='panel-body'>" +
+                                "<div class='panel-body text-left'>" +
                                 "<p><i class='fa fa-user'></i> " + response.name + "</p>" +
                                 "<p><i class='fa fa-envelope'></i> " + response.email + "</p>" +
                                 "<p><i class='fa fa-users'></i> " + response.group + "</p>" +
@@ -196,82 +199,143 @@
                     <form class="form" action="{{ route('addDevice') }}" accept-charset="UTF-8" method="post" id="addmac">
                         {{ csrf_field() }}
 
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-sitemap"></i></span>
-                            <select id="subrede" name="subrede" class="form-control" required data-toggle="tooltip" data-placement="top" title="Suberede a qual o dispositivo fará parte">
-                                <option value="">Selecione a Subrede</option>
-                                @foreach($subredes as $subrede)
-                                    <option value="{{ $subrede->id }}">{{ $subrede->tipo->descricao }} - {!! $subrede->descricao !!}</option>
-                                @endforeach
-                            </select>
+                        {{-- Subrede --}}
+                        <div class="form-group {{ $errors->has('subrede') ? ' has-error' : '' }}">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-sitemap"></i></span>
+                                <select id="subrede" name="subrede" class="form-control" required data-toggle="tooltip" data-placement="top" title="Suberede a qual o dispositivo fará parte">
+                                    <option value="">Selecione a Subrede</option>
+                                    @foreach($subredes as $subrede)
+                                        <option value="{{ $subrede->id }}">{{ $subrede->tipo->descricao }} - {!! $subrede->descricao !!}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @if($errors->has('subrede'))
+                                <p class="help-block">{!! $errors->first('subrede') !!}</p>
+                            @endif
                         </div>
 
-                        <div class="input-group">
-                            <span class="input-group-addon">IP</span>
-                            <select id="ips" name="ip" class="form-control" required data-toggle="tooltip" data-placement="top" title="Endereço IP destinado ao dispositvo">
-                                <option value="">Selecione uma subrede para visualizar os IPs</option>
-                            </select>
+                        {{-- Endereço IP --}}
+                        <div class="form-group {{ $errors->has('ip') ? ' has-error' : '' }}">
+                            <div class="input-group">
+                                <span class="input-group-addon">IP</span>
+                                <select id="ips" name="ip" class="form-control" required data-toggle="tooltip" data-placement="top" title="Endereço IP destinado ao dispositvo">
+                                    <option value="">Selecione uma subrede para visualizar os IPs</option>
+                                </select>
+                            </div>
+                            @if($errors->has('ip'))
+                                <p class="help-block">{!! $errors->first('ip') !!}</p>
+                            @endif
                         </div>
 
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-lock"></i></span>
-                            <input id="responsavel" type="text" minlength="11" maxlength="11" name="responsavel" class="form-control" title="Pessoa responsável pelo usuário" required data-toggle="tooltip" data-placement="top">
+                        {{-- Responsável --}}
+                        <div class="form-group {{ $errors->has('responsavel') ? ' has-error' : '' }}">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                                <input id="responsavel" type="text" minlength="14" maxlength="14" name="responsavel" class="form-control cpf" title="Pessoa responsável pelo usuário" required data-toggle="tooltip" data-placement="top">
+                            </div>
+
+                            <div class="row">
+                                <div id='responsibleDetails' class="col-lg-12"></div>
+                                <input type="hidden" name="responsavelNome" value="">
+                            </div>
+
+                            @if($errors->has('responsavel'))
+                                <p class="help-block">{!! $errors->first('responsavel') !!}</p>
+                            @endif
                         </div>
 
-                        <div class="row">
-                            <div id='responsibleDetails' class="col-lg-12"></div>
-                            <input type="hidden" name="responsavelNome" value="">
+                        {{-- Usuário --}}
+                        <div class="form-group {{ $errors->has('usuario') ? ' has-error' : '' }}">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                                <input id="usuario" name="usuario" type="text" minlength="14" maxlength="14" placeholder="CPF do usuário que irá utilizar o dispositivo" required class="form-control cpf">
+                            </div>
+
+                            <div class="row">
+                                <div id='userDetails' class="col-lg-12"></div>
+                                <input type="hidden" name="usuarioNome" value="">
+                            </div>
+
+                            @if($errors->has('usuario'))
+                                <p class="help-block">{!! $errors->first('usuario') !!}</p>
+                            @endif
                         </div>
 
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-user"></i></span>
-                            <input id="usuario" name="usuario" type="text" minlength="11" maxlength="11" placeholder="CPF do usuário que irá utilizar o dispositivo" required class="form-control"required>
+                        {{-- Tipo do Usuário --}}
+                        <div class="form-group {{ $errors->has('tipousuario') ? ' has-error' : '' }}">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-users"></i></span>
+                                <select name="tipousuario" class="form-control" required title="Tipo de usuário">
+                                    <option value="">Selecione um tipo de usuário</option>
+                                    @foreach ($usuarios as $usuario)
+                                        <option value="{{$usuario->id}}">{!! $usuario->descricao !!}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @if($errors->has('tipousuario'))
+                                <p class="help-block">{!! $errors->first('tipousuario') !!}</p>
+                            @endif
                         </div>
 
-                        <div class="row">
-                            <div id='userDetails' class="col-lg-12"></div>
-                            <input type="hidden" name="usuarioNome" value="">
+                        {{-- Tipo do Dispositivo --}}
+                        <div class="form-group {{ $errors->has('tipodispositivo') ? ' has-error' : '' }}">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-laptop"></i></span>
+                                <select name="tipodispositivo" class="form-control" required title="Tipo do Dispositivo">
+                                    <option value="">Selecione um tipo de dispositivo</option>
+                                    @foreach ($dispositivos as $dispositivo)
+                                        <option value="{{$dispositivo->id}}">{!! $dispositivo->descricao !!}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @if($errors->has('tipodispositivo'))
+                                <p class="help-block">{!! $errors->first('tipodispositivo') !!}</p>
+                            @endif
                         </div>
 
-
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-users"></i></span>
-                            <select name="tipousuario" class="form-control" required>
-                                <option value="">Selecione um tipo de usuário</option>
-                                @foreach ($usuarios as $usuario)
-                                    <option value="{{$usuario->id}}">{!! $usuario->descricao !!}</option>
-                                @endforeach
-                            </select>
+                        {{-- Endereço MAC --}}
+                        <div class="form-group {{ $errors->has('mac') ? ' has-error' : '' }}">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-hashtag"></i></span>
+                                <input id="macAddress" name="mac" type='text' class='form-control' placeholder="Endereço MAC" minlength="17" maxlength="17" required>
+                            </div>
+                            @if($errors->has('mac'))
+                                <p class="help-block">{!! $errors->first('mac') !!}</p>
+                            @endif
                         </div>
 
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-laptop"></i></span>
-                            <select name="tipodispositivo" class="form-control" required>
-                                <option value="">Selecione um tipo de dispositivo</option>
-                                @foreach ($dispositivos as $dispositivo)
-                                    <option value="{{$dispositivo->id}}">{!! $dispositivo->descricao !!}</option>
-                                @endforeach
-                            </select>
+                        {{-- Descrição do dispositivo --}}
+                        <div class="form-group {{ $errors->has('descricao') ? ' has-error' : '' }}">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                                <input name="descricao" type='text' class='form-control' placeholder="Descrição do dispositivo" required>
+                            </div>
+                            @if($errors->has('descricao'))
+                                <p class="help-block">{!! $errors->first('descricao') !!}</p>
+                            @endif
                         </div>
 
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-hashtag"></i></span>
-                            <input id="macAddress" name="mac" type='text' class='form-control' placeholder="Endereço MAC" minlength="17" maxlength="17" required>
+                        {{-- Justificativa --}}
+                        <div class="form-group">
+                            <div class="input-group {{ $errors->has('justificativa') ? ' has-error' : '' }}">
+                                <span class="input-group-addon"><i class="fa fa-comment"></i></span>
+                                <textarea name="justificativa" class="form-control no-resize" placeholder="Justificativa para adição do dispositivo" maxlength="100" required></textarea>
+                            </div>
+                            @if($errors->has('justificativa'))
+                                <p class="help-block">{!! $errors->first('justificativa') !!}</p>
+                            @endif
                         </div>
 
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-search"></i></span>
-                            <input name="descricao" type='text' class='form-control' placeholder="Descrição do dispositivo" required>
-                        </div>
-
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-comment"></i></span>
-                            <textarea name="justificativa" class="form-control no-resize" placeholder="Justificativa para adição do dispositivo" maxlength="100" required></textarea>
-                        </div>
-
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-history"></i></span>
-                            <input id="datepicker" name="validade" type="text" minlength="10" maxlength="10" class="form-control" placeholder="Validade do cadastro" data-toggle="tooltip" data-placement="top" title="Validade">
+                        {{-- Data de validade --}}
+                        <div class="form-group {{ $errors->has('validade') ? ' has-error' : '' }}">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-history"></i></span>
+                                <input id="datepicker" name="validade" type="text" minlength="10" maxlength="10" class="form-control" placeholder="Validade do cadastro" data-toggle="tooltip" data-placement="top" title="Validade">
+                            </div>
+                            @if($errors->has('validade'))
+                                <p class="help-block">{!! $errors->first('validade') !!}</p>
+                            @endif
                         </div>
 
                         <br />
@@ -298,7 +362,7 @@
                     Gerando novos arquivos ARP e DHCP e enviando para os servidores.
                     <br />
                     <br />
-                    <img src="{{ asset('public/img/bigloading.gif') }}" />
+                    <img src="{{ secure_asset('public/img/bigloading.gif') }}" />
                 </div>
             </div>
         </div>

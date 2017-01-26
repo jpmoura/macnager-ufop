@@ -10,8 +10,7 @@ use App\Mail\RequestExcluded;
 use App\Mail\RequestReactivated;
 use App\Mail\RequestSuspended;
 use App\Subrede;
-use Illuminate\Http\Request;
-use App\Http\Requests;
+use App\Http\Requests\CreateDeviceRequest;
 use App\Requisicao;
 use App\TipoDispositivo;
 use App\TipoUsuario;
@@ -31,11 +30,23 @@ use App\Mail\RequestApproved;
 
 class RequisicaoController extends Controller
 {
+
+    /**
+     * Retira os pontos e traço de um CPF.
+     * @param $cpf string Número de CPF no formato 000.000.000-00
+     * @return string Número de CPF no formato 00000000000
+     */
+    private static function cleanCPF($cpf) {
+        $cpf = str_replace('.', '', $cpf);
+        $cpf = str_replace('-', '', $cpf);
+        return $cpf;
+    }
+
     /**
      * Renderiza a view da lista de dispositivos cadastrados
      * @param $status Status do dispositivo
      */
-    public function listDevices($status)
+    public function indexDevice($status)
     {
         $requests = DB::table('requisicoes')->join('tipo_dispositivo', 'requisicoes.tipo_dispositivo', '=', 'tipo_dispositivo.id')
             ->join('tipo_usuario', 'requisicoes.tipo_usuario', '=', 'tipo_usuario.id')
@@ -44,80 +55,67 @@ class RequisicaoController extends Controller
             ->orderBy(DB::raw('INET_ATON(ip)'))
             ->get();
 
-        return View::make('requisicao.device.list')->with(['liberados' => $requests, 'tipo' => $status]);
+        return view('requisicao.device.index')->with(['liberados' => $requests, 'tipo' => $status]);
     }
 
     /**
      * Renderiza a view de adição de um novo dispositivo.
      */
-    public function showAddDevice()
+    public function createDevice()
     {
         $deviceType = TipoDispositivo::all();
         $userType = TipoUsuario::all();
         $subnetworks = Subrede::with('tipo')->get();
 
-        return View::make('requisicao.device.add')->with(['dispositivos' => $deviceType, 'usuarios' => $userType, 'subredes' => $subnetworks]);
+        return view('requisicao.device.create')->with(['dispositivos' => $deviceType, 'usuarios' => $userType, 'subredes' => $subnetworks]);
     }
 
     /**
-     * Adiciona um dispositivo diretamente no sistema, sem a necessidade de requisiçAo
+     * @param CreateDeviceRequest $request Requisição já validada
+     * @return mixed Página anterior
      */
-    public function addDevice()
+    public function storeDevice(CreateDeviceRequest $request)
     {
-        $input = Input::all();
+        $input = $request->all();
 
-        if($input['ip'] == "Sem IP livre")
+        // Tratamento de CPFs
+        $input['responsavel'] = RequisicaoController::cleanCPF($input['responsavel']);
+        $input['usuario'] = RequisicaoController::cleanCPF($input['usuario']);
+
+        // Criar requisição para o novo dispositivo
+        $newRequest = new Requisicao;
+        $newRequest->responsavel = $input['responsavel'];
+        $newRequest->responsavelNome = ucwords(strtolower($input['responsavelNome']));
+        $newRequest->usuario = $input['usuario'];
+        $newRequest->usuarioNome = ucwords(strtolower($input['usuarioNome']));
+        $newRequest->tipo_usuario = $input['tipousuario'];
+        $newRequest->tipo_dispositivo = $input['tipodispositivo'];
+        $newRequest->mac = $input['mac'];
+        $newRequest->termo = "termos/default.pdf";
+        $newRequest->descricao_dispositivo = $input['descricao'];
+        $newRequest->justificativa = $input['justificativa'];
+        $newRequest->submissao = date("Y-m-d H:i:s", time());
+        $newRequest->avaliacao = date("Y-m-d H:i:s", time());
+        $newRequest->juizCPF = Auth::user()->cpf;
+        $newRequest->juizMotivo = 'Adição manual.';
+        $newRequest->ip = $input['ip'];
+        $newRequest->status = 1;
+
+        if(empty($input['validade'])) $newRequest->validade = null;
+        else $newRequest->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
+
+        $newRequest->save();
+
+        if(PfsenseController::refreshPfsense())
         {
-            Session::flash('mensagem', 'Não existe IP livre.');
-            Session::flash('tipo', 'Erro');
+            Session::flash('mensagem', "Servidor pfSense atualizado");
+            Session::flash('tipo', 'Informação');
+            Event::fire(new DeviceStored($newRequest));
         }
         else
         {
-            $date = explode('/', $input['validade']);
-
-            if(empty($input['validade']) || checkdate($date[1], $date[0], $date[2]) )
-            {
-                // Criar requisição para o novo dispositivo
-                $newRequest = new Requisicao;
-                $newRequest->responsavel = $input['responsavel'];
-                $newRequest->responsavelNome = ucwords(strtolower($input['responsavelNome']));
-                $newRequest->usuario = $input['usuario'];
-                $newRequest->usuarioNome = ucwords(strtolower($input['usuarioNome']));
-                $newRequest->tipo_usuario = $input['tipousuario'];
-                $newRequest->tipo_dispositivo = $input['tipodispositivo'];
-                $newRequest->mac = $input['mac'];
-                $newRequest->termo = "termos/default.pdf";
-                $newRequest->descricao_dispositivo = $input['descricao'];
-                $newRequest->justificativa = $input['justificativa'];
-                $newRequest->submissao = date("Y-m-d H:i:s", time());
-                $newRequest->avaliacao = date("Y-m-d H:i:s", time());
-                $newRequest->juizCPF = Auth::user()->cpf;
-                $newRequest->juizMotivo = 'Adição manual.';
-                $newRequest->ip = $input['ip'];
-                $newRequest->status = 1;
-
-                if( empty($input['validade']) ) $newRequest->validade = null;
-                else $newRequest->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
-
-                $newRequest->save();
-
-                if(PfsenseController::refreshPfsense())
-                {
-                    Session::flash('mensagem', "Servidor pfSense atualizado");
-                    Session::flash('tipo', 'Informação');
-                    Event::fire(new DeviceStored($newRequest));
-                }
-                else
-                {
-                    Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-                    Session::flash('tipo', 'Erro');
-                }
-            }
-            else
-            {
-                Session::flash('mensagem', 'A data informada é inválida.');
-                Session::flash('tipo', 'Erro');
-            }
+            Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            Session::flash('tipo', 'Erro');
         }
 
         return Redirect::back();
@@ -125,21 +123,20 @@ class RequisicaoController extends Controller
 
     /**
      * Renderiza a view com o formulário de edição de um dispositivo inserido.
-     * @param $id ID da requisição
+     * @param $requisicao Requisicao Instância da requisição que será editada.
      */
-    public function showEditDevice($id)
+    public function editDevice(Requisicao $requisicao)
     {
-        $request = Requisicao::find($id);
         $deviceType = TipoDispositivo::all();
         $userType = TipoUsuario::all();
-        $freeIPs = $this->getFreeIPs();
-        return View::make('requisicao.device.edit')->with(['requisicao' => $request, 'tiposdispositivo' => $deviceType, 'tiposusuario' => $userType, 'ipsLivre' => $freeIPs]);
+        return View::make('requisicao.device.edit')->with(['requisicao' => $requisicao, 'tiposdispositivo' => $deviceType, 'tiposusuario' => $userType]);
     }
 
     /**
-     * Edita os dados de uma requisição de um dispositivo.
+     * Atualiza dos dados de uma requisição.
+     * @return mixed Página anterior.
      */
-    public function editDevice()
+    public function updateDevice()
     {
         $input = Input::all();
 

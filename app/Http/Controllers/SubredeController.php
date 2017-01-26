@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Input;
 class SubredeController extends Controller
 {
     /**
-     * Mostra a lsita de subredes cadastradas
+     * Mostra a lista de subredes cadastradas
      */
     public function index()
     {

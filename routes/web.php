@@ -28,11 +28,11 @@ Route::group(['middleware' => 'auth'], function() {
         });
 
         Route::group(['prefix' => 'device'], function(){
-            Route::get('add', ['as' => 'showAddDevice', 'uses' => 'RequisicaoController@showAddDevice']);
-            Route::post('add', ['as' => 'addDevice', 'uses' => 'RequisicaoController@addDevice']);
-            Route::get('edit/{id}', ['as' => 'showEditDevice', 'uses' => 'RequisicaoController@showEditDevice']);
-            Route::post('edit', ['as' => 'editDevice', 'uses' => 'RequisicaoController@editDevice']);
-            Route::get('list/{status}', ['as' => 'listDevice', 'uses' => 'RequisicaoController@listDevices']);
+            Route::get('add', ['as' => 'showAddDevice', 'uses' => 'RequisicaoController@createDevice']);
+            Route::post('add', ['as' => 'addDevice', 'uses' => 'RequisicaoController@storeDevice']);
+            Route::get('edit/{requisicao}', ['as' => 'showEditDevice', 'uses' => 'RequisicaoController@editDevice']);
+            Route::post('edit', ['as' => 'editDevice', 'uses' => 'RequisicaoController@updateDevice']);
+            Route::get('list/{status}', ['as' => 'listDevice', 'uses' => 'RequisicaoController@indexDevice']);
 
             Route::group(['prefix' => 'type'], function(){
                 Route::get('add', ['as' => 'showAddDeviceType', 'uses' => 'TipoDispositivoController@showAdd']);

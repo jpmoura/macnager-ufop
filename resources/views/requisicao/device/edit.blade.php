@@ -160,9 +160,9 @@
                             <select name="ip" class="form-control" required data-toggle="tooltip" data-placement="top" title="Endereço IP destinado ao dispositvo">
                                 <option value="">Selecione um IP</option>
                                 <option value="{{$requisicao->ip}}" selected>{{$requisicao->ip}}</option>
-                                @foreach ($ipsLivre as $ip)
-                                    <option value="{{$ip}}">{{$ip}}</option>
-                                @endforeach
+                                {{--@foreach ($ipsLivre as $ip)--}}
+                                    {{--<option value="{{$ip}}">{{$ip}}</option>--}}
+                                {{--@endforeach--}}
                             </select>
                         </div>
 
@@ -223,7 +223,7 @@
                     <div class="box-footer text-center">
                         <button type="button" class="btn btn-ufop" onClick="history.go(-1)"><i class="fa fa-arrow-left"></i> Voltar</button>
                         @if($requisicao->status == 1)
-                            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#suspendModal"><i class="fa fa-ban"> Suspender</i></button>
+                            <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#suspendModal"><i class="fa fa-ban"> Suspender</i></button>
                         @elseif ($requisicao->status == 4)
                             <a href="{{ route('reactiveRequest', $requisicao->id)}}" class="btn btn-primary"><i class="fa fa-power-off"></i> Reativar</a>
                         @endif

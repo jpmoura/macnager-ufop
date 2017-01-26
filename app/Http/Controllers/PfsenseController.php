@@ -4,10 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Events\NewConfigurationFile;
 use App\Requisicao;
-use Illuminate\Http\Request;
-use App\Http\Requests;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\File;
 use SSH;
 
 class PfsenseController extends Controller
