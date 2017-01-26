@@ -44,44 +44,71 @@
                     <form class="form" action="{{ route('storeSubrede') }}" accept-charset="UTF-8" method="post">
                         {{ csrf_field() }}
 
-                        <div class="input-group">
-                            <span class="input-group-addon">IP</span>
-                            <input type="text" minlength="7" maxlength="15" name="endereco" class="form-control ip" placeholder="Endereço inicial da subrede" title="Endereço inicial da subrede" required data-toggle="tooltip" data-placement="top">
+                        <div class="form-group {{ $errors->has('endereco') ? ' has-error' : '' }}">
+                            <div class="input-group">
+                                <span class="input-group-addon">IP</span>
+                                <input type="text" minlength="7" maxlength="15" name="endereco" class="form-control ip" placeholder="Endereço inicial da subrede" title="Endereço inicial da subrede" required data-toggle="tooltip" data-placement="top">
+                            </div>
+                            @if($errors->has('endereco'))
+                                <p class="help-block">{!! $errors->first('endereco') !!}</p>
+                            @endif
                         </div>
 
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-eye"></i></span>
-                            <select name="cidr" class="form-control" required>
-                                <option value="">Selecione uma máscara de rede (CIDR)</option>
-                                @for($i = 32; $i > -1; --$i)
-                                    <option value="{{ $i }}">{{ $i }}</option>
-                                @endfor
-                            </select>
+                        <div class="form-group {{ $errors->has('cidr') ? ' has-error' : '' }}">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-eye"></i></span>
+                                <select name="cidr" class="form-control" required>
+                                    <option value="">Selecione uma máscara de rede (CIDR)</option>
+                                    @for($i = 32; $i > -1; --$i)
+                                        <option value="{{ $i }}">{{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            @if($errors->has('cidr'))
+                                <p class="help-block">{!! $errors->first('cidr') !!}</p>
+                            @endif
                         </div>
 
-                        <div class="input-group">
-                            <span class="input-group-addon"><input id="gateway" type="checkbox" name="gateway"></span>
-                            <input class="form-control" readonly value="Ignorar Gateway. Ignorar significa ter um endereço a mais disponível.">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon"><input id="gateway" type="checkbox" name="gateway"></span>
+                                <input class="form-control" readonly value="Ignorar Gateway.">
+                            </div>
+                            <p class="help-block">Ignorar o gateway significa ter um endereço a mais disponível.</p>
                         </div>
 
-                        <div class="input-group">
-                            <span class="input-group-addon"><input type="checkbox" name="broadcast"></span>
-                            <input class="form-control" readonly value="Ignorar Gateway. Ignorar significa ter um endereço a mais disponível.">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon"><input type="checkbox" name="broadcast"></span>
+                                <input class="form-control" readonly value="Ignorar Broadcast.">
+                            </div>
+                            <p class="help-block">Ignorar o broadcast significa ter um endereço a mais disponível.</p>
                         </div>
 
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-puzzle-piece"></i></span>
-                            <select name="tipo" class="form-control" required>
-                                <option value="">Selecione a rede principal a qual essa subrede faz parte</option>
-                                @foreach($tipos as $tipo)
-                                    <option value="{{ $tipo->id }}">Rede {!! $tipo->descricao !!}</option>
-                                @endforeach
-                            </select>
+                        <div class="form-group {{ $errors->has('tipo') ? ' has-error' : '' }}">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-puzzle-piece"></i></span>
+                                <select name="tipo" class="form-control" required>
+                                    <option value="">Selecione a rede principal a qual essa subrede faz parte</option>
+                                    @foreach($tipos as $tipo)
+                                        <option value="{{ $tipo->id }}">Rede {!! $tipo->descricao !!}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @if($errors->has('tipo'))
+                                <p class="help-block">{!! $errors->first('tipo') !!}</p>
+                            @endif
                         </div>
 
-                        <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-comment"></i></span>
-                            <input type="text" maxlength="75" class="form-control" name="descricao" required placeholder="Descrição da subrede" title="Descrição da subrede." data-toggle="tooltip" data-placement="top">
+
+                        <div class="form-group {{ $errors->has('descricao') ? ' has-error' : '' }}">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-comment"></i></span>
+                                <input type="text" maxlength="75" class="form-control" name="descricao" required placeholder="Descrição da subrede" title="Descrição da subrede." data-toggle="tooltip" data-placement="top">
+                            </div>
+                            @if($errors->has('descricao'))
+                                <p class="help-block">{!! $errors->first('descricao') !!}</p>
+                            @endif
                         </div>
 
                         <br />
