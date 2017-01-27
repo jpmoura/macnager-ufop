@@ -25,6 +25,7 @@
     <script>
         $(document).ready(function() {
             $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );
+            $('.cpf').mask('000.000.000-00', {reverse: true});
         });
     </script>
     <script type="text/javascript">
@@ -38,7 +39,6 @@
                     data: {'cpf':$('input[name=usuario]').val(), '_token': $('input[name=_token]').val()}, // dados para o método post
 
                     success: function(response){
-                        $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'><h3 class='panel-title'>Detalhes do Usuário</h3></div><div class='panel-body text-justify'>");
 
                         // Se a resposta for OK
                         if(response.status == 'success') { // Achou o usuário
@@ -53,7 +53,7 @@
                         }
                         else { // Não encontrou ninguém
                             $("#userDetails").html("<div class='panel panel-info'><div class='panel-heading'>" +
-                                "<h3 class='panel-title'>Detalhes do Responsável</h3></div><div class='panel-body'>" +
+                                "<h3 class='panel-title'>Detalhes do Usuário</h3></div><div class='panel-body'>" +
                                 "<p>" + response.msg + "</p><p>É <span class='text-bold'>necessário</span> que o futuro usuário esteja cadastrado no servidor LDAP.</p>" +
                                 "</div></div>");
                         }
@@ -115,7 +115,7 @@
                         <div class="form-group">
                             <div class="input-group {{ $errors->has('usuario') ? ' has-error' : '' }}">
                                 <span class="input-group-addon"><i class="fa fa-user"></i></span>
-                                <input id="usuario" name="usuario" type="text" minlength="14" maxlength="14" value="{{old('usuario')}}" placeholder="CPF do usuário que irá utilizar o dispositivo" required class="form-control">
+                                <input id="usuario" name="usuario" type="text" minlength="14" maxlength="14" value="{{old('usuario')}}" placeholder="CPF do usuário que irá utilizar o dispositivo" required class="form-control cpf">
                             </div>
                             @if($errors->has('usuario'))
                                 <p class="text-danger">{!! $errors->first('usuario') !!}</p>
