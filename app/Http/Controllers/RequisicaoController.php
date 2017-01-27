@@ -12,6 +12,7 @@ use App\Mail\RequestApproved;
 use App\Mail\RequestDenied;
 use App\Mail\RequestExcluded;
 use App\Mail\RequestReactivated;
+use App\Mail\RequestReceived;
 use App\Mail\RequestSuspended;
 use App\Requisicao;
 use App\Subrede;
@@ -178,7 +179,9 @@ class RequisicaoController extends Controller
     }
 
     /**
-     * Armazena uma nova requisição no banoo de dados
+     * Armazena um instância de Requisicao no banco de dados após validação do formulário de criação.
+     * @param CreateRequisicaoRequest $request Requisição contendo o formulário validado
+     * @return \Illuminate\Http\RedirectResponse View com o índice de todas as requisições já feitas pelo usuário.
      */
     public function store(CreateRequisicaoRequest $request)
     {
@@ -207,7 +210,7 @@ class RequisicaoController extends Controller
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $form['responsavel'])->first();
-        if(!is_null($user->email) || !empty($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $newRequest));
+        if(!is_null($user->email) || !empty($user->email)) Mail::to($user->email)->queue(new RequestReceived($user, $newRequest));
 
         return redirect()->route('indexUserRequests');
     }
