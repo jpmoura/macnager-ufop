@@ -44,7 +44,7 @@
     <script>
         $(document).ready(function() {
             $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );
-            $( "#datepicker" ).datepicker($.datepicker.regional['pt-BR']);
+            $("#datepicker").datepicker($.datepicker.regional['pt-BR']);
         });
     </script>
     <script type="text/javascript">
@@ -139,16 +139,6 @@
 @section('content')
     <div class="row">
         <div class="col-lg-12">
-
-            @if(Session::has("tipo"))
-                <div class="row">
-                    <div class="text-center alert alert-dismissible @if(Session::get('tipo') == 'Sucesso') alert-success @elseif(Session::get('tipo') == 'Informação') alert-info @else alert-danger @endif" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <strong>{{Session::get("tipo")}}!</strong> {!! Session::get("mensagem") !!}
-                    </div>
-                </div>
-            @endif
-
             <form class="form" action="{{ route('editDevice') }}" method="post" id="editForm">
                 {{ csrf_field() }}
                 <div class="box box-primary-ufop">
@@ -160,9 +150,6 @@
                             <select name="ip" class="form-control" required data-toggle="tooltip" data-placement="top" title="Endereço IP destinado ao dispositvo">
                                 <option value="">Selecione um IP</option>
                                 <option value="{{$requisicao->ip}}" selected>{{$requisicao->ip}}</option>
-                                {{--@foreach ($ipsLivre as $ip)--}}
-                                    {{--<option value="{{$ip}}">{{$ip}}</option>--}}
-                                {{--@endforeach--}}
                             </select>
                         </div>
 
@@ -178,7 +165,7 @@
 
                         <div class="input-group">
                             <span class="input-group-addon"><i class="fa fa-user"></i></span>
-                            <input id="usuario" name="usuario" value="{{$requisicao->usuario}}" type="text" minlength="11" maxlength="11" placeholder="CPF do usuário que irá utilizar o dispositivo" required class="form-control"required>
+                            <input id="usuario" name="usuario" value="{{$requisicao->usuario}}" type="text" minlength="11" maxlength="11" placeholder="CPF do usuário que irá utilizar o dispositivo" required class="form-control cpf">
                         </div>
 
                         <div class="row">
@@ -188,7 +175,7 @@
 
                         <div class="input-group">
                             <span class="input-group-addon"><i class="fa fa-users"></i></span>
-                            <select class="form-control" name="tipousuario">
+                            <select class="form-control" name="tipousuario" title="Tipo do usuário">
                                 @foreach ($tiposusuario as $usuario)
                                     <option value="{{$usuario->id}}" @if($requisicao->tipo_usuario == $usuario->id) selected @endif>{!! $usuario->descricao !!}</option>
                                 @endforeach
@@ -197,7 +184,7 @@
 
                         <div class="input-group">
                             <span class="input-group-addon"><i class="fa fa-laptop"></i></span>
-                            <select class="form-control" name="tipodispositivo">
+                            <select class="form-control" name="tipodispositivo" title="Tipo do dispositivo">
                                 @foreach ($tiposdispositivo as $dispositivo)
                                     <option value="{{$dispositivo->id}}" @if($requisicao->tipo_dispositivo == $dispositivo->id) selected @endif>{!! $dispositivo->descricao !!}</option>
                                 @endforeach
@@ -256,7 +243,7 @@
                             <p class="text-justify">O IP será bloqueado e não poderã ser usado por nenhum outro dispositivo. Essa ação pode ser desfeita posteriormente via reativação do dispositivo.</p>
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="fa fa-comment"></i></span>
-                                <textarea name="juizMotivo" class="form-control no-resize" name="juizMotivo" placeholder="Justificativa para suspender o acesso do dispositivo." required></textarea>
+                                <textarea name="juizMotivo" class="form-control no-resize" placeholder="Justificativa para suspender o acesso do dispositivo." required></textarea>
                             </div>
                         </div>
 
@@ -286,7 +273,7 @@
                             <p class="text-justify">O dispositivo será desligado da rede, o IP ficará disponível para ser atribuído a outro dispositivo. Essa ação <span class="text-bold">não</span> pode ser desfeita.</p>
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="fa fa-comment"></i></span>
-                                <textarea name="juizMotivo" class="form-control no-resize" name="juizMotivo" placeholder="Justificativa para desativar o dispositivo." required></textarea>
+                                <textarea name="juizMotivo" class="form-control no-resize" placeholder="Justificativa para desativar o dispositivo." required></textarea>
                             </div>
                         </div>
 
@@ -294,7 +281,6 @@
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Cancelar</button>
                             <button type="button" onclick="submitDisableModal();" class="btn bg-black"><i class="fa fa-power-off"></i> Desativar</button>
                         </div>
-
                     </form>
                 </div>
             </div>

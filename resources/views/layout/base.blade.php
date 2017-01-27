@@ -52,6 +52,11 @@
 </div>
 
 {!! HTML::script('public/js/app.js') !!}
+@if(session()->has("tipo"))
+    <script>
+        toastr["{!! session('tipo') !!}"]("{!! session('mensagem') !!}");
+    </script>
+@endif
 
 <!-- Page specific -->
 @stack('extra-scripts')

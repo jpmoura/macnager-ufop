@@ -1,10 +1,6 @@
 @extends('layout.base')
 
-@section('requisicoes')
-    active
-@endsection
-
-@section('listUserRequests')
+@section('pedidos')
     active
 @endsection
 
@@ -13,12 +9,12 @@
 @endsection
 
 @section('description')
-    Essa é a lista com todas as requisições feitar por você até hoje.
+    Essa é a lista com todas as requisições feitas até hoje.
 @endsection
 
 @section('breadcrumb')
-    <li><i class="fa fa-hand-paper-o"></i> Requisições</li>
-    <li><i class="fa fa-th-list"></i> Minhas Requisições</li>
+    <li><i class="fa fa-legal"></i> Pedidos</li>
+    <li><i class="fa fa-th-list"></i> Todos Pedidos</li>
 @endsection
 
 @push('extra-css')
@@ -64,56 +60,59 @@
             @endif
 
             <div class="box box-primary-ufop">
+                <div class="box-header">
+                    <ul class="nav nav-tabs">
+                        <li role="presentation" @if($tipo == 0) class="active" @endif><a href="{{ route('showRequest', 0)}}">Em aberto @if(Session::has('novosPedidos') && Session::get('novosPedidos') > 0) <span class="label label-success">{{Session::get('novosPedidos')}}</span> @endif</a></li>
+                        <li role="presentation" @if($tipo == 1) class="active" @endif><a href="{{ route('showRequest', 1)}}"><i class="fa fa-check"></i> Aprovadas</a></li>
+                        <li role="presentation" @if($tipo == 2) class="active" @endif><a href="{{ route('showRequest', 2)}}"><i class="fa fa-times"></i> Negadas</a></li>
+                        <li role="presentation" @if($tipo == 3) class="active" @endif><a href="{{ route('showRequest', 3)}}"><i class="fa fa-history"></i> Vencidas</a></li>
+                        <li role="presentation" @if($tipo == 4) class="active" @endif><a href="{{ route('showRequest', 4)}}"><i class="fa fa-ban"></i> Suspensas</a></li>
+                    </ul>
+                </div>
                 <div class="box-body">
                     <div class="table">
-                        <table id="tipos" class="table table-bordered table-striped table-hover text-center">
+                        <table id="tipos" class="table table-bordered table-striped table-hover table-condensed text-center">
                             <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>Responsável</th>
                                 <th>Usuário</th>
                                 <th>Tipo do Usuário</th>
                                 <th>Tipo do Dispositivo</th>
                                 <th>Data de Submissão</th>
-                                <th>Status</th>
-                                <th>Ações</th>
+                                <th>Ação</th>
                             </tr>
                             </thead>
                             <tbody>
                             @foreach($requisicoes as $requisicao)
                                 <tr>
                                     <td>{{ $requisicao->id }}</td>
-                                    <td>{{ $requisicao->usuarioNome }}</td>
-                                    <td>{{ $requisicao->tipodispositivo }}</td>
+                                    <td>{!! $requisicao->responsavelNome !!}</td>
+                                    <td>{!! $requisicao->usuarioNome !!}</td>
                                     <td>{{ $requisicao->tipousuario }}</td>
+                                    <td>{{ $requisicao->tipodispositivo }}</td>
                                     <td>{{ date_format(date_create($requisicao->submissao),"d/m/Y H:i:s") }}</td>
                                     <td>
-                                <span class="text-bold
-                                    @if ($requisicao->status == 0)
-                                        text-info">Em Avaliação
-                                    @elseif($requisicao->status == 1)
-                                        text-success">Aprovado
-                                    @elseif($requisicao->status == 2)
-                                        text-danger">Negado
-                                    @elseif($requisicao->status == 3)
-                                        text-danger">Vencido
-                                    @elseif($requisicao->status == 4)
-                                        text-warning">Suspenso
-                                    @endif
-                                </span>
+                                        @if($tipo == 0)
+                                            <a href="{{ route('detailsRequest', $requisicao->id) }}" class="btn btn-success btn-xs"><i class="fa fa-legal"></i> Avaliar</a>
+                                        @else
+                                            <a href="{{ route('detailsRequest', $requisicao->id) }}" class="btn btn-xs btn-ufop "><i class="fa fa-search-plus"></i> Detalhes</a>
+                                        @endif
                                     </td>
-                                    <td><a href="{{ route('detailsRequest', $requisicao->id)}}" class="btn btn-xs btn-ufop"><i class="fa fa-search"></i> Detalhes</a></td>
                                 </tr>
                             @endforeach
                             </tbody>
                             <tfoot>
                             <tr>
+                            <tr>
                                 <th>ID</th>
+                                <th>Responsável</th>
                                 <th>Usuário</th>
                                 <th>Tipo do Usuário</th>
                                 <th>Tipo do Dispositivo</th>
                                 <th>Data de Submissão</th>
-                                <th>Status</th>
-                                <th>Ações</th>
+                                <th>Ação</th>
+                            </tr>
                             </tr>
                             </tfoot>
                         </table>

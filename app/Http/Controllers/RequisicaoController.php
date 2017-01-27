@@ -5,28 +5,23 @@ namespace App\Http\Controllers;
 use App\Events\DeviceEdited;
 use App\Events\DeviceStored;
 use App\Events\RequestStored;
+use App\Http\Requests\CreateDeviceRequest;
+use App\Http\Requests\CreateRequisicaoRequest;
+use App\Ldapuser;
+use App\Mail\RequestApproved;
 use App\Mail\RequestDenied;
 use App\Mail\RequestExcluded;
 use App\Mail\RequestReactivated;
 use App\Mail\RequestSuspended;
-use App\Subrede;
-use App\Http\Requests\CreateDeviceRequest;
 use App\Requisicao;
+use App\Subrede;
 use App\TipoDispositivo;
 use App\TipoUsuario;
-use App\Ldapuser;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Input;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
-use Exception;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\RequestApproved;
+use Exception;
 
 class RequisicaoController extends Controller
 {
@@ -44,7 +39,8 @@ class RequisicaoController extends Controller
 
     /**
      * Renderiza a view da lista de dispositivos cadastrados
-     * @param $status Status do dispositivo
+     * @param $status int Status do dispositivo
+     * @return mixed View contendo a lista de dispositos para um dado status
      */
     public function indexDevice($status)
     {
@@ -96,7 +92,7 @@ class RequisicaoController extends Controller
         $newRequest->justificativa = $input['justificativa'];
         $newRequest->submissao = date("Y-m-d H:i:s", time());
         $newRequest->avaliacao = date("Y-m-d H:i:s", time());
-        $newRequest->juizCPF = Auth::user()->cpf;
+        $newRequest->juizCPF = auth()->user()->cpf;
         $newRequest->juizMotivo = 'Adição manual.';
         $newRequest->ip = $input['ip'];
         $newRequest->status = 1;
@@ -108,17 +104,17 @@ class RequisicaoController extends Controller
 
         if(PfsenseController::refreshPfsense())
         {
-            Session::flash('mensagem', "Servidor pfSense atualizado");
-            Session::flash('tipo', 'Informação');
+            session()->flash('mensagem', "Servidor pfSense atualizado");
+            session()->flash('tipo', 'info');
             Event::fire(new DeviceStored($newRequest));
         }
         else
         {
-            Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-            Session::flash('tipo', 'Erro');
+            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            session()->flash('tipo', 'error');
         }
 
-        return Redirect::back();
+        return back();
     }
 
     /**
@@ -129,7 +125,7 @@ class RequisicaoController extends Controller
     {
         $deviceType = TipoDispositivo::all();
         $userType = TipoUsuario::all();
-        return View::make('requisicao.device.edit')->with(['requisicao' => $requisicao, 'tiposdispositivo' => $deviceType, 'tiposusuario' => $userType]);
+        return view('requisicao.device.edit')->with(['requisicao' => $requisicao, 'tiposdispositivo' => $deviceType, 'tiposusuario' => $userType]);
     }
 
     /**
@@ -162,105 +158,85 @@ class RequisicaoController extends Controller
 
             if(PfsenseController::refreshPfsense())
             {
-                Session::flash('mensagem', "Servidor pfSense atualizado");
-                Session::flash('tipo', 'Informação');
+                session()->flash('mensagem', "Servidor pfSense atualizado");
+                session()->flash('tipo', 'info');
                 Event::fire(new DeviceEdited($record));
             }
             else
             {
-                Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-                Session::flash('tipo', 'Erro');
+                session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+                session()->flash('tipo', 'error');
             }
         }
         else
         {
-            Session::flash('mensagem', 'A data informada é inválida.');
-            Session::flash('tipo', 'Erro');
+            session()->flash('mensagem', 'A data informada é inválida.');
+            session()->flash('tipo', 'error');
         }
 
-        return Redirect::back();
+        return back();
     }
 
     /**
      * Armazena uma nova requisição no banoo de dados
      */
-    public function store()
+    public function store(CreateRequisicaoRequest $request)
     {
-        Session::flash('tipo', 'Erro');
-        $form = Input::all();
+        $form = $request->all();
 
-        if($form['termo']->isValid())
-        {
-            if($form['termo']->getMimeType() == 'application/pdf')
-            {
-                $newRequest = new Requisicao;
-                $newRequest->responsavel = $form['responsavel'];
-                $newRequest->responsavelNome = ucwords(strtolower($form['responsavelNome']));
-                $newRequest->usuario = $form['usuario'];
-                $newRequest->usuarioNome = ucwords(strtolower($form['usuarioNome']));
-                $newRequest->tipo_usuario = $form['tipousuario'];
-                $newRequest->tipo_dispositivo = $form['tipodispositivo'];
-                $newRequest->mac = $form['mac'];
-                $newRequest->termo = $form['termo']->store('termos');
-                $newRequest->descricao_dispositivo = $form['descricao'];
-                $newRequest->justificativa = $form['justificativa'];
-                $newRequest->save();
+        // Limpeza de CPF
+        $form['usuario'] = RequisicaoController::cleanCPF($form['usuario']);
 
-                Event::fire(new RequestStored($newRequest, Auth::user()));
+        $newRequest = Requisicao::create([
+            'responsavel' => $form['responsavel'],
+            'responsavelNome' => ucwords(strtolower($form['responsavelNome'])),
+            'usuario' => $form['usuario'],
+            'usuarioNome' => ucwords(strtolower($form['usuarioNome'])),
+            'tipo_dispositivo' => $form['tipousuario'],
+            'tipo_usuario' => $form['tipodispositivo'],
+            'mac' => $form['mac'],
+            'termo' => $form['termo']->store('termos'),
+            'descricao_dispositivo' => $form['descricao'],
+            'justificativa' => $form['justificativa'],
+        ]);
 
-                Session::flash('tipo', 'Sucesso');
-                Session::flash('mensagem', 'Seu pedido foi enviado com sucesso. Aguarde pela resposta.');
+        Event::fire(new RequestStored($newRequest, auth()->user()));
 
-                // Envio de e-mail avisando que a requisição foi aprovada.
-                $user = Ldapuser::where('cpf', $form['responsavel'])->first();
-                if(!is_null($user->email) || !empty($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $newRequest));
-            }
-            else Session::flash('mensagem', 'O arquivo enviado ou não está em formato PDF ou não foi codificado corretamente.');
-        }
-        else Session::flash('mensagem', 'Ouve um erro durante o envio do arquivo do termo de compromisso.');
+        session()->flash('tipo', 'success');
+        session()->flash('mensagem', 'Seu pedido foi enviado com sucesso. Você será notificado assim que o pedido for julgado.');
 
-        if(Session::get('tipo') == 'Erro') return Redirect::back()->withInput(Input::all());
-        else return Redirect::route('listUserRequests');
+        // Envio de e-mail avisando que a requisição foi aprovada.
+        $user = Ldapuser::where('cpf', $form['responsavel'])->first();
+        if(!is_null($user->email) || !empty($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $newRequest));
+
+        return redirect()->route('indexUserRequests');
     }
 
     /**
-     * Renderiza a view com todas as requisições feitas pelo usuário atual.
+     * Renderiza a view com o índice de todas as requisições feitas pelo usuário atual.
+     * @return mixed View com a lista das requisições
      */
-    public function showFromUser()
+    public function userIndex()
     {
-        $requests = DB::table('requisicoes')->join('tipo_dispositivo', 'requisicoes.tipo_dispositivo', '=', 'tipo_dispositivo.id')
-            ->join('tipo_usuario', 'requisicoes.tipo_usuario', '=', 'tipo_usuario.id')
-            ->select('requisicoes.id as id', 'usuarioNome', 'tipo_usuario.descricao as tipousuario', 'tipo_dispositivo.descricao as tipodispositivo', 'submissao', 'avaliacao', 'status')
-            ->where('responsavel', Auth::user()->cpf)
-            ->get();
-
-        return View::make('requisicao.showuser')->with('requisicoes', $requests);
+        $requests = Requisicao::with('tipoDoUsuario', 'tipoDoDispositivo')->where('responsavel', auth()->user()->cpf)->get();
+        return view('requisicao.indexUser')->with('requisicoes', $requests);
     }
 
     /**
      * Renderiza a view com o formulário de adição de uma nova requisição
      */
-    public function showAdd()
+    public function create()
     {
-        if(Auth::user()->isAdmin())
-        {
-            $users = TipoUsuario::all();
-            $devices = TipoDispositivo::all();
-        }
-        else
-        {
-            $users = TipoUsuario::where('id', '>', 1)->get();
-            $devices = TipoDispositivo::where('id', '>', 1)->get();
-        }
-
+        $users = TipoUsuario::where('id', '>', 1)->get();
+        $devices = TipoDispositivo::where('id', '>', 1)->get();
         $organizations = Ldapuser::where('nivel', 3)->get();
 
-        return View::make('requisicao.add')->with(['usuarios' => $users, 'dispositivos' => $devices, 'organizacoes' => $organizations]);
+        return view('requisicao.create')->with(['usuarios' => $users, 'dispositivos' => $devices, 'organizacoes' => $organizations]);
     }
 
     /**
      * Renderiza o arquivo PDF do termo de aceite enviado.
-     * @param $filepath Nome do arquivo em base64
+     * @param $filepath string do arquivo em base64
      * @return mixed
      */
     public function showTerm($filepath)
@@ -276,14 +252,14 @@ class RequisicaoController extends Controller
             abort(404);
         }
 
-        return Response::make($file, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => "inline; filename='termo.pdf'"] );
+        return response($file, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => "inline; filename='termo.pdf'"]);
     }
 
     /**
      * Renderiza a view contendo todas as requisições de um determinado tipo
      * @param $type Tipo da requisição
      */
-    public function show($type)
+    public function allIndex($type)
     {
         session()->put('novosPedidos', Requisicao::where('status', '=', 0)->count());
 
@@ -295,21 +271,17 @@ class RequisicaoController extends Controller
             ->where('status', $type)
             ->get();
 
-        return View::make('requisicao.show')->with(['requisicoes' => $requests, 'tipo' => $type]);
+        return view('requisicao.indexAll')->with(['requisicoes' => $requests, 'tipo' => $type]);
     }
 
     /**
-     * Renderiza a view que mostra os detalhes de uma requisição.
-     * @param $id ID da requisição
+     * Renderiza view contendo os detalhes de uma requisição
+     * @param Requisicao $request Requisição a qual se verá os detalhes
+     * @return mixed View com os dados da requisição
      */
-    public function details($id)
+    public function show(Requisicao $request)
     {
-        $freeIPs = null;
-        $requisicao = Requisicao::find($id);
-
-        if(Auth::user()->isAdmin() == 1 && $requisicao->status == 0) $freeIPs = $this->getFreeIPs();
-
-        return View::make('requisicao.details')->with(['requisicao' => $requisicao, 'ipsLivre' => $freeIPs]);
+        return view('requisicao.show')->with('requisicao', $request);
     }
 
     /**
@@ -325,7 +297,7 @@ class RequisicaoController extends Controller
             $request = Requisicao::find(Input::get('id'));
             $request->status = 1;
             $request->avaliacao = date("Y-m-d H:i:s", time());
-            $request->juizCPF = Auth::user()->cpf;
+            $request->juizCPF = auth()->user()->cpf;
             $request->ip = Input::get('ip');
 
             if( empty($input['validade']) ) $request->validade = null;
@@ -335,14 +307,14 @@ class RequisicaoController extends Controller
 
             if(PfsenseController::refreshPfsense())
             {
-                Session::flash('mensagem', "Servidor pfSense atualizado");
-                Session::flash('tipo', 'Informação');
-                Event::fire(new RequestApproved($request, Auth::user()));
+                session()->flash('mensagem', "Servidor pfSense atualizado");
+                session()->flash('tipo', 'success');
+                Event::fire(new RequestApproved($request, auth()->user()));
             }
             else
             {
-                Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-                Session::flash('tipo', 'Erro');
+                session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+                session()->flash('tipo', 'error');
             }
 
             // Envio de e-mail avisando que a requisição foi aprovada.
@@ -351,11 +323,11 @@ class RequisicaoController extends Controller
         }
         else
         {
-            Session::flash('mensagem', 'A data informada é inválida.');
-            Session::flash('tipo', 'Erro');
+            session()->flash('mensagem', 'A data informada é inválida.');
+            session()->flash('tipo', 'error');
         }
 
-        return Redirect::back();
+        return back();
     }
 
     /**
@@ -369,14 +341,14 @@ class RequisicaoController extends Controller
         $requisicao->status = 2;
         $requisicao->save();
 
-        Event::fire(new RequestDenied($requisicao, Auth::user()));
+        Event::fire(new RequestDenied($requisicao, auth()->user()));
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestDenied($user, $requisicao));
 
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', 'O pedido de liberação do dispositivo foi negado.');
+        session()->flash('tipo', 'success');
+        session()->flash('mensagem', 'O pedido de liberação do dispositivo foi negado.');
 
         return redirect()->route('showRequest', 0);
     }
@@ -384,11 +356,11 @@ class RequisicaoController extends Controller
     /**
      * Suspende temporariamente uma requisição, impedindo que o usuário seja capaz de usar a rede.
      */
-    public function suspend()
+    public function block()
     {
         $requisicao = Requisicao::find(Input::get('id'));
         $requisicao->juizMotivo = Input::get('juizMotivo');
-        $requisicao->juizCPF = Session::get("id");
+        $requisicao->juizCPF = auth()->user->cpf;
         $requisicao->status = 4;
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
@@ -399,17 +371,17 @@ class RequisicaoController extends Controller
 
         if(PfsenseController::refreshPfsense())
         {
-            Session::flash('mensagem', "Servidor pfSense atualizado");
-            Session::flash('tipo', 'Informação');
-            Event::fire(new RequestSuspended($requisicao, Auth::user()));;
+            session()->flash('mensagem', "Servidor pfSense atualizado");
+            session()->flash('tipo', 'info');
+            Event::fire(new RequestSuspended($requisicao, auth()->user()));
         }
         else
         {
-            Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-            Session::flash('tipo', 'Erro');
+            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            session()->flash('tipo', 'error');
         }
 
-        return Redirect::back()->with('requisicao', $requisicao);
+        return back()->with('requisicao', $requisicao);
 
     }
 
@@ -421,7 +393,7 @@ class RequisicaoController extends Controller
     {
         $requisicao = Requisicao::find(Input::get('id'));
         $requisicao->juizMotivo = Input::get('juizMotivo');
-        $requisicao->juizCPF = Session::get("id");
+        $requisicao->juizCPF = auth()->user()->cpf;
         $requisicao->status = 5;
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
@@ -432,17 +404,17 @@ class RequisicaoController extends Controller
 
         if(PfsenseController::refreshPfsense())
         {
-            Session::flash('mensagem', "Servidor pfSense atualizado");
-            Session::flash('tipo', 'Informação');
-            Event::fire(new RequestExcluded($requisicao, Auth::user()));
+            session()->flash('mensagem', "Servidor pfSense atualizado");
+            session()->flash('tipo', 'success');
+            Event::fire(new RequestExcluded($requisicao, auth()->user()));
         }
         else
         {
-            Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-            Session::flash('tipo', 'Erro');
+            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            session()->flash('tipo', 'error');
         }
 
-        return Redirect::route('listDevice');
+        return redirect()->route('listDevice');
     }
 
     /**
@@ -453,7 +425,7 @@ class RequisicaoController extends Controller
     {
         $requisicao = Requisicao::find($id);
         $requisicao->juizMotivo = null;
-        $requisicao->juizCPF = Auth::user()->cpf;
+        $requisicao->juizCPF = auth()->user()->cpf;
         $requisicao->status = 1;
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
@@ -464,17 +436,17 @@ class RequisicaoController extends Controller
 
         if(PfsenseController::refreshPfsense())
         {
-            Session::flash('mensagem', "Servidor pfSense atualizado");
-            Session::flash('tipo', 'Informação');
-            Event::fire(new RequestReactivated($requisicao, Auth::user()));
+            session()->flash('mensagem', "Servidor pfSense atualizado");
+            session()->flash('tipo', 'info');
+            Event::fire(new RequestReactivated($requisicao, auth()->user()));
         }
         else
         {
-            Session::flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-            Session::flash('tipo', 'Erro');
+            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            session()->flash('tipo', 'error');
         }
 
-        return Redirect::back();
+        return back();
     }
 
     /**
@@ -484,19 +456,19 @@ class RequisicaoController extends Controller
     {
         $requisicao = Requisicao::find(Input::get('id'));
 
-        if(Auth::user()->isAdmin() || $requisicao->responsavel == Auth::user()->cpf)
+        if(auth()->user()->isAdmin() || $requisicao->responsavel == auth()->user()->cpf)
         {
             if($requisicao->status == 0)
             {
                 Requisicao::destroy($requisicao->id);
-                Session::flash('tipo', 'Sucesso');
-                Session::flash('mensagem', "A requisição foi apagada.");
+                session()->flash('tipo', 'success');
+                session()->flash('mensagem', "A requisição foi apagada.");
                 return redirect()->route('listUserRequests');
             }
             else
             {
-                Session::flash('tipo', 'Erro');
-                Session::flash('mensagem', "Não é possível deletar uma requisição que já foi julgada.");
+                session()->flash('tipo', 'error');
+                session()->flash('mensagem', "Não é possível deletar uma requisição que já foi julgada.");
                 return redirect()->back();
             }
         }
@@ -504,17 +476,17 @@ class RequisicaoController extends Controller
 
     /**
      * Renderiza a view de edição de uma requisição.
-     * @param $id ID da requisição
+     * @param $id int ID da requisição
      */
-    public function showEdit($id)
+    public function edit($id)
     {
         $requisicao = Requisicao::find($id);
 
-        if(Auth::user()->isAdmin() || $requisicao->responsavel == Auth::user()->cpf)
+        if(auth()->user()->isAdmin() || $requisicao->responsavel == auth()->user()->cpf)
         {
             if($requisicao->status == 0)
             {
-                if(Auth::user()->isAdmin())
+                if(auth()->user()->isAdmin())
                 {
                     $users = TipoUsuario::all();
                     $devices = TipoDispositivo::all();
@@ -524,7 +496,7 @@ class RequisicaoController extends Controller
                     $users = TipoUsuario::where('id', '>', 1)->get();
                     $devices = TipoDispositivo::where('id', '>', 1)->get();
                 }
-                return View::make('admin.actions.editRequest')->with(['requisicao' => $requisicao, 'usuarios' => $users, 'dispositivos' => $devices, 'organizacoes' => Ldapuser::where('nivel', 3)->get()]);
+                return view('admin.actions.editRequest')->with(['requisicao' => $requisicao, 'usuarios' => $users, 'dispositivos' => $devices, 'organizacoes' => Ldapuser::where('nivel', 3)->get()]);
             }
             return redirect()->route('listUserRequests');
         }
@@ -534,11 +506,11 @@ class RequisicaoController extends Controller
     /**
      * Edita uma instância de requisição que ainda não foi julgada.
      */
-    public function edit()
+    public function update()
     {
         $requisicao = Requisicao::find(Input::get('id'));
 
-        if(Auth::user()->isAdmin() || $requisicao->responsavel == Auth::user()->cpf)
+        if(auth()->user()->isAdmin() || $requisicao->responsavel == auth()->user()->cpf)
         {
             if($requisicao->status == 0)
             {
@@ -552,14 +524,14 @@ class RequisicaoController extends Controller
                         if($form['termo']->getMimeType() == 'application/pdf') $requisicao->termo = $form['termo']->store('termos');
                         else
                         {
-                            Session::flash('tipo', 'Erro');
-                            Session::flash('mensagem', 'O formato do arquivo não é PDF ou não foi bem codificado.');
+                            session()->flash('tipo', 'error');
+                            session()->flash('mensagem', 'O formato do arquivo não é PDF ou não foi bem codificado.');
                         }
                     }
                     else
                     {
-                        Session::flash('tipo', 'Erro');
-                        Session::flash('mensagem', 'Houve um erro no envio do arquivo e ele não pode ser validado.');
+                        session()->flash('tipo', 'error');
+                        session()->flash('mensagem', 'Houve um erro no envio do arquivo e ele não pode ser validado.');
                     }
                 }
 
@@ -572,13 +544,13 @@ class RequisicaoController extends Controller
                 $requisicao->justificativa = $form['justificativa'];
                 $requisicao->save();
 
-                Session::flash('tipo', 'Sucesso');
-                Session::flash('mensagem', 'Seu pedido foi atualizado com sucesso. Aguarde pela resposta.');
+                session()->flash('tipo', 'success');
+                session()->flash('mensagem', 'Seu pedido foi atualizado com sucesso. Aguarde pela resposta.');
             }
             else
             {
-                Session::flash('tipo', 'Erro');
-                Session::flash('mensagem', 'Não é possível editar uma requisição que foi julgada. Edite o dispostivo ao invés disso.');
+                session()->flash('tipo', 'error');
+                session()->flash('mensagem', 'Não é possível editar uma requisição que foi julgada. Edite o dispostivo ao invés disso.');
             }
         }
         else abort(403);

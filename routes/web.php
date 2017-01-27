@@ -19,12 +19,12 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 
         Route::group(['prefix' => 'request'], function() {
-            Route::get('list/all/{type}', ['as' => 'showRequest', 'uses' => 'RequisicaoController@show']);
+            Route::get('list/all/{type}', ['as' => 'showRequest', 'uses' => 'RequisicaoController@allIndex']);
             Route::post('approve', ['as' => 'approveRequest', 'uses' => 'RequisicaoController@approve']);
-            Route::post('suspend', ['as' => 'suspendRequest', 'uses' => 'RequisicaoController@suspend']);
+            Route::post('block', ['as' => 'blockRequest', 'uses' => 'RequisicaoController@block']);
             Route::post('disable', ['as' => 'disableRequest', 'uses' => 'RequisicaoController@disable']);
             Route::post('deny', ['as' => 'denyRequest', 'uses' => 'RequisicaoController@deny']);
-            Route::get('reactive/{id}', ['as' => 'reactiveRequest', 'uses' => 'RequisicaoController@reactive']);
+            Route::get('reactive/{requisicao}', ['as' => 'reactiveRequest', 'uses' => 'RequisicaoController@reactive']);
         });
 
         Route::group(['prefix' => 'device'], function(){
@@ -69,13 +69,13 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('/searchperson', ['as' => 'searchLdapUser', 'uses' => 'UserController@searchPerson']);
 
     Route::group(['prefix' => 'request'], function(){
-        Route::get('add', ['as' => 'showAddRequest', 'uses' => 'RequisicaoController@showAdd']);
+        Route::get('add', ['as' => 'createRequest', 'uses' => 'RequisicaoController@create']);
         Route::post('add', ['as' => 'storeRequest', 'uses' => 'RequisicaoController@store']);
-        Route::get('details/{id}', ['as' => 'detailsRequest', 'uses' => 'RequisicaoController@details']);
+        Route::get('show/{requisicao}', ['as' => 'showRequest', 'uses' => 'RequisicaoController@show']);
         Route::post('delete', ['as' => 'deleteRequest', 'uses' => 'RequisicaoController@delete']);
-        Route::get('edit/{id}', ['as' => 'showEditRequest', 'uses' => 'RequisicaoController@showEdit']);
-        Route::post('edit', ['as' => 'editRequest', 'uses' => 'RequisicaoController@edit']);
-        Route::get('list/user', ['as' => 'listUserRequests', 'uses' => 'RequisicaoController@showFromUser']);
+        Route::get('edit/{requisicao}', ['as' => 'editRequest', 'uses' => 'RequisicaoController@edit']);
+        Route::post('edit', ['as' => 'updateRequest', 'uses' => 'RequisicaoController@update']);
+        Route::get('list/user', ['as' => 'indexUserRequests', 'uses' => 'RequisicaoController@userIndex']);
         Route::get('term/{filepath}', ['as' => 'showTermRequest', 'uses' => 'RequisicaoController@showTerm']);
     });
 

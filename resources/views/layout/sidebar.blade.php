@@ -73,15 +73,15 @@
                 </li>
             @endcan
             <li class="header text-center">MENU</li>
-            <li class="treeview @yield('requisicoes')">
+            <li class="treeview @if(Route::is('createRequest') || Route::is('indexUserRequests')) active @endif">
                 <a href="#">
                     <i class="fa fa-hand-paper-o"></i><span>Requisições</span>
                     <i class="fa fa-angle-left pull-right"></i>
                 </a>
 
                 <ul class="treeview-menu">
-                    <li class="@yield('addRequest')"><a href="{{ route('showAddRequest') }}"><i class="fa fa-plus"></i> <span>Nova requisição</span></a></li>
-                    <li class="@yield('listUserRequests')"><a href="{{ route('listUserRequests') }}"><i class="fa fa-th-list"></i> <span>Minhas requisições</span></a></li>
+                    <li @if(Route::is('createRequest')) class="active" @endif><a href="{{ route('createRequest') }}"><i class="fa fa-plus"></i> <span>Nova requisição</span></a></li>
+                    <li @if(Route::is('indexUserRequests')) class="active" @endif><a href="{{ route('indexUserRequests') }}"><i class="fa fa-th-list"></i> <span>Minhas requisições</span></a></li>
                 </ul>
             </li>
             <li><a href="{{ route('logout') }}"><i class="fa fa-sign-out" aria-hidden="true"></i><span>Sair</span></a></li>

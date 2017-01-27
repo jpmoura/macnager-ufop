@@ -12,17 +12,6 @@
     {!! HTML::script('https://www.gstatic.com/charts/loader.js') !!}
 
     <div class='col-lg-12'>
-        @if(Session::has("tipo"))
-            <div class="row">
-                <div class="row">
-                    <div class="text-center alert alert-dismissible @if(Session::get('tipo') == 'Sucesso') alert-success @elseif(Session::get('tipo') == 'Informação') alert-info @else alert-danger @endif" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <strong>{{Session::get("tipo")}}!</strong> {!! Session::get("mensagem") !!}
-                    </div>
-                </div>
-            </div>
-        @endif
-
         @can('administrate')
             <div class="row">
                 <div class="box box-primary-ufop">
@@ -57,12 +46,6 @@
                                 </div>
                             @endfor
                         </div>
-
-                        {{-- <div class="row">
-                          <div class="text-center">
-                            <a href="{{url('/forceReload')}}" class="btn btn-app bg-olive"><i class="fa fa-refresh"></i> Atualizar</a>
-                          </div>
-                        </div> --}}
                     </div>
                 </div>
             </div>

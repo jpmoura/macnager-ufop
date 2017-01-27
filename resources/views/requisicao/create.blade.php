@@ -1,13 +1,5 @@
 @extends('layout.base')
 
-@section('requisicoes')
-    active
-@endsection
-
-@section('addRequest')
-    active
-@endsection
-
 @section('title')
     Nova Requisição
 @endsection
@@ -17,7 +9,7 @@
 @endsection
 
 @section('breadcrumb')
-    <li><i class="fa fa-laptop"></i> Dispositivos</li>
+    <li><i class="fa fa-laptop"></i> Requisições</li>
     <li><i class="fa fa-plus"></i> Adicionar</li>
 @endsection
 
@@ -71,10 +63,6 @@
                     error: function (XMLHttpRequest, textStatus, errorThrown) {
                         $("#userDetails").html(XMLHttpRequest.responseText);
                     },
-
-                    complete: function(data){
-                        console.log(data);
-                    }
                 });
             });
         });
@@ -104,16 +92,6 @@
 @section('content')
     <div class='row'>
         <div class='col-lg-12'>
-
-            @if(Session::has("tipo"))
-                <div class="row">
-                    <div class="text-center alert alert-dismissible @if(Session::get('tipo') == 'Sucesso') alert-success @elseif(Session::get('tipo') == 'Informação') alert-info @else alert-danger @endif" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <strong>{{Session::get("tipo")}}!</strong> {!! Session::get("mensagem") !!}
-                    </div>
-                </div>
-            @endif
-
             <div class="box box-primary-ufop">
                 <div class="box-body">
                     <h4 class="text-center text-bold">Todos os campos são obrigatórios</h4>
@@ -123,22 +101,25 @@
                     <form class="form" action="{{ route('storeRequest') }}" accept-charset="UTF-8" method="post" enctype="multipart/form-data">
                         {{ csrf_field() }}
 
-                        <input type="hidden" name="responsavel" value="{{ Auth::user()->cpf }}">
-                        <input type="hidden" name="responsavelNome" value="{{ Auth::user()->nome }}">
+                        <input type="hidden" name="responsavel" value="{{ auth()->user()->cpf }}">
+                        <input type="hidden" name="responsavelNome" value="{{ auth()->user()->nome }}">
 
                         <div class="form-group">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="fa fa-lock"></i></span>
-                                <input type="text" value="{{ Auth::user()->nome }}" disabled class="form-control" title="Pessoa responsável pelo usuário" required data-toggle="tooltip" data-placement="top">
+                                <input type="text" value="{{ auth()->user()->nome }}" disabled class="form-control" title="Pessoa responsável pelo usuário" required data-toggle="tooltip" data-placement="top">
                             </div>
                             <p class="help-block">Lembre-se que você será o responsável por todo e qualquer desvio de conduta por parte do usuário.</p>
                         </div>
 
                         <div class="form-group">
-                            <div class="input-group">
+                            <div class="input-group {{ $errors->has('usuario') ? ' has-error' : '' }}">
                                 <span class="input-group-addon"><i class="fa fa-user"></i></span>
-                                <input id="usuario" name="usuario" type="text" minlength="11" maxlength="11" value="{{old('usuario')}}" placeholder="CPF do usuário que irá utilizar o dispositivo" required class="form-control">
+                                <input id="usuario" name="usuario" type="text" minlength="14" maxlength="14" value="{{old('usuario')}}" placeholder="CPF do usuário que irá utilizar o dispositivo" required class="form-control">
                             </div>
+                            @if($errors->has('usuario'))
+                                <p class="text-danger">{!! $errors->first('usuario') !!}</p>
+                            @endif
                             <p class="help-block">
                                 Caso o usuário não seja uma pessoa e sim todo um laboratório, por exemplo, você pode clicar
                                 <a href="#" data-toggle="modal" data-target="#infoModal">aqui</a> para ver a lista de usuários padrões.
@@ -151,64 +132,82 @@
                         </div>
 
                         <div class="form-group">
-                            <div class="input-group">
+                            <div class="input-group {{ $errors->has('tipousuario') ? ' has-error' : '' }}">
                                 <span class="input-group-addon"><i class="fa fa-users"></i></span>
-                                <select name="tipousuario" class="form-control" required>
+                                <select name="tipousuario" class="form-control" title="Tipo do usuário" required>
                                     <option value="">Selecione um tipo de usuário</option>
                                     @foreach ($usuarios as $usuario)
                                         <option value="{{$usuario->id}}" @if(old('tipousuario') == $usuario->id) selected @endif>{!! $usuario->descricao !!}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <p class="help-block">Para usuários do tipo organização, selecione o tipo <a>Recurso Não Dependete de Usuário.</a></p>
+                            @if($errors->has('tipousuario'))
+                                <p class="text-danger">{!! $errors->first('tipousuario') !!}</p>
+                            @endif
+                            <p class="help-block">Para usuários que seja organizações, selecione o tipo <a>Recurso com múltiplos usuários.</a></p>
                         </div>
 
                         <div class="form-group">
-                            <div class="input-group">
+                            <div class="input-group {{ $errors->has('tipodispositivo') ? ' has-error' : '' }}">
                                 <span class="input-group-addon"><i class="fa fa-laptop"></i></span>
-                                <select name="tipodispositivo" class="form-control" required>
+                                <select name="tipodispositivo" class="form-control" title="Tipo do dispositivo" required>
                                     <option value="">Selecione um tipo de dispositivo</option>
                                     @foreach ($dispositivos as $dispositivo)
                                         <option value="{{$dispositivo->id}}" @if (old('tipodispositivo') == $dispositivo->id) selected @endif>{!! $dispositivo->descricao !!}</option>
                                     @endforeach
                                 </select>
                             </div>
+                            @if($errors->has('tipodispositivo'))
+                                <p class="text-danger">{!! $errors->first('tipodispositivo') !!}</p>
+                            @endif
                             <p class="help-block">Tipo do dispositivo que o usuário irá usar pra se conectar na rede da UFOP.</p>
                         </div>
 
                         <div class="form-group">
-                            <div class="input-group">
+                            <div class="input-group {{ $errors->has('mac') ? ' has-error' : '' }}">
                                 <span class="input-group-addon"><i class="fa fa-hashtag"></i></span>
                                 <input id="macAddress" name="mac" type='text' class='form-control' value="{{old('mac')}}" placeholder="Endereço MAC da placa de rede" minlength="17" maxlength="17" required>
                             </div>
+                            @if($errors->has('mac'))
+                                <p class="text-danger">{!! $errors->first('mac') !!}</p>
+                            @endif
                             <p class="help-block">Você pode encontrar o endereço MAC da placa de rede do dispositivo seguindo <a target="_blank" href="{{ route('showTermRequest', base64_encode('tutorial-mac.pdf')) }}">este tutorial.</a></p>
                         </div>
 
                         <div class="form-group">
-                            <div class="input-group">
+                            <div class="input-group {{ $errors->has('descricao') ? ' has-error' : '' }}">
                                 <span class="input-group-addon"><i class="fa fa-search"></i></span>
                                 <input name="descricao" type='text' value="{{old('descricao')}}" class='form-control' placeholder="Descrição do dispositivo" required>
                             </div>
-                            <p class="help-block">Forneça uma breve descrição do dispositivo para que ele possa ser facilmente identificado posteriormente.</p>
+                            @if($errors->has('descricao'))
+                                <p class="text-danger">{!! $errors->first('descricao') !!}</p>
+                            @endif
+                            <p class="help-block">Forneça uma breve descrição do dispositivo para que ele possa ser facilmente identificado no futuro.</p>
                         </div>
 
                         <div class="form-group">
-                            <div class="input-group">
+                            <div class="input-group {{ $errors->has('justificativa') ? ' has-error' : '' }}">
                                 <span class="input-group-addon"><i class="fa fa-comment"></i></span>
                                 <textarea name="justificativa" class="form-control" style="resize: none;" placeholder="Justificativa para adição do dispositivo" maxlength="100" required>{{old('justificativa')}}</textarea>
                             </div>
-                            <p class="help-block">Explique sucintamente a importância deste dispositivo ter acesso a rede da UFOP.</p>
+                            @if($errors->has('justificativa'))
+                                <p class="text-danger">{!! $errors->first('justificativa') !!}</p>
+                            @endif
+                            <p class="help-block">Explique sucintamente a importância deste dispositivo ter acesso a rede da UFOP. Uma boa justificativa aumenta as chances de aprovação.</p>
                         </div>
 
                         <br />
 
-                        <div class="panel panel-danger">
+                        <div class="panel {{ $errors->has('termo') ? ' panel-danger' : 'panel-info' }}">
                             <div class="panel-heading">
                                 <h3 class="panel-title"><i class="fa fa-file-pdf-o"></i> Termo de Compromisso</h3>
                             </div>
                             <div class="panel-body">
                                 <p>Selecione o arquivo em formato PDF que corresponde ao termo de compromisso devidamente preenchido e assinado.</p>
                                 <p>O modelo do termo pode ser encontrado neste <a target="_blank" href="{{ route('showTermRequest', base64_encode('termos/default.pdf')) }}">link</a>.</p>
+                                @if($errors->has('termo'))
+                                    <p class="text-danger">{!! $errors->first('termo') !!}</p>
+                                @endif
                                 <input name="termo" type='file' title="Arquivo PDF do termo de compromisso assinado" required>
                             </div>
                         </div>
@@ -216,8 +215,8 @@
                         <br />
 
                         <div class="text-center">
-                            <button type="button" class="btn btn-ufop" onClick="history.back()"><i class='fa fa-times'> Cancelar</i></button>
-                            <button type="reset" class="btn btn-info"><i class='fa fa-eraser'></i> Limpar</button>
+                            <button type="button" class="btn bg-ufop" onClick="history.back()"><i class='fa fa-times'> Cancelar</i></button>
+                            <button type="reset" class="btn btn-default"><i class='fa fa-eraser'></i> Limpar</button>
                             <button type="submit" class="btn btn-success"><i class='fa fa-check'></i> Confirmar</button>
                         </div>
                     </form>
