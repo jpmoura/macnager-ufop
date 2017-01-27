@@ -3,15 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Events\LdapiErrorOnSearch;
+use App\Ldapuser;
 use Illuminate\Http\Request;
-use App\Http\Requests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
-use Input;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Redirect;
 
 class UserController extends Controller
 {
@@ -46,7 +43,6 @@ class UserController extends Controller
         }
         catch (RequestException $ex)
         {
-            // TODO log do erro
             Event::fire(new LdapiErrorOnSearch(Auth::user()));
             return response()->json(['status' => 'danger', 'msg' => 'Erro de conexão com o servidor LDAP.']);
         }
@@ -60,6 +56,17 @@ class UserController extends Controller
             $group = $result['result'][0]["grupo"];
             return response()->json(['status' => 'success', 'name' => $name, 'email' => $email, 'group' => $group]);
         }
-        else return response()->json(['status' => 'danger', 'msg' => 'Nenhum usuário encontrado com esse CPF.']);
+        else {
+            $user = Ldapuser::where('cpf', $cpf)->first();
+
+            if(isset($user))
+            {
+                $name = $user->nome;
+                $email = $user->email;
+                $group = 'Organização do ICEA';
+                return response()->json(['status' => 'success', 'name' => $name, 'email' => $email, 'group' => $group]);
+            }
+            else return response()->json(['status' => 'danger', 'msg' => 'Nenhum usuário encontrado com esse CPF.']);
+        }
     }
 }
