@@ -215,7 +215,7 @@
                         <br />
 
                         <div class="text-center">
-                            <button type="button" class="btn bg-ufop" onClick="history.back()"><i class='fa fa-times'> Cancelar</i></button>
+                            <button type="button" class="btn bg-ufop" onClick="history.back()"><i class='fa fa-times'></i> Cancelar</button>
                             <button type="reset" class="btn btn-default"><i class='fa fa-eraser'></i> Limpar</button>
                             <button type="submit" class="btn btn-success"><i class='fa fa-check'></i> Confirmar</button>
                         </div>
