@@ -53,6 +53,7 @@ class CreateRequisicaoRequest extends FormRequest
             'justificativa.required' => 'O campo Justificativa é obrigatório',
             'justificativa.max' => 'A justificativa deve conter no máximo :max caracteres',
             'termo.mimetypes' => 'O arquivo do termo de compromisso deve ser do tipo PDF.',
+            'termo.uploaded' => 'Ocorreu uma falha durante o envio do termo de compromisso.',
         ];
     }
 }
