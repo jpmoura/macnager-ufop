@@ -50,7 +50,7 @@
                                 <select name="cidr" class="form-control" required>
                                     <option value="">Selecione uma máscara de rede (CIDR)</option>
                                     @for($i = 32; $i > -1; --$i)
-                                        <option value="{{ $i }}" @if(!$errors->has('cidr') && $i == old('cidr')) selected @endif>{{ $i }}</option>
+                                        <option value="{{ $i }}" @if($errors->has('cidr') && $i == old('cidr')) selected @endif>{{ $i }}</option>
                                     @endfor
                                 </select>
                             </div>
