@@ -13,8 +13,9 @@ use GuzzleHttp\Client;
 class UserController extends Controller
 {
     /**
-     * Método para retornar uma consulta AJAX para que o administrador possa confirmar
-     * os dados do novo usuário que será inserido no banco.
+     * Procura por um usuário de um determinado CPF no banco de dados local e pela LDAPI.
+     * @param Request $request Requisição AJAX feita pela página.
+     * @return \Illuminate\Http\JsonResponse Resposta contendo os valores de nome, email e grupo do usuário ou uma resposta de erro se não for encontrado
      */
     public function searchPerson(Request $request) {
 
