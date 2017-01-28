@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Events\DeviceEdited;
 use App\Events\DeviceStored;
 use App\Events\RequestStored;
+use App\Http\Requests\AprovarRequisicaoRequest;
 use App\Http\Requests\CreateDeviceRequest;
 use App\Http\Requests\CreateRequisicaoRequest;
+use App\Http\Requests\RecusarRequisicaoRequest;
 use App\Ldapuser;
 use App\Mail\RequestApproved;
 use App\Mail\RequestDenied;
@@ -18,7 +20,6 @@ use App\Requisicao;
 use App\Subrede;
 use App\TipoDispositivo;
 use App\TipoUsuario;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -79,35 +80,36 @@ class RequisicaoController extends Controller
         $input['responsavel'] = RequisicaoController::cleanCPF($input['responsavel']);
         $input['usuario'] = RequisicaoController::cleanCPF($input['usuario']);
 
+        // Tratamento da validade
+        if(empty($input['validade'])) $input['validade'] = null;
+        else $input['validade'] = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
+
         // Criar requisição para o novo dispositivo
-        $newRequest = new Requisicao;
-        $newRequest->responsavel = $input['responsavel'];
-        $newRequest->responsavelNome = ucwords(strtolower($input['responsavelNome']));
-        $newRequest->usuario = $input['usuario'];
-        $newRequest->usuarioNome = ucwords(strtolower($input['usuarioNome']));
-        $newRequest->tipo_usuario = $input['tipousuario'];
-        $newRequest->tipo_dispositivo = $input['tipodispositivo'];
-        $newRequest->mac = $input['mac'];
-        $newRequest->termo = "termos/default.pdf";
-        $newRequest->descricao_dispositivo = $input['descricao'];
-        $newRequest->justificativa = $input['justificativa'];
-        $newRequest->submissao = date("Y-m-d H:i:s", time());
-        $newRequest->avaliacao = date("Y-m-d H:i:s", time());
-        $newRequest->juizCPF = auth()->user()->cpf;
-        $newRequest->juizMotivo = 'Adição manual.';
-        $newRequest->ip = $input['ip'];
-        $newRequest->status = 1;
-
-        if(empty($input['validade'])) $newRequest->validade = null;
-        else $newRequest->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
-
-        $newRequest->save();
+        $newRequest = Requisicao::create([
+            'responsavel' => $input['responsavel'],
+            'responsavelNome' => ucwords(strtolower($input['responsavelNome'])),
+            'usuario' => $input['usuario'],
+            'usuarioNome' => ucwords(strtolower($input['usuarioNome'])),
+            'tipo_usuario' => $input['tipousuario'],
+            'tipo_dispositivo' => $input['tipodispositivo'],
+            'mac' => $input['mac'],
+            'termo' => "termos/default.pdf",
+            'descricao_dispositivo' => $input['descricao'],
+            'justificativa' => $input['justificativa'],
+            'submissao' => date("Y-m-d H:i:s", time()),
+            'avaliacao' => date("Y-m-d H:i:s", time()),
+            'juizCPF' => auth()->user()->cpf,
+            'juizMotivo' => 'Adição manual por ' . auth()->user()->nome,
+            'ip' => $input['ip'],
+            'status' => 1,
+            'validade' => $input['validade']
+        ]);
 
         if(PfsenseController::refreshPfsense())
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'info');
-            Event::fire(new DeviceStored($newRequest));
+            event(new DeviceStored($newRequest));
         }
         else
         {
@@ -161,7 +163,7 @@ class RequisicaoController extends Controller
             {
                 session()->flash('mensagem', "Servidor pfSense atualizado");
                 session()->flash('tipo', 'info');
-                Event::fire(new DeviceEdited($record));
+                event(new DeviceEdited($record));
             }
             else
             {
@@ -203,7 +205,7 @@ class RequisicaoController extends Controller
             'justificativa' => $form['justificativa'],
         ]);
 
-        Event::fire(new RequestStored($newRequest, auth()->user()));
+        event(new RequestStored($newRequest, auth()->user()));
 
         session()->flash('tipo', 'success');
         session()->flash('mensagem', 'Seu pedido foi enviado com sucesso. Você será notificado assim que o pedido for julgado.');
@@ -279,81 +281,79 @@ class RequisicaoController extends Controller
 
     /**
      * Renderiza view contendo os detalhes de uma requisição
-     * @param Requisicao $request Requisição a qual se verá os detalhes
+     * @param Requisicao $requisicao Requisição a qual se verá os detalhes
      * @return mixed View com os dados da requisição
      */
-    public function show(Requisicao $request)
+    public function show(Requisicao $requisicao)
     {
-        return view('requisicao.show')->with('requisicao', $request);
+        $subredes = Subrede::all();
+        return view('requisicao.show')->with(['requisicao' => $requisicao, 'subredes' => $subredes]);
     }
 
     /**
-     * Aprova uma requisição.
+     * Aprova uma requisição, definindo um endereço IP para o dispositivo.
+     * @param AprovarRequisicaoRequest $request Requisição com os campos validados
+     * @return \Illuminate\Http\RedirectResponse View com os detalhes da requisição
      */
-    public function approve()
+    public function approve(AprovarRequisicaoRequest $request)
     {
-        $date = explode('/', Input::get('validade'));
+        $form = $request->all();
 
-        // Verifica se a data informada é nula ou se ele é válida
-        if(empty(Input::get('validade')) || checkdate($date[1], $date[0], $date[2]) )
+        $requisicao = Requisicao::find($form['id']);
+        $requisicao->status = 1;
+        $requisicao->avaliacao = date("Y-m-d H:i:s", time());
+        $requisicao->juizCPF = auth()->user()->cpf;
+        $requisicao->ip = $form['ip'];
+
+        if(empty($form['validade'])) $requisicao->validade = null;
+        else $requisicao->validade = date("Y-m-d H:i:s", time());
+
+        $requisicao->save();
+
+        if(PfsenseController::refreshPfsense())
         {
-            $request = Requisicao::find(Input::get('id'));
-            $request->status = 1;
-            $request->avaliacao = date("Y-m-d H:i:s", time());
-            $request->juizCPF = auth()->user()->cpf;
-            $request->ip = Input::get('ip');
-
-            if( empty($input['validade']) ) $request->validade = null;
-            else $request->validade = date("Y-m-d H:i:s", time());
-
-            $request->save();
-
-            if(PfsenseController::refreshPfsense())
-            {
-                session()->flash('mensagem', "Servidor pfSense atualizado");
-                session()->flash('tipo', 'success');
-                Event::fire(new RequestApproved($request, auth()->user()));
-            }
-            else
-            {
-                session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-                session()->flash('tipo', 'error');
-            }
-
-            // Envio de e-mail avisando que a requisição foi aprovada.
-            $user = Ldapuser::where('cpf', $request->responsavel)->first();
-            if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $request));
+            session()->flash('mensagem', "Servidor pfSense atualizado");
+            session()->flash('tipo', 'success');
+            event(new RequestApproved($requisicao, auth()->user()));
         }
         else
         {
-            session()->flash('mensagem', 'A data informada é inválida.');
+            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
             session()->flash('tipo', 'error');
         }
+
+        // Envio de e-mail avisando que a requisição foi aprovada.
+        $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
+        if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $requisicao));
 
         return back();
     }
 
     /**
-     * Nega uma requisição.
+     * Recusa um pedido de requisição
+     * @param RecusarRequisicaoRequest $request Requisição com os campos validados.
+     * @return \Illuminate\Http\RedirectResponse View da página de detalhes da requisição.
      */
-    public function deny()
+    public function deny(RecusarRequisicaoRequest $request)
     {
-        $requisicao = Requisicao::find(Input::get('id'));
-        $requisicao->juizMotivo = Input::get('juizMotivo');
-        $requisicao->juizCPF = Session::get("id");
+        $form = $request->all();
+
+        $requisicao = Requisicao::find($form['id']);
+        $requisicao->juizMotivo = $form['juizMotivo'];
+        $requisicao->juizCPF = auth()->user()->cpf;
         $requisicao->status = 2;
         $requisicao->save();
 
-        Event::fire(new RequestDenied($requisicao, auth()->user()));
+        event(new \App\Events\RequestDenied($requisicao, auth()->user()));
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestDenied($user, $requisicao));
 
         session()->flash('tipo', 'success');
-        session()->flash('mensagem', 'O pedido de liberação do dispositivo foi negado.');
+        session()->flash('mensagem', 'A requisição foi negada.');
 
-        return redirect()->route('showRequest', 0);
+        return back();
     }
 
     /**
@@ -376,7 +376,7 @@ class RequisicaoController extends Controller
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'info');
-            Event::fire(new RequestSuspended($requisicao, auth()->user()));
+            event(new RequestSuspended($requisicao, auth()->user()));
         }
         else
         {
@@ -409,7 +409,7 @@ class RequisicaoController extends Controller
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'success');
-            Event::fire(new RequestExcluded($requisicao, auth()->user()));
+            event(new RequestExcluded($requisicao, auth()->user()));
         }
         else
         {
@@ -424,9 +424,8 @@ class RequisicaoController extends Controller
      * Reativa uma requisição que foi suspensa.
      * @param $id ID da requisição
      */
-    public function reactive($id)
+    public function reactive(Requisicao $requisicao)
     {
-        $requisicao = Requisicao::find($id);
         $requisicao->juizMotivo = null;
         $requisicao->juizCPF = auth()->user()->cpf;
         $requisicao->status = 1;
@@ -441,7 +440,7 @@ class RequisicaoController extends Controller
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'info');
-            Event::fire(new RequestReactivated($requisicao, auth()->user()));
+            event(new RequestReactivated($requisicao, auth()->user()));
         }
         else
         {

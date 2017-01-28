@@ -24,7 +24,7 @@ class CreateDeviceRequest extends FormRequest
     public function rules()
     {
         return [
-            'ip'              => 'required|ip|unique:requisicoes,ip',
+            'ip'              => 'required|ip',
             'responsavel'     => 'required|size:14',
             'responsavelNome' => 'required',
             'usuario'         => 'required|size:14',

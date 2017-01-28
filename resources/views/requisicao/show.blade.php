@@ -1,7 +1,7 @@
 @extends('layout.base')
 
 @section('title')
-    Detalhes do pedido #{{ $requisicao->id }}
+    Detalhes da requisição #{{ $requisicao->id }}
 @endsection
 
 @section('description')
@@ -81,7 +81,8 @@
                                               @elseif($requisicao->status == 1) Aprovado
                                               @elseif($requisicao->status == 2) Negado
                                               @elseif($requisicao->status == 3) Vencido
-                                              @else Suspenso
+                                              @elseif($requisicao->status == 4) Suspenso
+                                              @else Desativado
                                               @endif" readonly data-toggle="tooltip" data-placement="top" title="Status da requisição">
                             </div>
 
@@ -109,9 +110,11 @@
                             @endif
                         </form>
 
+                        <br />
+
                         {{-- Se a requisição estiver em espera --}}
                         @if($requisicao->status == 0)
-                            @if(Auth::user()->isAdmin()) {{-- Se o usuário for administrador, mostra formulário de autenticação  --}}
+                            @can('administrate') {{-- Se o usuário for administrador, mostra formulário de autenticação  --}}
 
                                 @push('extra-css')
                                     {!! HTML::style('public/js/plugins/jQueryUI/jquery-ui.min.css') !!}
@@ -125,6 +128,44 @@
                                             $( "#datepicker" ).datepicker($.datepicker.regional['pt-BR']);
                                         });
                                     </script>
+
+                                    {{-- AJAX de recuperação de IPs não usados de acordo com a Subrede --}}
+                                    <script>
+                                        $(function(){
+                                            $('#subrede').change(function(){
+                                                console.log('Fazendo requisição');
+
+                                                $("#ips").empty(); // Limpa as opções disponíveis
+
+                                                $.ajax({
+                                                    url: '{{ url('test') }}' + '/' + this.selectedIndex, // url
+                                                    type: "get", // método
+
+                                                    success: function(response)
+                                                    {
+                                                        // Se a resposta for OK
+                                                        if(response.count > 0)
+                                                        { // Verificar se o count  é maior que 0
+                                                            $.each(response.ips, function () {
+                                                                $("#ips").append('<option value="'+ this +'">'+ this +'</option>') // Cria a opção para cada IP livre
+                                                            });
+                                                        }
+                                                        else
+                                                        { // Nenhum IP está livre
+                                                            $("#ips").append('<option value="">Nehum endereço IP disponível para essa subrede</option>') // Informa que n"ao existem IPs livres para a subrede
+                                                        }
+                                                    },
+
+                                                    // Se houver erro na requisição (e.g. 404)
+                                                    error: function (XMLHttpRequest, textStatus, errorThrown)
+                                                    {
+                                                        $("#ips").append('<option value="">Erro durante requisição</option>');
+                                                        console.log('Error in Subnet:' + errorThrown);
+                                                    },
+                                                });
+                                            });
+                                        });
+                                    </script>
                                 @endpush
 
                                 <form class="form" action="{{ route('approveRequest') }}" method="post">
@@ -133,19 +174,44 @@
 
                                     <input type="hidden" name="id" value="{{$requisicao->id}}">
 
-                                    <div class="input-group">
-                                        <span class="input-group-addon">IP</span>
-                                        <select name="ip" class="form-control" required data-toggle="tooltip" data-placement="top" title="Endereço IP destinado ao dispositvo">
-                                            <option value="">Selecione um IP</option>
-                                            @foreach ($ipsLivre as $ip)
-                                                <option value="{{$ip}}">{{$ip}}</option>
-                                            @endforeach
-                                        </select>
+                                    {{-- Subrede --}}
+                                    <div class="form-group {{ $errors->has('subrede') ? ' has-error' : '' }}">
+                                        <div class="input-group">
+                                            <span class="input-group-addon"><i class="fa fa-sitemap"></i></span>
+                                            <select id="subrede" name="subrede" class="form-control" required data-toggle="tooltip" data-placement="top" title="Suberede a qual o dispositivo fará parte">
+                                                <option value="">Selecione a Subrede</option>
+                                                @foreach($subredes as $subrede)
+                                                    <option value="{{ $subrede->id }}">{{ $subrede->tipo->descricao }} - {!! $subrede->descricao !!}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        @if($errors->has('subrede'))
+                                            <p class="help-block">{!! $errors->first('subrede') !!}</p>
+                                        @endif
                                     </div>
 
-                                    <div class="input-group">
-                                        <span class="input-group-addon"><i class="fa fa-history"></i></span>
-                                        <input id="datepicker" name="validade" type="text" minlength="10" maxlength="10" class="form-control" placeholder="Validade do cadastro" data-toggle="tooltip" data-placement="top" title="Validade">
+                                    {{-- Endereço IP --}}
+                                    <div class="form-group {{ $errors->has('ip') ? ' has-error' : '' }}">
+                                        <div class="input-group">
+                                            <span class="input-group-addon">IP</span>
+                                            <select id="ips" name="ip" class="form-control" required data-toggle="tooltip" data-placement="top" title="Endereço IP destinado ao dispositvo">
+                                                <option value="">Selecione uma subrede para visualizar os IPs</option>
+                                            </select>
+                                        </div>
+                                        @if($errors->has('ip'))
+                                            <p class="help-block">{!! $errors->first('ip') !!}</p>
+                                        @endif
+                                    </div>
+
+                                    {{-- Data de validade --}}
+                                    <div class="form-group {{ $errors->has('validade') ? ' has-error' : '' }}">
+                                        <div class="input-group">
+                                            <span class="input-group-addon"><i class="fa fa-history"></i></span>
+                                            <input id="datepicker" name="validade" type="text" minlength="10" maxlength="10" class="form-control" placeholder="Validade do cadastro" data-toggle="tooltip" data-placement="top" title="Validade">
+                                        </div>
+                                        @if($errors->has('validade'))
+                                            <p class="help-block">{!! $errors->first('validade') !!}</p>
+                                        @endif
                                     </div>
 
                                     <br />
@@ -153,30 +219,34 @@
                                     <div class="text-center">
                                         <div class="text-center">
                                             <button type="button" class="btn btn-ufop" onClick="history.back()"><i class='fa fa-arrow-left'></i> Voltar</button>
-                                            <a href="{{ route('showEditRequest', $requisicao->id) }}" class="btn bg-navy"><i class="fa fa-edit"></i> Editar</a>
+                                            <a href="{{ route('editRequest', $requisicao->id) }}" class="btn bg-navy"><i class="fa fa-edit"></i> Editar</a>
                                             <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#denyModal"><i class='fa fa-times'></i> Negar</button>
                                             <button type="submit" class="btn btn-success"><i class='fa fa-check'></i> Aprovar</button>
                                         </div>
                                     </div>
                                 </form>
-                            @endif
+                            @endcan
+                            @cannot('administrate')
+                                    {{-- O usuário dono da requisição pode editar ou apagar a requisição enquanto ela não for julgada --}}
+                                    @if(auth()->user()->cpf == $requisicao->responsavel)
+                                        <button type="button" class="btn btn-ufop" onClick="history.back()"><i class='fa fa-arrow-left'></i> Voltar</button>
+                                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i> Apagar</button>
+                                        <a href="{{ route('editRequest', $requisicao->id)}}" class="btn bg-navy"><i class="fa fa-edit"></i> Editar</a>
+                                    @endif
+                            @endcannot
+                        @else
+                            <br />
+                            <div class="text-center">
+                                <button type="button" class="btn btn-ufop" onClick="history.back()"><i class='fa fa-arrow-left'></i> Voltar</button>
+                            </div>
                         @endif
-                        <br />
-                        <div class="text-center">
-                            <button type="button" class="btn btn-ufop" onClick="history.back()"><i class='fa fa-arrow-left'></i> Voltar</button>
-                            {{-- O usuário dono da requisição pode editar ou apagar a requisição enquanto ela não for julgada --}}
-                            @if($requisicao->status == 0 && $Auth::user()->cpf == $requisicao->responsavel)
-                                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i> Apagar</button>
-                                <a href="{{ route('showEditRequest', $requisicao->id)}}" class="btn bg-navy"><i class="fa fa-edit"></i> Editar</a>
-                            @endif
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    @if($requisicao->status == 0 && Auth::user()->isAdmin())
+    @if($requisicao->status == 0 && auth()->user()->isAdmin())
         {{-- Modal com justificativa para negar --}}
         <div class="modal fade modal-danger" id="denyModal" tabindex="-1" role="dialog" aria-labelledby="denyModal" aria-hidden="true">
             <div class="modal-dialog">
@@ -200,7 +270,7 @@
 
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Cancelar</button>
-                            <button type="submit" class="btn btn-primary"><i class="fa fa-gavel"></i> Negar</button>
+                            <button type="submit" class="btn bg-black"><i class="fa fa-gavel"></i> Negar</button>
                         </div>
 
                     </form>
@@ -209,7 +279,7 @@
         </div>
     @endif
 
-    @if($requisicao->status == 0 && Auth::user()->cpf == $requisicao->responsavel)
+    @if($requisicao->status == 0 && auth()->user()->cpf == $requisicao->responsavel)
         <div class="modal fade modal-danger" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -225,7 +295,7 @@
                             {{ csrf_field() }}
                             <input type="hidden" name="id" value="{{$requisicao->id}}">
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Cancelar</button>
-                            <button type="submit" class="btn btn-primary pull-right"><i class="fa fa-trash-o"></i> Apagar</button>
+                            <button type="submit" class="btn bg-black pull-right"><i class="fa fa-trash-o"></i> Apagar</button>
                         </form>
                     </div>
                 </div>
