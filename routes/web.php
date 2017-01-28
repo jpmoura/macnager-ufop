@@ -54,12 +54,12 @@ Route::group(['middleware' => 'auth'], function() {
         });
 
         Route::group(['prefix' => 'user/type'], function(){
-            Route::get('add', ['as' => 'showAddUserType', 'uses' => 'TipoUsuarioController@showAdd']);
-            Route::post('add', ['as' => 'addUserType', 'uses' => 'TipoUsuarioController@add']);
-            Route::get('list', ['as' => 'listUserType', 'uses' => 'TipoUsuarioController@show']);
-            Route::get('edit/{id}', ['as' => 'showEditUserType', 'uses' => 'TipoUsuarioController@showEdit']);
-            Route::post('edit', ['as' => 'editUserType', 'uses' => 'TipoUsuarioController@edit']);
-            Route::get('delete/{id}', ['as' => 'deleteUserType', 'uses' => 'TipoUsuarioController@delete']);
+            Route::get('add', ['as' => 'createTipoUsuario', 'uses' => 'TipoUsuarioController@create']);
+            Route::post('add', ['as' => 'storeTipoUsuario', 'uses' => 'TipoUsuarioController@store']);
+            Route::get('list', ['as' => 'indexTipoUsuario', 'uses' => 'TipoUsuarioController@index']);
+            Route::get('edit/{tipousuario}', ['as' => 'editTipoUsuario', 'uses' => 'TipoUsuarioController@edit']);
+            Route::post('edit', ['as' => 'updateTipoUsuario', 'uses' => 'TipoUsuarioController@update']);
+            Route::get('delete/{tipousuario}', ['as' => 'deleteTipoUsuario', 'uses' => 'TipoUsuarioController@delete']);
         });
     });
 

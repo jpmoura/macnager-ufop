@@ -43,20 +43,20 @@
                     </ul>
                 </li>
 
-                <li class="treeview @yield('usuarios')">
+                <li class="treeview @if(Route::is('createTipoUsuario') || Route::is('indexTipoUsuario') || Route::is('editTipoUsuario')) active @endif">
                     <a href="#">
                         <i class="fa fa-users"></i><span>Usuários</span>
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li class="treeview @yield('tipousuario')">
+                        <li class="treeview @if(Route::is('createTipoUsuario') || Route::is('indexTipoUsuario') || Route::is('editTipoUsuario')) active @endif">
                             <a href="#">
                                 <i class="fa fa-puzzle-piece"></i><span>Tipos de usuários</span>
                                 <i class="fa fa-angle-left pull-right"></i>
                             </a>
                             <ul class="treeview-menu">
-                                <li class="@yield('addUserType')"><a href="{{ route('showAddUserType') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
-                                <li class="@yield('listUserType')"><a href="{{ route('listUserType') }}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
+                                <li @if(Route::is('createTipoUsuario')) class="active" @endif><a href="{{ route('createTipoUsuario') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
+                                <li @if(Route::is('indexTipoUsuario')) class="active" @endif><a href="{{ route('indexTipoUsuario') }}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
                             </ul>
                         </li>
                     </ul>

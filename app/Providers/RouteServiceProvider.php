@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Requisicao;
 use App\Subrede;
 use App\TipoDispositivo;
+use App\TipoUsuario;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
@@ -30,6 +31,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::model('subrede', Subrede::class);
         Route::model('requisicao', Requisicao::class);
         Route::model('tipodispositivo', TipoDispositivo::class);
+        Route::model('tipousuario', TipoUsuario::class);
 
         parent::boot();
     }

@@ -2,85 +2,99 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 use App\Http\Requests;
-use Illuminate\Support\Facades\Redirect;
-use Input;
-use Session;
-use View;
 use App\TipoUsuario;
 
 class TipoUsuarioController extends Controller
 {
 
     /**
-     * Renderiza a view com o formulário de adição.
+     * Renderiza aview para criação de um novo tipo de usuário
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View View que contém o formulário de criação para o modelo TipoUsuario
      */
-    public function showAdd()
+    public function create()
     {
-        return View::make('tipousuario.add');
+        return view('tipousuario.create');
     }
 
     /**
-     * Adiciona uma nova instância ao banco de dados.
+     * Armazena uma nova instância do TipoUsuario no banco de dados
+     * @param Requests\CreateTipoUsuarioRequest $request Requisição com os campos validados
+     * @return \Illuminate\Http\RedirectResponse View qe contém todos os tipos cadastrados.
      */
-    public function add()
+    public function store(Requests\CreateTipoUsuarioRequest $request)
     {
-        $newUserType = new TipoUsuario;
-        $newUserType->descricao = Input::get('descricao');
-        $newUserType->save();
+        $newUserType = TipoUsuario::create(['descricao' => $request->input('descricao')]);
 
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', 'Novo tipo de usuário adicionado.');
+        if($newUserType)
+        {
+            session()->flash('tipo', 'success');
+            session()->flash('mensagem', 'Novo tipo de usuário adicionado.');
+        }
+        else
+        {
+            session()->flash('tipo', 'error');
+            session()->flash('mensagem', 'Ocorreu um erro durante a adição do novo tipo de usuário.');
+        }
 
-        return Redirect::route('listUserType');
+        return redirect()->route('indexTipoUsuario');
     }
 
     /**
-     * Renderiza aview com todos os tipos cadastrados.
+     * View com os tipos cadastrados e opções de edição e deleção para cada um.
+     * @return mixed View contendo todos os tipos já cadastrados.
      */
-    public function show()
+    public function index()
     {
-        return View::make('tipousuario.show')->with('tipos', TipoUsuario::all());
+        return view('tipousuario.index')->with('tipos', TipoUsuario::all());
     }
 
     /**
-     * Renderiza a view com o formulário de edição.
-     * @param $id ID da instância a ser editada
-     * @return Redirect
+     * Renderiza view contendo os valores atuais do tipo do usuário.
+     * @param TipoUsuario $userType Instância a ser editada
+     * @return mixed View contendo o formulário de edição dos detalhes da instãncia
      */
-    public function showEdit($id)
+    public function edit(TipoUsuario $userType)
     {
-        return View::make('tipousuario.edit')->with('tipo', TipoUsuario::find($id));
+        return view('tipousuario.edit')->with('tipo', $userType);
     }
 
     /**
-     * Edita dos dados de uma instância.
+     * Atualiza os valores de uma instância TipoUsuario
+     * @param Requests\EditTipoUsuarioRequest $request Requisição com os campos validados
+     * @return \Illuminate\Http\RedirectResponse Página anterior com os valores atualizados da instância
      */
-    public function edit()
+    public function update(Requests\EditTipoUsuarioRequest $request)
     {
-        $toEdit = TipoUsuario::find(Input::get('id'));
-        $toEdit->descricao = Input::get('descricao');
+        $toEdit = TipoUsuario::find($request->input('id'));
+        $toEdit->descricao = $request->input('descricao');
         $toEdit->save();
 
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', 'O tipo foi editado.');
+        session()->flash('tipo', 'success');
+        session()->flash('mensagem', 'O tipo foi editado.');
 
-        return Redirect::back();
+        return back();
     }
 
     /**
-     * Deleta uma instância do banco de dados.
-     * @param $id ID da instância a ser deletada
+     * Remove uma intância de TipoUsuario do banco de dados
+     * @param TipoUsuario $userType Instância a ser removida
+     * @return \Illuminate\Http\RedirectResponse View com o índice de todos os tipos existentes
      */
-    public function deleteUserType($id)
+    public function delete(TipoUsuario $userType)
     {
-        TipoUsuario::destroy($id);
+        try
+        {
+            $userType->delete();
+            session()->flash('tipo', 'success');
+            session()->flash('mensagem', 'O tipo foi excluído.');
+        }
+        catch (\Exception $e)
+        {
+            session()->flash('tipo', 'error');
+            session()->flash('mensagem', 'O tipo de usuário não foi excluído. Motivo: ' . $e->getMessage());
+        }
 
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', 'O tipo foi excluído.');
-
-        return Redirect::route('listUserType');
+        return redirect()->route('indexTipoUsuario');
     }
 }
