@@ -51,7 +51,7 @@ class SubredeController extends Controller
 
         $newSubrede->save();
 
-        session()->flash('tipo', 'Sucesso');
+        session()->flash('tipo', 'success');
         session()->flash('mensagem', 'Nova subrede adicionada ao banco de dados.');
 
         return redirect()->route('indexSubrede');
@@ -87,7 +87,7 @@ class SubredeController extends Controller
 
         $subnet->save();
 
-        session()->flash('tipo', 'Sucesso');
+        session()->flash('tipo', 'success');
         session()->flash('mensagem', 'A subrede foi editada.');
 
         return redirect()->back();
@@ -101,12 +101,12 @@ class SubredeController extends Controller
         try
         {
             $subrede->delete();
-            session()->flash('tipo', 'Sucesso');
+            session()->flash('tipo', 'success');
             session()->flash('mensagem', 'A Subrede foi removida com sucesso');
         }
         catch (\Exception $e)
         {
-            session()->flash('tipo', 'Erro');
+            session()->flash('tipo', 'error');
             session()->flash('mensagem', 'Ocorreu um erro e a subrede não pôde ser removida.');
         }
 
