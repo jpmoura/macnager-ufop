@@ -35,12 +35,12 @@ Route::group(['middleware' => 'auth'], function() {
             Route::get('list/{status}', ['as' => 'listDevice', 'uses' => 'RequisicaoController@indexDevice']);
 
             Route::group(['prefix' => 'type'], function(){
-                Route::get('add', ['as' => 'showAddDeviceType', 'uses' => 'TipoDispositivoController@showAdd']);
-                Route::post('add', ['as' => 'addDeviceType', 'uses' => 'TipoDispositivoController@add']);
-                Route::get('list', ['as' => 'listDeviceType', 'uses' => 'TipoDispositivoController@show']);
-                Route::get('edit/{id}', ['as' => 'showEditDeviceType', 'uses' => 'TipoDispositivoController@showEdit']);
-                Route::post('edit', ['as' => 'editDeviceType', 'uses' => 'TipoDispositivoController@edit']);
-                Route::get('delete/{id}', ['as' => 'deleteDeviceType', 'uses' => 'TipoDispositivoController@delete']);
+                Route::get('add', ['as' => 'createTipoDispositivo', 'uses' => 'TipoDispositivoController@create']);
+                Route::post('add', ['as' => 'storeTipoDispositivo', 'uses' => 'TipoDispositivoController@store']);
+                Route::get('list', ['as' => 'indexTipoDispositivo', 'uses' => 'TipoDispositivoController@index']);
+                Route::get('edit/{tipodispositivo}', ['as' => 'editTipoDispositivo', 'uses' => 'TipoDispositivoController@edit']);
+                Route::post('edit', ['as' => 'updateTipoDispositivo', 'uses' => 'TipoDispositivoController@update']);
+                Route::get('delete/{tipodispositivo}', ['as' => 'deleteTipoDispositivo', 'uses' => 'TipoDispositivoController@delete']);
             });
         });
 

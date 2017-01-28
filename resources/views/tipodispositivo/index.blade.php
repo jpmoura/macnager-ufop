@@ -58,16 +58,6 @@
 @section('content')
     <div class="row">
         <div class="col-lg-12">
-
-            @if(Session::has("tipo"))
-                <div class="row">
-                    <div class="text-center alert alert-dismissible @if(Session::get('tipo') == 'Sucesso') alert-success @elseif(Session::get('tipo') == 'Informação') alert-info @else alert-danger @endif" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <strong>{{Session::get("tipo")}}!</strong> {!! Session::get("mensagem") !!}
-                    </div>
-                </div>
-            @endif
-
             <div class="box box-primary-ufop">
                 <div class="box-body">
                     <div class="table">
@@ -83,8 +73,8 @@
                                 <tr>
                                     <td>{{ $tipo->descricao }}</td>
                                     <td>
-                                        <a href="{{ route('showEditDeviceType', $tipo->id) }}" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> Editar</a>
-                                        <a href="{{ route('deleteDeviceType', $tipo->id) }}" class="btn btn-xs btn-danger"><i class="fa fa-trash-o"></i> Apagar</a>
+                                        <a href="{{ route('editTipoDispositivo', $tipo->id) }}" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> Editar</a>
+                                        <a href="{{ route('deleteTipoDispositivo', $tipo->id) }}" class="btn btn-xs btn-danger"><i class="fa fa-trash-o"></i> Apagar</a>
                                     </td>
                                 </tr>
                             @endforeach
@@ -101,7 +91,7 @@
             </div>
 
             <div class="row text-center">
-                <a class="btn btn-success" href="{{ route('showAddDeviceType') }}"><i class="fa fa-plus"></i> Adiconar tipo</a>
+                <a class="btn btn-success" href="{{ route('createTipoDispositivo') }}"><i class="fa fa-plus"></i> Adiconar tipo</a>
             </div>
         </div>
     </div>

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Requisicao;
 use App\Subrede;
+use App\TipoDispositivo;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
@@ -28,6 +29,7 @@ class RouteServiceProvider extends ServiceProvider
         // Vínculo de modelos com ID nas rotas
         Route::model('subrede', Subrede::class);
         Route::model('requisicao', Requisicao::class);
+        Route::model('tipodispositivo', TipoDispositivo::class);
 
         parent::boot();
     }

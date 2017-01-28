@@ -11,7 +11,7 @@
 
                 <li class="@yield('pedidos')"><a href="{{ route('showRequest', 0) }}"><i class="fa fa-legal"></i> <span>Pedidos</span> @if(Session::has('novosPedidos') && Session::get('novosPedidos') > 0) <span class="label label-success pull-right">{{Session::get('novosPedidos')}}</span> @endif</a></li>
 
-                <li class="treeview @yield('dispositivo')">
+                <li class="treeview @if(Route::is('indexTipoDispositivo') || Route::is('createTipoDispositivo') || Route::is('editTipoDispositivo')) active @endif">
                     <a href="#">
                         <i class="fa fa-laptop"></i><span>Dispositivos</span>
                         <i class="fa fa-angle-left pull-right"></i>
@@ -19,14 +19,14 @@
                     <ul class="treeview-menu">
                         <li class="@yield('addMac')"><a href="{{ route('showAddDevice') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
                         <li class="@yield('listMac')"><a href="{{ route('listDevice', 1)}}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
-                        <li class="treeview @yield('tipodispositivo')">
+                        <li class="treeview @if(Route::is('indexTipoDispositivo') || Route::is('createTipoDispositivo') || Route::is('editTipoDispositivo')) active @endif">
                             <a href="#">
                                 <i class="fa fa-puzzle-piece"></i><span>Tipos</span>
                                 <i class="fa fa-angle-left pull-right"></i>
                             </a>
                             <ul class="treeview-menu">
-                                <li class="@yield('addDeviceType')"><a href="{{ route('showAddDeviceType') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
-                                <li class="@yield('listDeviceType')"><a href="{{ route('listDeviceType') }}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
+                                <li @if(Route::is('createTipoDispositivo')) class="active" @endif><a href="{{ route('createTipoDispositivo') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
+                                <li @if(Route::is('indexTipoDispositivo')) class="active" @endif"><a href="{{ route('indexTipoDispositivo') }}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
                             </ul>
                         </li>
                     </ul>

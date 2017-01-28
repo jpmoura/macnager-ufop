@@ -2,83 +2,98 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 use App\Http\Requests;
-use Illuminate\Support\Facades\Redirect;
 use Input;
-use Session;
-use View;
 use App\TipoDispositivo;
 
 class TipoDispositivoController extends Controller
 {
     /**
-     * Renderiza a view com o formulário de adição.
+     * Renderiza a view com o formulário de criação
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View View contendo o formulário de criação
      */
-    public function showAdd()
+    public function create()
     {
-        return View::make('tipodispositivo.add');
+        return view('tipodispositivo.create');
     }
 
     /**
-     * Adiciona uma nova instância ao banco de dados
+     * Armazena uma instância de TipoDispositivo no banco de dados.
+     * @param Requests\CreateTipoDispositivoRequest $request Requisição com os campos validados
+     * @return \Illuminate\Http\RedirectResponse View de índece dos tipos de dispositivos.
      */
-    public function add()
+    public function store(Requests\CreateTipoDispositivoRequest $request)
     {
-        $newDeviceType = new TipoDispositivo;
-        $newDeviceType->descricao = Input::get('descricao');
-        $newDeviceType->save();
+        $newDeviceType = TipoDispositivo::create(['descricao' => $request->input('descricao')]);
 
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', 'Novo tipo de dispostivo adicionado.');
+        if($newDeviceType)
+        {
+            session()->flash('tipo', 'success');
+            session()->flash('mensagem', 'Novo tipo de dispostivo adicionado.');
+        }
+        else
+        {
+            session()->flash('tipo', 'error');
+            session()->flash('mensagem', 'Um erro aconteceu durante a inserção no banco de dados.');
+        }
 
-        return Redirect::route('listDeviceType');
+        return redirect()->route('indexTipoDispositivo');
     }
 
     /**
-     *  Renderiza a view com a lista dos tipos.
+     * Mostra todos os tipos de dispositivos cadastrados em uma tabela com opções de edição e deleção
+     * @return mixed View contendo todos os tipos de dispositivos cadastrados
      */
-    public function show()
+    public function index()
     {
-        return View::make('tipodispositivo.show')->with('tipos', TipoDispositivo::all());
+        return view('tipodispositivo.index')->with('tipos', TipoDispositivo::all());
     }
 
     /**
-     * Renderiza a view com o formulário de edição de um novo tipo.
-     * @param $id ID do tipo do dispositivo
+     * Mostra a view de edição de uma instâcia de tipo de dispositivo.
+     * @param TipoDispositivo $deviceType Instância do TipoDispositivo
+     * @return mixed View de edição com os dados atuais do tipo de dispositivo.
      */
-    public function showEdit($id)
+    public function edit(TipoDispositivo $deviceType)
     {
-        return View::make('tipodispositivo.edit')->with('tipo', TipoDispositivo::find($id));
+        return view('tipodispositivo.edit')->with('tipo', $deviceType);
     }
 
     /**
-     * Edita as informações de uma instância.
+     * Atualiza os valores de uma instância do TipoDispositivo.
+     * @param Requests\EditTipoDispositivoRequest $request Requisição com os campos validados
+     * @return \Illuminate\Http\RedirectResponse Página anterior com os calores atualizados
      */
-    public function edit()
+    public function update(Requests\EditTipoDispositivoRequest $request)
     {
-        $toEdit = TipoDispositivo::find(Input::get('id'));
-        $toEdit->descricao = Input::get('descricao');
+        $toEdit = TipoDispositivo::find($request->input('id'));
+        $toEdit->descricao = $request->input('descricao');
         $toEdit->save();
 
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', 'O tipo foi editado.');
+        session()->flash('tipo', 'success');
+        session()->flash('mensagem', 'O tipo foi editado.');
 
-        return Redirect::back();
+        return back();
     }
 
     /**
      * Deleta uma instância.
      * @param $id ID da instância
      */
-    public function delete($id)
+    public function delete(TipoDispositivo $deviceType)
     {
-        TipoDispositivo::destroy($id);
+        try
+        {
+            $deviceType->delete();
+            session()->flash('tipo', 'success');
+            session()->flash('mensagem', 'O tipo foi excluído.');
+        }
+        catch (\Exception $e)
+        {
+            session()->flash('tipo', 'error');
+            session()->flash('mensagem', "Não foi possível excluir o tipo de dispositivo. Motivo: " . $e->getMessage());
+        }
 
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', 'O tipo foi excluído.');
-
-        return Redirect::route('listDeviceType');
+        return redirect()->route('indexTipoDispositivo');
     }
 }
