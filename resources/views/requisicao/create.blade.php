@@ -101,8 +101,8 @@
                     <form class="form" action="{{ route('storeRequest') }}" accept-charset="UTF-8" method="post" enctype="multipart/form-data">
                         {{ csrf_field() }}
 
-                        <input type="hidden" name="responsavel" value="{{ auth()->user()->cpf }}">
-                        <input type="hidden" name="responsavelNome" value="{{ auth()->user()->nome }}">
+                        <input type="hidden" name="responsavel" value="{!! auth()->user()->cpf !!}">
+                        <input type="hidden" name="responsavelNome" value="{!! auth()->user()->nome !!}">
 
                         <div class="form-group">
                             <div class="input-group">

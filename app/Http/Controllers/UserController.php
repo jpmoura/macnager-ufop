@@ -63,7 +63,7 @@ class UserController extends Controller
             if(isset($user))
             {
                 $name = $user->nome;
-                $email = $user->email;
+                $email = $user->email ? $user->email : 'Sem e-mail cadastrado';
                 $group = 'Organização do ICEA';
                 return response()->json(['status' => 'success', 'name' => $name, 'email' => $email, 'group' => $group]);
             }
