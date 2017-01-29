@@ -8,6 +8,7 @@ use App\Events\RequestStored;
 use App\Http\Requests\AprovarRequisicaoRequest;
 use App\Http\Requests\CreateDeviceRequest;
 use App\Http\Requests\CreateRequisicaoRequest;
+use App\Http\Requests\EditDeviceRequest;
 use App\Http\Requests\RecusarRequisicaoRequest;
 use App\Ldapuser;
 use App\Mail\RequestApproved;
@@ -57,7 +58,8 @@ class RequisicaoController extends Controller
     }
 
     /**
-     * Renderiza a view de adição de um novo dispositivo.
+     * Renderiza view de criação de um dispositivo.
+     * @return mixed View com os campos para criação do dispositivo.
      */
     public function createDevice()
     {
@@ -121,59 +123,52 @@ class RequisicaoController extends Controller
     }
 
     /**
-     * Renderiza a view com o formulário de edição de um dispositivo inserido.
-     * @param $requisicao Requisicao Instância da requisição que será editada.
+     * Renderiza a view de edição de dispositivo
+     * @param Requisicao $requisicao Instância de Requisicao referente ao dispositivo.
+     * @return mixed View com os dados atuais do dispositivos
      */
     public function editDevice(Requisicao $requisicao)
     {
         $deviceType = TipoDispositivo::all();
         $userType = TipoUsuario::all();
-        return view('requisicao.device.edit')->with(['requisicao' => $requisicao, 'tiposdispositivo' => $deviceType, 'tiposusuario' => $userType]);
+        $subredes = Subrede::all();
+        return view('requisicao.device.edit')->with(['requisicao' => $requisicao, 'dispositivos' => $deviceType, 'usuarios' => $userType, 'subredes' => $subredes]);
     }
 
     /**
-     * Atualiza dos dados de uma requisição.
-     * @return mixed Página anterior.
+     * Atualiza os dados de uma instância de dispositivo.
+     * @param EditDeviceRequest $request Requisição com os campos validados
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function updateDevice()
+    public function updateDevice(EditDeviceRequest $request)
     {
-        $input = Input::all();
+        $input = $request->all();
 
-        $date = explode('/', $input['validade']);
+        $record = Requisicao::find($input['id']);
+        $record->ip = $input['ip'];
+        $record->responsavel = ucwords(strtolower($input['responsavel']));
+        $record->responsavelNome = ucwords(strtolower($input['responsavelNome']));
+        $record->usuario = $input['usuario'];
+        $record->usuarioNome = ucwords(strtolower($input['usuarioNome']));
+        $record->mac = $input['mac'];
+        $record->descricao_dispositivo = $input['descricao'];
+        $record->tipo_dispositivo = $input['tipodispositivo'];
+        $record->tipo_usuario = $input['tipousuario'];
 
-        if(empty($input['validade']) || checkdate($date[1], $date[0], $date[2]) )
-        { // Se a data for válida ou em branco
-            $record = Requisicao::find($input['id']);
-            $record->ip = $input['ip'];
-            $record->responsavel = ucwords(strtolower($input['responsavel']));
-            $record->responsavelNome = ucwords(strtolower($input['responsavelNome']));
-            $record->usuario = $input['usuario'];
-            $record->usuarioNome = ucwords(strtolower($input['usuarioNome']));
-            $record->mac = $input['mac'];
-            $record->descricao_dispositivo = $input['descricao'];
-            $record->tipo_dispositivo = $input['tipodispositivo'];
-            $record->tipo_usuario = $input['tipousuario'];
+        if( empty($input['validade']) ) $record->validade = null;
+        else $record->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
 
-            if( empty($input['validade']) ) $record->validade = null;
-            else $record->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
+        $record->save();
 
-            $record->save();
-
-            if(PfsenseController::refreshPfsense())
-            {
-                session()->flash('mensagem', "Servidor pfSense atualizado");
-                session()->flash('tipo', 'info');
-                event(new DeviceEdited($record));
-            }
-            else
-            {
-                session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-                session()->flash('tipo', 'error');
-            }
+        if(PfsenseController::refreshPfsense())
+        {
+            session()->flash('mensagem', "Servidor pfSense atualizado");
+            session()->flash('tipo', 'info');
+            event(new DeviceEdited($record));
         }
         else
         {
-            session()->flash('mensagem', 'A data informada é inválida.');
+            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
             session()->flash('tipo', 'error');
         }
 
@@ -214,7 +209,7 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $form['responsavel'])->first();
         if(!is_null($user->email) || !empty($user->email)) Mail::to($user->email)->queue(new RequestReceived($user, $newRequest));
 
-        return redirect()->route('indexUserRequests');
+        return redirect()->route('indexUserRequisicao');
     }
 
     /**
@@ -417,7 +412,7 @@ class RequisicaoController extends Controller
             session()->flash('tipo', 'error');
         }
 
-        return redirect()->route('listDevice');
+        return redirect()->route('indexDevice');
     }
 
     /**
@@ -465,7 +460,7 @@ class RequisicaoController extends Controller
                 Requisicao::destroy($requisicao->id);
                 session()->flash('tipo', 'success');
                 session()->flash('mensagem', "A requisição foi apagada.");
-                return redirect()->route('listUserRequests');
+                return redirect()->route('indexUserRequisicao');
             }
             else
             {
@@ -474,6 +469,7 @@ class RequisicaoController extends Controller
                 return redirect()->back();
             }
         }
+        else return abort(403);
     }
 
     /**
@@ -500,7 +496,7 @@ class RequisicaoController extends Controller
                 }
                 return view('admin.actions.editRequest')->with(['requisicao' => $requisicao, 'usuarios' => $users, 'dispositivos' => $devices, 'organizacoes' => Ldapuser::where('nivel', 3)->get()]);
             }
-            return redirect()->route('listUserRequests');
+            return redirect()->route('indexUserRequisicao');
         }
         else abort(403);
     }

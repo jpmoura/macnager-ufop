@@ -66,7 +66,7 @@
                             <br />
 
                             <div class="text-center">
-                                <a class="btn btn-primary" target='_blank' href="{{ route('showTermRequest', base64_encode($requisicao->termo)) }}"><i class='fa fa-eye'></i> Visualizar termo</a>
+                                <a class="btn btn-primary" target='_blank' href="{{ route('showTermRequisicao', base64_encode($requisicao->termo)) }}"><i class='fa fa-eye'></i> Visualizar termo</a>
                             </div>
 
                             <br />
@@ -168,7 +168,7 @@
                                     </script>
                                 @endpush
 
-                                <form class="form" action="{{ route('approveRequest') }}" method="post">
+                                <form class="form" action="{{ route('approveRequisicao') }}" method="post">
 
                                     {{ csrf_field() }}
 
@@ -219,7 +219,7 @@
                                     <div class="text-center">
                                         <div class="text-center">
                                             <button type="button" class="btn btn-ufop" onClick="history.back()"><i class='fa fa-arrow-left'></i> Voltar</button>
-                                            <a href="{{ route('editRequest', $requisicao->id) }}" class="btn bg-navy"><i class="fa fa-edit"></i> Editar</a>
+                                            <a href="{{ route('editRequisicao', $requisicao->id) }}" class="btn bg-navy"><i class="fa fa-edit"></i> Editar</a>
                                             <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#denyModal"><i class='fa fa-times'></i> Negar</button>
                                             <button type="submit" class="btn btn-success"><i class='fa fa-check'></i> Aprovar</button>
                                         </div>
@@ -231,7 +231,7 @@
                                     @if(auth()->user()->cpf == $requisicao->responsavel)
                                         <button type="button" class="btn btn-ufop" onClick="history.back()"><i class='fa fa-arrow-left'></i> Voltar</button>
                                         <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i> Apagar</button>
-                                        <a href="{{ route('editRequest', $requisicao->id)}}" class="btn bg-navy"><i class="fa fa-edit"></i> Editar</a>
+                                        <a href="{{ route('editRequisicao', $requisicao->id)}}" class="btn bg-navy"><i class="fa fa-edit"></i> Editar</a>
                                     @endif
                             @endcannot
                         @else
@@ -255,7 +255,7 @@
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                         <h4 class="modal-title text-center"><i class="fa fa-times"></i> Negar Requisição</h4>
                     </div>
-                    <form class="form" action="{{ route('denyRequest') }}" method="post">
+                    <form class="form" action="{{ route('denyRequisicao') }}" method="post">
                         {{ csrf_field() }}
 
                         <input type="hidden" name="id" value="{{$requisicao->id}}">
@@ -291,7 +291,7 @@
                         <p class="text-center">Essa ação <span class="text-bold">NÃO</span> pode ser desfeita</p>
                     </div>
                     <div class="modal-footer">
-                        <form action="{{ route('deleteRequest') }}" method="post">
+                        <form action="{{ route('deleteRequisicao') }}" method="post">
                             {{ csrf_field() }}
                             <input type="hidden" name="id" value="{{$requisicao->id}}">
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Cancelar</button>

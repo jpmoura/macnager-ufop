@@ -1,13 +1,5 @@
 @extends('layout.base')
 
-@section('dispositivo')
-    active
-@endsection
-
-@section('listMac')
-    active
-@endsection
-
 @section('title')
     Lista de Dispositivos
 @endsection
@@ -54,23 +46,13 @@
 @section('content')
     <div class="row">
         <div class="col-lg-12">
-
-            @if(Session::has("tipo"))
-                <div class="row">
-                    <div class="text-center alert alert-dismissible @if(Session::get('tipo') == 'Sucesso') alert-success @elseif(Session::get('tipo') == 'Informação') alert-info @else alert-danger @endif" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <strong>{{Session::get("tipo")}}!</strong> {!! Session::get("mensagem") !!}
-                    </div>
-                </div>
-            @endif
-
             <div class="box box-primary-ufop">
                 <div class="box-header">
                     <ul class="nav nav-tabs">
-                        <li role="presentation" @if($tipo == 1) class="active" @endif><a href="{{ route('listDevice', 1) }}"><i class="fa fa-check"></i> Ativos</a></li>
-                        <li role="presentation" @if($tipo == 3) class="active" @endif><a href="{{ route('listDevice', 3) }}"><i class="fa fa-history"></i> Vencidos</a></li>
-                        <li role="presentation" @if($tipo == 4) class="active" @endif><a href="{{ route('listDevice', 4) }}"><i class="fa fa-ban"></i> Suspensos</a></li>
-                        <li role="presentation" @if($tipo == 5) class="active" @endif><a href="{{ route('listDevice', 5) }}"><i class="fa fa-power-off"></i> Desligados</a></li>
+                        <li role="presentation" @if($tipo == 1) class="active" @endif><a href="{{ route('indexDevice', 1) }}"><i class="fa fa-check"></i> Ativos</a></li>
+                        <li role="presentation" @if($tipo == 3) class="active" @endif><a href="{{ route('indexDevice', 3) }}"><i class="fa fa-history"></i> Vencidos</a></li>
+                        <li role="presentation" @if($tipo == 4) class="active" @endif><a href="{{ route('indexDevice', 4) }}"><i class="fa fa-ban"></i> Suspensos</a></li>
+                        <li role="presentation" @if($tipo == 5) class="active" @endif><a href="{{ route('indexDevice', 5) }}"><i class="fa fa-power-off"></i> Desligados</a></li>
                     </ul>
                 </div>
                 <div class="box-body">
@@ -108,7 +90,7 @@
                                     </td>
                                     @if ($tipo < 5)
                                         <td>
-                                            <a href="{{ route('showEditDevice', $registro->id) }}" class="btn btn-xs btn-ufop"><i class="fa fa-edit"></i> Editar</a>
+                                            <a href="{{ route('editDevice', $registro->id) }}" class="btn btn-xs btn-ufop"><i class="fa fa-edit"></i> Editar</a>
                                         </td>
                                     @endif
                                 </tr>

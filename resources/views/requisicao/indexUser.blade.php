@@ -85,7 +85,7 @@
                                             @endif
                                         </span>
                                     </td>
-                                    <td><a href="{{ route('showRequest', $requisicao->id)}}" class="btn btn-xs btn-ufop"><i class="fa fa-search"></i> Detalhes</a></td>
+                                    <td><a href="{{ route('showRequisicao', $requisicao->id)}}" class="btn btn-xs btn-ufop"><i class="fa fa-search"></i> Detalhes</a></td>
                                 </tr>
                             @endforeach
                             </tbody>

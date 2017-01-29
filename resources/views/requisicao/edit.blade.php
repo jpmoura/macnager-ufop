@@ -91,7 +91,7 @@
 
             <div class="box box-primary-ufop">
                 <div class="box-body">
-                    <form class="form" action="{{ route('editRequest') }}" accept-charset="UTF-8" method="post" enctype="multipart/form-data">
+                    <form class="form" action="{{ route('editRequisicao') }}" accept-charset="UTF-8" method="post" enctype="multipart/form-data">
                         {{ csrf_field() }}
 
                         <input type="hidden" name="id" value="{{$requisicao->id}}">
@@ -157,7 +157,7 @@
                                 <span class="input-group-addon"><i class="fa fa-hashtag"></i></span>
                                 <input id="macAddress" name="mac" type='text' class='form-control' value="{{$requisicao->mac}}" placeholder="Endereço MAC da placa de rede" minlength="17" maxlength="17" required>
                             </div>
-                            <p class="help-block">Você pode encontrar o endereço MAC da placa de rede do dispositivo seguindo <a target="_blank" href="{{ route('showTermRequest', base64_encode('tutorial-mac.pdf')) }}">este tutorial.</a></p>
+                            <p class="help-block">Você pode encontrar o endereço MAC da placa de rede do dispositivo seguindo <a target="_blank" href="{{ route('showTermRequisicao', base64_encode('tutorial-mac.pdf')) }}">este tutorial.</a></p>
                         </div>
 
                         <div class="form-group">
@@ -184,7 +184,7 @@
                             </div>
                             <div class="panel-body">
                                 <p>Selecione o arquivo em formato PDF que corresponde ao termo de compromisso devidamente preenchido e assinado.</p>
-                                <p>O modelo do termo pode ser encontrado neste <a target="_blank" href="{{ route('showTermRequest', base64_encode('termos/default.pdf')) }}">link</a>.</p>
+                                <p>O modelo do termo pode ser encontrado neste <a target="_blank" href="{{ route('showTermRequisicao', base64_encode('termos/default.pdf')) }}">link</a>.</p>
                                 <input name="termo" type='file' title="Arquivo PDF do termo de compromisso assinado">
                             </div>
                         </div>

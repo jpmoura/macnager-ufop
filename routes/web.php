@@ -19,20 +19,20 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 
         Route::group(['prefix' => 'request'], function() {
-            Route::get('list/all/{type}', ['as' => 'showRequest', 'uses' => 'RequisicaoController@allIndex']);
-            Route::post('approve', ['as' => 'approveRequest', 'uses' => 'RequisicaoController@approve']);
-            Route::post('block', ['as' => 'blockRequest', 'uses' => 'RequisicaoController@block']);
-            Route::post('disable', ['as' => 'disableRequest', 'uses' => 'RequisicaoController@disable']);
-            Route::post('deny', ['as' => 'denyRequest', 'uses' => 'RequisicaoController@deny']);
-            Route::get('reactive/{requisicao}', ['as' => 'reactiveRequest', 'uses' => 'RequisicaoController@reactive']);
+            Route::get('list/all/{type}', ['as' => 'indexAllRequisicao', 'uses' => 'RequisicaoController@allIndex']);
+            Route::post('approve', ['as' => 'approveRequisicao', 'uses' => 'RequisicaoController@approve']);
+            Route::post('block', ['as' => 'blockRequisicao', 'uses' => 'RequisicaoController@block']);
+            Route::post('disable', ['as' => 'disableRequisicao', 'uses' => 'RequisicaoController@disable']);
+            Route::post('deny', ['as' => 'denyRequisicao', 'uses' => 'RequisicaoController@deny']);
+            Route::get('reactive/{requisicao}', ['as' => 'reactiveRequisicao', 'uses' => 'RequisicaoController@reactive']);
         });
 
         Route::group(['prefix' => 'device'], function(){
-            Route::get('add', ['as' => 'showAddDevice', 'uses' => 'RequisicaoController@createDevice']);
-            Route::post('add', ['as' => 'addDevice', 'uses' => 'RequisicaoController@storeDevice']);
-            Route::get('edit/{requisicao}', ['as' => 'showEditDevice', 'uses' => 'RequisicaoController@editDevice']);
-            Route::post('edit', ['as' => 'editDevice', 'uses' => 'RequisicaoController@updateDevice']);
-            Route::get('list/{status}', ['as' => 'listDevice', 'uses' => 'RequisicaoController@indexDevice']);
+            Route::get('add', ['as' => 'createDevice', 'uses' => 'RequisicaoController@createDevice']);
+            Route::post('add', ['as' => 'storeDevice', 'uses' => 'RequisicaoController@storeDevice']);
+            Route::get('edit/{requisicao}', ['as' => 'editDevice', 'uses' => 'RequisicaoController@editDevice']);
+            Route::post('edit', ['as' => 'updateDevice', 'uses' => 'RequisicaoController@updateDevice']);
+            Route::get('list/{status}', ['as' => 'indexDevice', 'uses' => 'RequisicaoController@indexDevice']);
 
             Route::group(['prefix' => 'type'], function(){
                 Route::get('add', ['as' => 'createTipoDispositivo', 'uses' => 'TipoDispositivoController@create']);
@@ -69,14 +69,14 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('/searchperson', ['as' => 'searchLdapUser', 'uses' => 'UserController@searchPerson']);
 
     Route::group(['prefix' => 'request'], function(){
-        Route::get('add', ['as' => 'createRequest', 'uses' => 'RequisicaoController@create']);
-        Route::post('add', ['as' => 'storeRequest', 'uses' => 'RequisicaoController@store']);
-        Route::get('show/{requisicao}', ['as' => 'showRequest', 'uses' => 'RequisicaoController@show']);
-        Route::post('delete', ['as' => 'deleteRequest', 'uses' => 'RequisicaoController@delete']);
-        Route::get('edit/{requisicao}', ['as' => 'editRequest', 'uses' => 'RequisicaoController@edit']);
-        Route::post('edit', ['as' => 'updateRequest', 'uses' => 'RequisicaoController@update']);
-        Route::get('list/user', ['as' => 'indexUserRequests', 'uses' => 'RequisicaoController@userIndex']);
-        Route::get('term/{filepath}', ['as' => 'showTermRequest', 'uses' => 'RequisicaoController@showTerm']);
+        Route::get('add', ['as' => 'createRequisicao', 'uses' => 'RequisicaoController@create']);
+        Route::post('add', ['as' => 'storeRequisicao', 'uses' => 'RequisicaoController@store']);
+        Route::get('show/{requisicao}', ['as' => 'showRequisicao', 'uses' => 'RequisicaoController@show']);
+        Route::post('delete', ['as' => 'deleteRequisicao', 'uses' => 'RequisicaoController@delete']);
+        Route::get('edit/{requisicao}', ['as' => 'editRequisicao', 'uses' => 'RequisicaoController@edit']);
+        Route::post('edit', ['as' => 'updateRequisicao', 'uses' => 'RequisicaoController@update']);
+        Route::get('list/user', ['as' => 'indexUserRequisicao', 'uses' => 'RequisicaoController@userIndex']);
+        Route::get('term/{filepath}', ['as' => 'showTermRequisicao', 'uses' => 'RequisicaoController@showTerm']);
     });
 
     Route::group(['prefix' =>'export'], function(){

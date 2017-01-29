@@ -1,13 +1,5 @@
 @extends('layout.base')
 
-@section('dispositivo')
-    active
-@endsection
-
-@section('addMac')
-    active
-@endsection
-
 @section('extracss')
     <link href="{{ asset("public/plugins/jQueryUI/jquery-ui.min.css")}}" rel="stylesheet" type="text/css" />
 @endsection
@@ -184,19 +176,9 @@
 @section('content')
     <div class='row'>
         <div class='col-lg-12'>
-
-            @if(Session::has("tipo"))
-                <div class="row">
-                    <div class="text-center alert alert-dismissible @if(Session::get('tipo') == 'Sucesso') alert-success @elseif(Session::get('tipo') == 'Informação') alert-info @else alert-danger @endif" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <strong>{{Session::get("tipo")}}!</strong> {!! Session::get("mensagem") !!}
-                    </div>
-                </div>
-            @endif
-
             <div class="box box-primary-ufop">
                 <div class="box-body">
-                    <form class="form" action="{{ route('addDevice') }}" accept-charset="UTF-8" method="post" id="addmac">
+                    <form class="form" action="{{ route('storeDevice') }}" accept-charset="UTF-8" method="post" id="addmac">
                         {{ csrf_field() }}
 
                         {{-- Subrede --}}
@@ -231,13 +213,13 @@
                         {{-- Responsável --}}
                         <div class="form-group {{ $errors->has('responsavel') ? ' has-error' : '' }}">
                             <div class="input-group">
-                                <span class="input-group-addon"><i class="fa fa-lock"></i></span>
-                                <input id="responsavel" type="text" minlength="14" maxlength="14" name="responsavel" class="form-control cpf" title="Pessoa responsável pelo usuário" required data-toggle="tooltip" data-placement="top">
+                                <span class="input-group-addon"><i class="fa fa-eye"></i></span>
+                                <input id="responsavel" value="{{ old('responsavel') }}" type="text" minlength="14" maxlength="14" name="responsavel" class="form-control cpf" title="Pessoa responsável pelo usuário" placeholder="Pessoa responsável pelo usuário" required data-toggle="tooltip" data-placement="top">
                             </div>
 
                             <div class="row">
                                 <div id='responsibleDetails' class="col-lg-12"></div>
-                                <input type="hidden" name="responsavelNome" value="">
+                                <input type="hidden" name="responsavelNome" value="{{ old('responsavelNome') }}">
                             </div>
 
                             @if($errors->has('responsavel'))
@@ -249,12 +231,12 @@
                         <div class="form-group {{ $errors->has('usuario') ? ' has-error' : '' }}">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="fa fa-user"></i></span>
-                                <input id="usuario" name="usuario" type="text" minlength="14" maxlength="14" placeholder="CPF do usuário que irá utilizar o dispositivo" required class="form-control cpf">
+                                <input id="usuario" name="usuario" value="{{ old('usuario') }}" type="text" minlength="14" maxlength="14" placeholder="CPF do usuário que irá utilizar o dispositivo" required class="form-control cpf">
                             </div>
 
                             <div class="row">
                                 <div id='userDetails' class="col-lg-12"></div>
-                                <input type="hidden" name="usuarioNome" value="">
+                                <input type="hidden" name="usuarioNome" value="{{ old('usuarioNome') }}">
                             </div>
 
                             @if($errors->has('usuario'))
@@ -269,7 +251,7 @@
                                 <select name="tipousuario" class="form-control" required title="Tipo de usuário">
                                     <option value="">Selecione um tipo de usuário</option>
                                     @foreach ($usuarios as $usuario)
-                                        <option value="{{$usuario->id}}">{!! $usuario->descricao !!}</option>
+                                        <option value="{{$usuario->id}}" {{ old('tipousuario') == $usuario->id ? 'selected' : ''}}>{!! $usuario->descricao !!}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -285,7 +267,7 @@
                                 <select name="tipodispositivo" class="form-control" required title="Tipo do Dispositivo">
                                     <option value="">Selecione um tipo de dispositivo</option>
                                     @foreach ($dispositivos as $dispositivo)
-                                        <option value="{{$dispositivo->id}}">{!! $dispositivo->descricao !!}</option>
+                                        <option value="{{$dispositivo->id}}" {{ old('tipodispositivo') == $dispositivo->id ? 'selected' : '' }}>{!! $dispositivo->descricao !!}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -298,7 +280,7 @@
                         <div class="form-group {{ $errors->has('mac') ? ' has-error' : '' }}">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="fa fa-hashtag"></i></span>
-                                <input id="macAddress" name="mac" type='text' class='form-control' placeholder="Endereço MAC" minlength="17" maxlength="17" required>
+                                <input id="macAddress" value="{{ old('mac') }}" name="mac" type='text' class='form-control' placeholder="Endereço MAC" minlength="17" maxlength="17" required>
                             </div>
                             @if($errors->has('mac'))
                                 <p class="help-block">{!! $errors->first('mac') !!}</p>
@@ -309,7 +291,7 @@
                         <div class="form-group {{ $errors->has('descricao') ? ' has-error' : '' }}">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="fa fa-search"></i></span>
-                                <input name="descricao" type='text' class='form-control' placeholder="Descrição do dispositivo" required>
+                                <input name="descricao" value="{{ old('descricao') }}" type='text' class='form-control' placeholder="Descrição do dispositivo" required>
                             </div>
                             @if($errors->has('descricao'))
                                 <p class="help-block">{!! $errors->first('descricao') !!}</p>
@@ -320,7 +302,7 @@
                         <div class="form-group">
                             <div class="input-group {{ $errors->has('justificativa') ? ' has-error' : '' }}">
                                 <span class="input-group-addon"><i class="fa fa-comment"></i></span>
-                                <textarea name="justificativa" class="form-control no-resize" placeholder="Justificativa para adição do dispositivo" maxlength="100" required></textarea>
+                                <textarea name="justificativa" class="form-control no-resize" placeholder="Justificativa para adição do dispositivo" maxlength="100" required>{{old('justificativa')}}</textarea>
                             </div>
                             @if($errors->has('justificativa'))
                                 <p class="help-block">{!! $errors->first('justificativa') !!}</p>
@@ -331,14 +313,12 @@
                         <div class="form-group {{ $errors->has('validade') ? ' has-error' : '' }}">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="fa fa-history"></i></span>
-                                <input id="datepicker" name="validade" type="text" minlength="10" maxlength="10" class="form-control" placeholder="Validade do cadastro" data-toggle="tooltip" data-placement="top" title="Validade">
+                                <input id="datepicker" value="{{ old('validade') }}" name="validade" type="text" minlength="10" maxlength="10" class="form-control" placeholder="Validade do cadastro" data-toggle="tooltip" data-placement="top" title="Validade">
                             </div>
                             @if($errors->has('validade'))
                                 <p class="help-block">{!! $errors->first('validade') !!}</p>
                             @endif
                         </div>
-
-                        <br />
 
                         <div class="text-center">
                             <button type="button" class="btn btn-warning" onClick="history.back()">Cancelar <i class='fa fa-times'></i></button>

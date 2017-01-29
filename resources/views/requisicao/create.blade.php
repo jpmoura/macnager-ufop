@@ -98,7 +98,7 @@
 
                     <br />
 
-                    <form class="form" action="{{ route('storeRequest') }}" accept-charset="UTF-8" method="post" enctype="multipart/form-data">
+                    <form class="form" action="{{ route('storeRequisicao') }}" accept-charset="UTF-8" method="post" enctype="multipart/form-data">
                         {{ csrf_field() }}
 
                         <input type="hidden" name="responsavel" value="{!! auth()->user()->cpf !!}">
@@ -106,7 +106,7 @@
 
                         <div class="form-group">
                             <div class="input-group">
-                                <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                                <span class="input-group-addon"><i class="fa fa-eye"></i></span>
                                 <input type="text" value="{{ auth()->user()->nome }}" disabled class="form-control" title="Pessoa responsável pelo usuário" required data-toggle="tooltip" data-placement="top">
                             </div>
                             <p class="help-block">Lembre-se que você será o responsável por todo e qualquer desvio de conduta por parte do usuário.</p>
@@ -171,7 +171,7 @@
                             @if($errors->has('mac'))
                                 <p class="text-danger">{!! $errors->first('mac') !!}</p>
                             @endif
-                            <p class="help-block">Você pode encontrar o endereço MAC da placa de rede do dispositivo seguindo <a target="_blank" href="{{ route('showTermRequest', base64_encode('tutorial-mac.pdf')) }}">este tutorial.</a></p>
+                            <p class="help-block">Você pode encontrar o endereço MAC da placa de rede do dispositivo seguindo <a target="_blank" href="{{ route('showTermRequisicao', base64_encode('tutorial-mac.pdf')) }}">este tutorial.</a></p>
                         </div>
 
                         <div class="form-group">
@@ -204,7 +204,7 @@
                             </div>
                             <div class="panel-body">
                                 <p>Selecione o arquivo em formato PDF que corresponde ao termo de compromisso devidamente preenchido e assinado.</p>
-                                <p>O modelo do termo pode ser encontrado neste <a target="_blank" href="{{ route('showTermRequest', base64_encode('termos/default.pdf')) }}">link</a>.</p>
+                                <p>O modelo do termo pode ser encontrado neste <a target="_blank" href="{{ route('showTermRequisicao', base64_encode('termos/default.pdf')) }}">link</a>.</p>
                                 @if($errors->has('termo'))
                                     <p class="text-danger">{!! $errors->first('termo') !!}</p>
                                 @endif

@@ -1,9 +1,5 @@
 @extends('layout.base')
 
-@section('pedidos')
-    active
-@endsection
-
 @section('title')
     Lista de Requisições
 @endsection
@@ -49,24 +45,15 @@
 @section('content')
     <div class="row">
         <div class="col-lg-12">
-
-            @if(Session::has("tipo"))
-                <div class="row">
-                    <div class="text-center alert alert-dismissible @if(Session::get('tipo') == 'Sucesso') alert-success @elseif(Session::get('tipo') == 'Informação') alert-info @else alert-danger @endif" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <strong>{{Session::get("tipo")}}!</strong> {!! Session::get("mensagem") !!}
-                    </div>
-                </div>
-            @endif
-
             <div class="box box-primary-ufop">
                 <div class="box-header">
                     <ul class="nav nav-tabs">
-                        <li role="presentation" @if($tipo == 0) class="active" @endif><a href="{{ route('showRequest', 0)}}">Em aberto @if(Session::has('novosPedidos') && Session::get('novosPedidos') > 0) <span class="label label-success">{{Session::get('novosPedidos')}}</span> @endif</a></li>
-                        <li role="presentation" @if($tipo == 1) class="active" @endif><a href="{{ route('showRequest', 1)}}"><i class="fa fa-check"></i> Aprovadas</a></li>
-                        <li role="presentation" @if($tipo == 2) class="active" @endif><a href="{{ route('showRequest', 2)}}"><i class="fa fa-times"></i> Negadas</a></li>
-                        <li role="presentation" @if($tipo == 3) class="active" @endif><a href="{{ route('showRequest', 3)}}"><i class="fa fa-history"></i> Vencidas</a></li>
-                        <li role="presentation" @if($tipo == 4) class="active" @endif><a href="{{ route('showRequest', 4)}}"><i class="fa fa-ban"></i> Suspensas</a></li>
+                        <li role="presentation" @if($tipo == 0) class="active" @endif><a href="{{ route('indexAllRequisicao', 0)}}">Em aberto @if(session()->has('novosPedidos') && session('novosPedidos') > 0) <span class="label label-success">{{session('novosPedidos')}}</span> @endif</a></li>
+                        <li role="presentation" @if($tipo == 1) class="active" @endif><a href="{{ route('indexAllRequisicao', 1)}}"><i class="fa fa-check"></i> Aprovadas</a></li>
+                        <li role="presentation" @if($tipo == 2) class="active" @endif><a href="{{ route('indexAllRequisicao', 2)}}"><i class="fa fa-times"></i> Negadas</a></li>
+                        <li role="presentation" @if($tipo == 3) class="active" @endif><a href="{{ route('indexAllRequisicao', 3)}}"><i class="fa fa-history"></i> Vencidas</a></li>
+                        <li role="presentation" @if($tipo == 4) class="active" @endif><a href="{{ route('indexAllRequisicao', 4)}}"><i class="fa fa-ban"></i> Suspensas</a></li>
+                        <li role="presentation" @if($tipo == 5) class="active" @endif><a href="{{ route('indexAllRequisicao', 5)}}"><i class="fa fa-power-off"></i> Desativadas</a></li>
                     </ul>
                 </div>
                 <div class="box-body">
@@ -94,16 +81,15 @@
                                     <td>{{ date_format(date_create($requisicao->submissao),"d/m/Y H:i:s") }}</td>
                                     <td>
                                         @if($tipo == 0)
-                                            <a href="{{ route('detailsRequest', $requisicao->id) }}" class="btn btn-success btn-xs"><i class="fa fa-legal"></i> Avaliar</a>
+                                            <a href="{{ route('showRequisicao', $requisicao->id) }}" class="btn btn-success btn-xs"><i class="fa fa-legal"></i> Avaliar</a>
                                         @else
-                                            <a href="{{ route('detailsRequest', $requisicao->id) }}" class="btn btn-xs btn-ufop "><i class="fa fa-search-plus"></i> Detalhes</a>
+                                            <a href="{{ route('showRequisicao', $requisicao->id) }}" class="btn btn-xs btn-ufop "><i class="fa fa-search-plus"></i> Detalhes</a>
                                         @endif
                                     </td>
                                 </tr>
                             @endforeach
                             </tbody>
                             <tfoot>
-                            <tr>
                             <tr>
                                 <th>ID</th>
                                 <th>Responsável</th>
@@ -112,7 +98,6 @@
                                 <th>Tipo do Dispositivo</th>
                                 <th>Data de Submissão</th>
                                 <th>Ação</th>
-                            </tr>
                             </tr>
                             </tfoot>
                         </table>

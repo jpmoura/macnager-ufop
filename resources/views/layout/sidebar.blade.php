@@ -9,16 +9,16 @@
             @can('administrate')
                 <li class="header text-center">ADMINISTRAÇÃO</li>
 
-                <li class="@yield('pedidos')"><a href="{{ route('showRequest', 0) }}"><i class="fa fa-legal"></i> <span>Pedidos</span> @if(Session::has('novosPedidos') && Session::get('novosPedidos') > 0) <span class="label label-success pull-right">{{Session::get('novosPedidos')}}</span> @endif</a></li>
+                <li @if(Route::is('indexAllRequisicao')) class="active" @endif><a href="{{ route('indexAllRequisicao', 0) }}"><i class="fa fa-legal"></i> <span>Pedidos</span> @if(Session::has('novosPedidos') && Session::get('novosPedidos') > 0) <span class="label label-success pull-right">{{Session::get('novosPedidos')}}</span> @endif</a></li>
 
-                <li class="treeview @if(Route::is('indexTipoDispositivo') || Route::is('createTipoDispositivo') || Route::is('editTipoDispositivo')) active @endif">
+                <li class="treeview @if(Route::is('createDevice') || Route::is('indexDevice') || Route::is('indexTipoDispositivo') || Route::is('createTipoDispositivo') || Route::is('editTipoDispositivo')) active @endif">
                     <a href="#">
                         <i class="fa fa-laptop"></i><span>Dispositivos</span>
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li class="@yield('addMac')"><a href="{{ route('showAddDevice') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
-                        <li class="@yield('listMac')"><a href="{{ route('listDevice', 1)}}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
+                        <li @if(Route::is('createDevice')) class="active" @endif><a href="{{ route('createDevice') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
+                        <li @if(Route::is('indexDevice')) class="active" @endif><a href="{{ route('indexDevice', 1)}}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
                         <li class="treeview @if(Route::is('indexTipoDispositivo') || Route::is('createTipoDispositivo') || Route::is('editTipoDispositivo')) active @endif">
                             <a href="#">
                                 <i class="fa fa-puzzle-piece"></i><span>Tipos</span>
@@ -73,15 +73,15 @@
                 </li>
             @endcan
             <li class="header text-center">MENU</li>
-            <li class="treeview @if(Route::is('createRequest') || Route::is('indexUserRequests')) active @endif">
+            <li class="treeview @if(Route::is('createRequisicao') || Route::is('indexUserRequisicao')) active @endif">
                 <a href="#">
                     <i class="fa fa-hand-paper-o"></i><span>Requisições</span>
                     <i class="fa fa-angle-left pull-right"></i>
                 </a>
 
                 <ul class="treeview-menu">
-                    <li @if(Route::is('createRequest')) class="active" @endif><a href="{{ route('createRequest') }}"><i class="fa fa-plus"></i> <span>Nova requisição</span></a></li>
-                    <li @if(Route::is('indexUserRequests')) class="active" @endif><a href="{{ route('indexUserRequests') }}"><i class="fa fa-th-list"></i> <span>Minhas requisições</span></a></li>
+                    <li @if(Route::is('createRequisicao')) class="active" @endif><a href="{{ route('createRequisicao') }}"><i class="fa fa-plus"></i> <span>Nova requisição</span></a></li>
+                    <li @if(Route::is('indexUserRequisicao')) class="active" @endif><a href="{{ route('indexUserRequisicao') }}"><i class="fa fa-th-list"></i> <span>Minhas requisições</span></a></li>
                 </ul>
             </li>
             <li><a href="{{ route('logout') }}"><i class="fa fa-sign-out" aria-hidden="true"></i><span>Sair</span></a></li>
