@@ -74,23 +74,28 @@ class SubredeController extends Controller
         $form = $request->all();
         $subnet = Subrede::find($form['id']);
 
-        $subnet->endereco = $form['endereco'];
-        $subnet->cidr = $form['cidr'];
-        $subnet->descricao = $form['descricao'];
-        $subnet->tipo_subrede_id = $form['tipo'];
+        $count = Subrede::where('endereco', $form['endereco'])->count();
+        if($count < 2)
+        {
+            $subnet->endereco = $form['endereco'];
+            $subnet->cidr = $form['cidr'];
+            $subnet->descricao = $form['descricao'];
+            $subnet->tipo_subrede_id = $form['tipo'];
 
-        if(isset($form['gateway'])) $subnet->ignorar_gateway = 1;
-        else $subnet->ignorar_gateway = 0;
+            if(isset($form['gateway'])) $subnet->ignorar_gateway = 1;
+            else $subnet->ignorar_gateway = 0;
 
-        if(isset($form['broadcast'])) $subnet->ignorar_broadcast = 1;
-        else $subnet->ignorar_broadcast = 0;
+            if(isset($form['broadcast'])) $subnet->ignorar_broadcast = 1;
+            else $subnet->ignorar_broadcast = 0;
 
-        $subnet->save();
+            $subnet->save();
 
-        session()->flash('tipo', 'success');
-        session()->flash('mensagem', 'A subrede foi editada.');
+            session()->flash('tipo', 'success');
+            session()->flash('mensagem', 'A subrede foi editada.');
 
-        return redirect()->back();
+            return back();
+        }
+        else return back()->withErrors(['endereco' => 'Esse endereço já está sendo usado por outra subrede.']);
     }
 
     /**

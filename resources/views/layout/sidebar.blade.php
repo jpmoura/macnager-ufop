@@ -32,7 +32,7 @@
                     </ul>
                 </li>
 
-                <li class="treeview @if(Route::is('indexSubrede') || Route::is('createSubrede')) active @endif">
+                <li class="treeview @if(Route::is('indexSubrede') || Route::is('createSubrede') || Route::is('editSubrede')) active @endif">
                     <a href="#">
                         <i class="fa fa-sitemap"></i><span>Subredes</span>
                         <i class="fa fa-angle-left pull-right"></i>

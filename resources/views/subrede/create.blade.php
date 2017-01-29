@@ -101,8 +101,6 @@
                             @endif
                         </div>
 
-                        <br />
-
                         <div class="text-center">
                             <button type="button" class="btn btn-warning" onClick="history.back()">Cancelar <i class='fa fa-times'></i></button>
                             <button type="reset" class="btn btn-info">Limpar <i class='fa fa-eraser'></i></button>
