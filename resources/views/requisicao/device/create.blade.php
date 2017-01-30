@@ -339,7 +339,7 @@
                     <h4 class="modal-title text-center">Aguarde</h4>
                 </div>
                 <div class="modal-body text-center">
-                    Gerando novos arquivos ARP e DHCP e enviando para os servidores.
+                    Gerando e enviando um novo arquivo de configuração para o pfSense.
                     <br />
                     <br />
                     <img src="{{ secure_asset('public/img/bigloading.gif') }}" />
