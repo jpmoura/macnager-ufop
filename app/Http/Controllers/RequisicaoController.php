@@ -49,14 +49,8 @@ class RequisicaoController extends Controller
      */
     public function indexDevice($status)
     {
-        $requests = DB::table('requisicoes')->join('tipo_dispositivo', 'requisicoes.tipo_dispositivo', '=', 'tipo_dispositivo.id')
-            ->join('tipo_usuario', 'requisicoes.tipo_usuario', '=', 'tipo_usuario.id')
-            ->select('requisicoes.id as id', 'responsavelNome', 'usuarioNome', 'tipo_usuario.descricao as tipousuario', 'tipo_dispositivo.descricao as tipodispositivo', 'submissao', 'avaliacao', 'status', 'ip', 'mac', 'descricao_dispositivo', 'validade')
-            ->where('status', $status)
-            ->orderBy(DB::raw('INET_ATON(ip)'))
-            ->get();
-
-        return view('requisicao.device.index')->with(['liberados' => $requests, 'tipo' => $status]);
+        $requests = Requisicao::with('tipoDoDispositivo', 'tipoDoUsuario')->where('status', $status)->orderBy(DB::raw('INET_ATON(ip)'))->get();
+        return view('requisicao.device.index')->with(['dispositivos' => $requests, 'tipo' => $status]);
     }
 
     /**

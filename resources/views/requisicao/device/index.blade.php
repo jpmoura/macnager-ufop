@@ -62,6 +62,7 @@
                             <tr>
                                 <th>IP</th>
                                 <th>Usuário</th>
+                                <td>Tipo de Usuário</td>
                                 <th>Dispositivo</th>
                                 <th>MAC</th>
                                 <th>Descrição</th>
@@ -73,24 +74,25 @@
                             </tr>
                             </thead>
                             <tbody>
-                            @foreach($liberados as $registro)
+                            @foreach($dispositivos as $dispositivo)
                                 <tr>
-                                    <td>{{ $registro->ip }}</td>
-                                    <td>{{ $registro->usuarioNome}}</td>
-                                    <td>{{ $registro->tipodispositivo}}</td>
-                                    <td>{{ $registro->mac }}</td>
-                                    <td>{!! $registro->descricao_dispositivo !!}</td>
-                                    <td>{{ date_format(date_create($registro->avaliacao),"d/m/Y H:i:s") }}</td>
+                                    <td>{!! $dispositivo->ip !!}</td>
+                                    <td>{!! $dispositivo->usuarioNome !!}</td>
+                                    <td>{!! $dispositivo->tipoDoUsuario->descricao !!}</td>
+                                    <td>{!! $dispositivo->tipoDoDispositivo->descricao !!}</td>
+                                    <td>{!! $dispositivo->mac !!}</td>
+                                    <td>{!! $dispositivo->descricao_dispositivo !!}</td>
+                                    <td>{!! date_format(date_create($dispositivo->avaliacao),"d/m/Y H:i:s") !!}</td>
                                     <td>
-                                        @if(is_null($registro->validade))
+                                        @if(is_null($dispositivo->validade))
                                             Indeterminado
                                         @else
-                                            {{ date_format(date_create($registro->validade),"d/m/Y H:i:s") }}
+                                            {!! date_format(date_create($dispositivo->validade),"d/m/Y H:i:s") !!}
                                         @endif
                                     </td>
                                     @if ($tipo < 5)
                                         <td>
-                                            <a href="{{ route('editDevice', $registro->id) }}" class="btn btn-xs btn-ufop"><i class="fa fa-edit"></i> Editar</a>
+                                            <a href="{{ route('editDevice', $dispositivo->id) }}" class="btn btn-xs btn-ufop"><i class="fa fa-edit"></i> Editar</a>
                                         </td>
                                     @endif
                                 </tr>
@@ -100,6 +102,7 @@
                             <tr>
                                 <th>IP</th>
                                 <th>Usuário</th>
+                                <th>Tipo de Usuário</th>
                                 <th>Dispositivo</th>
                                 <th>MAC</th>
                                 <th>Descrição</th>
