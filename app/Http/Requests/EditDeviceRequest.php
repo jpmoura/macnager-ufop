@@ -25,13 +25,14 @@ class EditDeviceRequest extends FormRequest
     {
         return [
             'id'              => 'required|exists:requisicoes',
+            'subrede'         => 'required|exists:subredes,id',
             'ip'              => 'required|ip',
             'responsavel'     => 'required|size:14',
             'responsavelNome' => 'required',
             'usuario'         => 'required|size:14',
             'usuarioNome'     => 'required',
-            'tipousuario'     => 'required|exists:tipo_usuario',
-            'tipodispositivo' => 'required|exists:tipo_dispositivo',
+            'tipousuario'     => 'required|exists:tipo_usuario,id',
+            'tipodispositivo' => 'required|exists:tipo_dispositivo,id',
             'mac'             => 'required|size:17',
             'descricao'       => 'required|max:100',
             'justificativa'   => 'required|max:100',

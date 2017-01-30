@@ -9,7 +9,7 @@ class Requisicao extends Model
   protected $table = "requisicoes";
   public $timestamps = false;
 
-  protected $guarded = [];
+  protected $guarded = ['id'];
 
   public function tipoDoDispositivo()
   {

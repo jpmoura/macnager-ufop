@@ -43,6 +43,7 @@
         $(document).ready(function() {
             $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );
             $("#datepicker").datepicker($.datepicker.regional['pt-BR']);
+            $('.cpf').mask('000.000.000-00', {reverse: true});
         });
     </script>
 
@@ -217,7 +218,7 @@
                         <div class="form-group {{ $errors->has('responsavel') ? ' has-error' : '' }}">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="fa fa-eye"></i></span>
-                                <input id="responsavel" type="text" value="{!! $errors->has('responsavel') ? old('responsavel') : $requisicao->responsavel !!}"  minlength="11" maxlength="11" name="responsavel" class="form-control" title="Pessoa responsável pelo usuário" required data-toggle="tooltip" data-placement="top">
+                                <input id="responsavel" type="text" value="{!! $errors->has('responsavel') ? old('responsavel') : $requisicao->responsavel !!}"  minlength="14" maxlength="14" name="responsavel" class="form-control cpf" title="Pessoa responsável pelo usuário" required data-toggle="tooltip" data-placement="top">
                             </div>
 
                             <div class="row">
