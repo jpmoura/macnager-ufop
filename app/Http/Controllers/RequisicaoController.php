@@ -49,7 +49,8 @@ class RequisicaoController extends Controller
      */
     public function indexDevice($status)
     {
-        $requests = Requisicao::with('tipoDoDispositivo', 'tipoDoUsuario')->where('status', $status)->orderBy(DB::raw('INET_ATON(ip)'))->get();
+        $requests = Requisicao::with('tipoDoDispositivo', 'tipoDoUsuario')->where('status', $status)->get();
+        $requests->sortBy('ip');
         return view('requisicao.device.index')->with(['dispositivos' => $requests, 'tipo' => $status]);
     }
 
