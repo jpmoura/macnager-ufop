@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Events\NewConfigurationFile;
 use App\Requisicao;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use SSH;
 
@@ -84,7 +83,7 @@ class PfsenseController extends Controller
             $commands = ["rm /tmp/config.cache", "/etc/rc.reload_all"];
             SSH::into('pfsense')->run($commands);
 
-            Event::fire(new NewConfigurationFile());
+            event(new NewConfigurationFile());
         }
         catch (\Exception $e)
         {
