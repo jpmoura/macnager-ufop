@@ -143,21 +143,22 @@ class RequisicaoController extends Controller
 
         $record = Requisicao::find($input['id']);
         $record->ip = $input['ip'];
-        $record->responsavel = ucwords(strtolower($input['responsavel']));
+        $record->responsavel = RequisicaoController::cleanCPF($input['responsavel']);
         $record->responsavelNome = ucwords(strtolower($input['responsavelNome']));
-        $record->usuario = $input['usuario'];
+        $record->usuario = RequisicaoController::cleanCPF($input['usuario']);
         $record->usuarioNome = ucwords(strtolower($input['usuarioNome']));
         $record->mac = $input['mac'];
         $record->descricao_dispositivo = $input['descricao'];
         $record->tipo_dispositivo = $input['tipodispositivo'];
         $record->tipo_usuario = $input['tipousuario'];
+        $record->subrede_id = $input['subrede'];
 
         if( empty($input['validade']) ) $record->validade = null;
         else $record->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
 
         $record->save();
 
-        if(PfsenseController::refreshPfsense())
+        if(PfsenseController::refreshPfsense($record->tipo->id))
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'info');

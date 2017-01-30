@@ -51,6 +51,7 @@ Route::group(['middleware' => 'auth'], function() {
             Route::get('edit/{subrede}', ['as' => 'editSubrede', 'uses' => 'SubredeController@edit']);
             Route::post('edit', ['as' => 'updateSubrede', 'uses' => 'SubredeController@update']);
             Route::get('delete/{subrede}', ['as' => 'destroySubrede', 'uses' => 'SubredeController@destroy']);
+            Route::get('ips/{subrede}', ['as' => 'availableIps' , 'uses' => 'SubredeController@getAvailableIps']);
         });
 
         Route::group(['prefix' => 'user/type'], function(){

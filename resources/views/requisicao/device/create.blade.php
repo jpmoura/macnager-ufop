@@ -52,7 +52,7 @@
                 $("#ips").empty(); // Limpa as opções disponíveis
 
                 $.ajax({
-                    url: '{{ url('test') }}' + '/' + this.selectedIndex, // url
+                    url: '{{ secure_url('/subnet/ips') }}' + '/' + this.selectedIndex, // url
                     type: "get", // método
 
                     success: function(response)

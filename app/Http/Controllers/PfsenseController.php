@@ -57,31 +57,44 @@ class PfsenseController extends Controller
     /**
      * Atualiza o arquivo de configuração no pfSense
      */
-    public static function refreshPfsense()
+    public static function refreshPfsense($subrede_id)
     {
-        $configFile = storage_path('app/config/config.xml');
+        $pfsenseConnection = 'pfsense';
+
+        if($subrede_id == 1) // Redes LAN
+        {
+            $folder = 'lan';
+            $pfsenseConnection .= 'LAN';
+        }
+        else // Redes NAT
+        {
+            $folder = 'nat';
+            $pfsenseConnection .= 'NAT';
+        }
+
+        $configFile = storage_path('app/config/' . $folder . '/config.xml');
 
         // Realiza o backup do arquivo de configuração anterior
         if(File::exists($configFile))
         {
             $lastModified = File::lastModified($configFile);
-            File::copy($configFile, storage_path('app/config/config-' . $lastModified . '.xml'));
+            File::copy($configFile, storage_path('app/config/' . $folder . '/config-' . $lastModified . '.xml'));
         }
 
         try
         {
             // Obtém o arquivo de configurações mais recente
-            SSH::into('pfsense')->get("/cf/conf/config.xml", $configFile); // Path do arquivo local e path do arquivo remoto
+            SSH::into($pfsenseConnection)->get("/cf/conf/config.xml", $configFile); // Path do arquivo local e path do arquivo remoto
 
             // Modificar o arquivo de configuração, adicionando o novo static map
             PfsenseController::rebuildStaticMap();
 
             // Envia o novo arquivo de configuração
-            SSH::into('pfsense')->put($configFile, '/cf/conf/config.xml');
+            SSH::into($pfsenseConnection)->put($configFile, '/cf/conf/config.xml');
 
             // Remove o cache da configuração e reinicia o firewall com a nova configuração
             $commands = ["rm /tmp/config.cache", "/etc/rc.reload_all"];
-            SSH::into('pfsense')->run($commands);
+            SSH::into($pfsenseConnection)->run($commands);
 
             event(new NewConfigurationFile());
         }
