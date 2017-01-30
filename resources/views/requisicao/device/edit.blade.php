@@ -191,7 +191,7 @@
                                 <select id="subrede" name="subrede" class="form-control" required data-toggle="tooltip" data-placement="top" title="Suberede a qual o dispositivo fará parte">
                                     <option value="" selected>Selecione a Subrede</option>
                                     @foreach($subredes as $subrede)
-                                        <option value="{{ $subrede->id }}" {{ $requisicao->subrede == $subrede->id ? 'selected' : '' }}>{{ $subrede->tipo->descricao }} - {!! $subrede->descricao !!}</option>
+                                        <option value="{{ $subrede->id }}" {{ $requisicao->subrede_id == $subrede->id ? 'selected' : '' }}>{{ $subrede->tipo->descricao }} - {!! $subrede->descricao !!}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -410,7 +410,7 @@
                     <h4 class="modal-title text-center">Aguarde</h4>
                 </div>
                 <div class="modal-body text-center">
-                    Gerando novos arquivos ARP e DHCP e enviando para os servidores.
+                    Gerando e enviando um novo arquivo de configuração para o pfSense.
                     <br />
                     <br />
                     <img src="{{asset('public/img/bigloading.gif')}}" />
