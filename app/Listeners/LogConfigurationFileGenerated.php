@@ -5,7 +5,6 @@ namespace App\Listeners;
 use App\Events\NewConfigurationFile;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Support\Facades\Log;
 
 class LogConfigurationFileGenerated
 {
@@ -27,6 +26,6 @@ class LogConfigurationFileGenerated
      */
     public function handle(NewConfigurationFile $event)
     {
-        Log::info('Novo arquivo de configuração foi criado.');
+        info('Novo arquivo de configuração foi criado.');
     }
 }
