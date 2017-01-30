@@ -9,7 +9,7 @@
 @endsection
 
 @section('breadcrumb')
-    <li><i class="fa fa-legal"></i> Pedidos</li>
+    <li><i class="fa fa-hand-paper-o"></i> Requisições</li>
     <li><i class="fa fa-search"></i> Detalhes</li>
 @endsection
 
@@ -220,6 +220,9 @@
                                         <div class="text-center">
                                             <button type="button" class="btn btn-ufop" onClick="history.back()"><i class='fa fa-arrow-left'></i> Voltar</button>
                                             <a href="{{ route('editRequisicao', $requisicao->id) }}" class="btn bg-navy"><i class="fa fa-edit"></i> Editar</a>
+                                            @if($requisicao->responsavel == auth()->user()->cpf)
+                                                <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i> Apagar</button>
+                                            @endif
                                             <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#denyModal"><i class='fa fa-times'></i> Negar</button>
                                             <button type="submit" class="btn btn-success"><i class='fa fa-check'></i> Aprovar</button>
                                         </div>
@@ -246,7 +249,7 @@
         </div>
     </div>
 
-    @if($requisicao->status == 0 && auth()->user()->isAdmin())
+    @can('manipulateRequisicao', $requisicao)
         {{-- Modal com justificativa para negar --}}
         <div class="modal fade modal-danger" id="denyModal" tabindex="-1" role="dialog" aria-labelledby="denyModal" aria-hidden="true">
             <div class="modal-dialog">
@@ -277,10 +280,8 @@
                 </div>
             </div>
         </div>
-    @endif
 
-    @if($requisicao->status == 0 && auth()->user()->cpf == $requisicao->responsavel)
-        <div class="modal fade modal-danger" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
+        <div class="modal fade {{ auth()->user()->isAdmin() ? 'modal-warning' : 'modal-danger' }}" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -301,5 +302,5 @@
                 </div>
             </div>
         </div>
-    @endif
+    @endcan
 @endsection

@@ -9,6 +9,7 @@ use App\Http\Requests\AprovarRequisicaoRequest;
 use App\Http\Requests\CreateDeviceRequest;
 use App\Http\Requests\CreateRequisicaoRequest;
 use App\Http\Requests\EditDeviceRequest;
+use App\Http\Requests\EditRequisicaoRequest;
 use App\Http\Requests\RecusarRequisicaoRequest;
 use App\Ldapuser;
 use App\Mail\RequestApproved;
@@ -21,6 +22,7 @@ use App\Requisicao;
 use App\Subrede;
 use App\TipoDispositivo;
 use App\TipoUsuario;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -256,8 +258,9 @@ class RequisicaoController extends Controller
     }
 
     /**
-     * Renderiza a view contendo todas as requisições de um determinado tipo
-     * @param $type Tipo da requisição
+     * Renderiza a view contendo todos os pedidos feitos de acordo com um status determinado.
+     * @param int $type Status do pedido
+     * @return mixed
      */
     public function allIndex($type)
     {
@@ -309,7 +312,7 @@ class RequisicaoController extends Controller
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'success');
-            event(new RequestApproved($requisicao, auth()->user()));
+            event(new \App\Events\RequestApproved($requisicao, auth()->user()));
         }
         else
         {
@@ -352,7 +355,9 @@ class RequisicaoController extends Controller
     }
 
     /**
-     * Suspende temporariamente uma requisição, impedindo que o usuário seja capaz de usar a rede.
+     * Bloqueia temporariamente o acesso de um dispositivo. O IP atribuído ao dispositivo bloqueado não aparecerá
+     * na lista de IPs disponíveis enquanto o dispositivo não for desativado.
+     * @return \Illuminate\Http\RedirectResponse Página anterior
      */
     public function block()
     {
@@ -371,7 +376,7 @@ class RequisicaoController extends Controller
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'info');
-            event(new RequestSuspended($requisicao, auth()->user()));
+            event(new \App\Events\RequestSuspended($requisicao, auth()->user()));
         }
         else
         {
@@ -384,8 +389,9 @@ class RequisicaoController extends Controller
     }
 
     /**
-     * Desativa uma requisição, sendo que o usuário não será capaz mais de se conectar a rede, sendo necessário abrir
-     * uma nova requisição.
+     * Desativa um dispositivo permanentemente, sendo necessário criar outra requisição ou dispositivo para liberar o
+     * acesso para o mesmo endereço MAC.
+     * @return \Illuminate\Http\RedirectResponse View contendo o índice dos dispositivos
      */
     public function disable()
     {
@@ -404,7 +410,7 @@ class RequisicaoController extends Controller
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'success');
-            event(new RequestExcluded($requisicao, auth()->user()));
+            event(new \App\Events\RequestExcluded($requisicao, auth()->user()));
         }
         else
         {
@@ -416,8 +422,9 @@ class RequisicaoController extends Controller
     }
 
     /**
-     * Reativa uma requisição que foi suspensa.
-     * @param $id ID da requisição
+     * Reativa uma intância de Requisição que estava bloqueada.
+     * @param Requisicao $requisicao Instância a ser reativada.
+     * @return \Illuminate\Http\RedirectResponse Página anterior
      */
     public function reactive(Requisicao $requisicao)
     {
@@ -435,7 +442,7 @@ class RequisicaoController extends Controller
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'info');
-            event(new RequestReactivated($requisicao, auth()->user()));
+            event(new \App\Events\RequestReactivated($requisicao, auth()->user()));
         }
         else
         {
@@ -447,112 +454,75 @@ class RequisicaoController extends Controller
     }
 
     /**
-     * Apaga uma requisição do banco de dados.
+     * Deleta uma instância de Requisicao do banco de dados
+     * @param Request $request Requisicao HTTP contendo o ID da Requisicao
+     * @return \Illuminate\Http\RedirectResponse Página anterior em caso de erro ou o
      */
-    public function delete()
+    public function delete(Request $request)
     {
-        $requisicao = Requisicao::find(Input::get('id'));
-
-        if(auth()->user()->isAdmin() || $requisicao->responsavel == auth()->user()->cpf)
+        $requisicao = Requisicao::find($request->input('id'));
+        $this->authorize('manipulateRequisicao', $requisicao);
+        try
         {
-            if($requisicao->status == 0)
-            {
-                Requisicao::destroy($requisicao->id);
-                session()->flash('tipo', 'success');
-                session()->flash('mensagem', "A requisição foi apagada.");
-                return redirect()->route('indexUserRequisicao');
-            }
-            else
-            {
-                session()->flash('tipo', 'error');
-                session()->flash('mensagem', "Não é possível deletar uma requisição que já foi julgada.");
-                return redirect()->back();
-            }
-        }
-        else return abort(403);
-    }
-
-    /**
-     * Renderiza a view de edição de uma requisição.
-     * @param $id int ID da requisição
-     */
-    public function edit($id)
-    {
-        $requisicao = Requisicao::find($id);
-
-        if(auth()->user()->isAdmin() || $requisicao->responsavel == auth()->user()->cpf)
-        {
-            if($requisicao->status == 0)
-            {
-                if(auth()->user()->isAdmin())
-                {
-                    $users = TipoUsuario::all();
-                    $devices = TipoDispositivo::all();
-                }
-                else
-                {
-                    $users = TipoUsuario::where('id', '>', 1)->get();
-                    $devices = TipoDispositivo::where('id', '>', 1)->get();
-                }
-                return view('admin.actions.editRequest')->with(['requisicao' => $requisicao, 'usuarios' => $users, 'dispositivos' => $devices, 'organizacoes' => Ldapuser::where('nivel', 3)->get()]);
-            }
+            $requisicao->delete();
+            session()->flash('tipo', 'success');
+            session()->flash('mensagem', "A requisição foi apagada.");
             return redirect()->route('indexUserRequisicao');
         }
-        else abort(403);
+        catch (Exception $e)
+        {
+            session()->flash('tipo', 'error');
+            session()->flash('mensagem', "Não é possível deletar a requisição. Motivo: " . $e->getMessage());
+            return redirect()->back();
+        }
     }
 
     /**
-     * Edita uma instância de requisição que ainda não foi julgada.
+     * Renderiza view de edição de uma requisição que ainda esteja em avaliação.
+     * @param Requisicao $requisicao Instância de Requisição em avaliação que terá os dados atualizados
+     * @return mixed View com os dados atuais da requisição
      */
-    public function update()
+    public function edit(Requisicao $requisicao)
     {
-        $requisicao = Requisicao::find(Input::get('id'));
+        $this->authorize('manipulateRequisicao', $requisicao);
+        $users = TipoUsuario::where('id', '>', 1)->get();
+        $devices = TipoDispositivo::where('id', '>', 1)->get();
+        return view('requisicao.edit')->with(['requisicao' => $requisicao, 'usuarios' => $users, 'dispositivos' => $devices, 'organizacoes' => Ldapuser::where('nivel', 3)->get()]);
+    }
 
-        if(auth()->user()->isAdmin() || $requisicao->responsavel == auth()->user()->cpf)
+    /**
+     * Atualiza os valores de uma intância de Requisicao
+     * @param EditRequisicaoRequest $request Requisição HTTP com os valores validados
+     * @return \Illuminate\Http\RedirectResponse Página de edição com os valores atualizados
+     */
+    public function update(EditRequisicaoRequest $request)
+    {
+        $form = $request->all();
+
+        try
         {
-            if($requisicao->status == 0)
-            {
-                // pegar variáveis e salvar
-                $form = Input::all();
+            $requisicao = Requisicao::find($form['id']);
+            $requisicao->usuario = RequisicaoController::cleanCpf($form['usuario']);
+            $requisicao->usuarioNome = $form['usuarioNome'];
+            $requisicao->tipo_usuario = $form['tipousuario'];
+            $requisicao->tipo_dispositivo = $form['tipodispositivo'];
+            $requisicao->mac = $form['mac'];
+            $requisicao->descricao_dispositivo = $form['descricao'];
+            $requisicao->justificativa = $form['justificativa'];
 
-                if(Input::has('termo'))
-                {
-                    if($form['termo']->isValid())
-                    {
-                        if($form['termo']->getMimeType() == 'application/pdf') $requisicao->termo = $form['termo']->store('termos');
-                        else
-                        {
-                            session()->flash('tipo', 'error');
-                            session()->flash('mensagem', 'O formato do arquivo não é PDF ou não foi bem codificado.');
-                        }
-                    }
-                    else
-                    {
-                        session()->flash('tipo', 'error');
-                        session()->flash('mensagem', 'Houve um erro no envio do arquivo e ele não pode ser validado.');
-                    }
-                }
+            if($form['termo']) $requisicao->termo = $form['termo']->store('termos');
 
-                $requisicao->usuario = $form['usuario'];
-                $requisicao->usuarioNome = $form['usuarioNome'];
-                $requisicao->tipo_usuario = $form['tipousuario'];
-                $requisicao->tipo_dispositivo = $form['tipodispositivo'];
-                $requisicao->mac = $form['mac'];
-                $requisicao->descricao_dispositivo = $form['descricao'];
-                $requisicao->justificativa = $form['justificativa'];
-                $requisicao->save();
+            $requisicao->save();
 
-                session()->flash('tipo', 'success');
-                session()->flash('mensagem', 'Seu pedido foi atualizado com sucesso. Aguarde pela resposta.');
-            }
-            else
-            {
-                session()->flash('tipo', 'error');
-                session()->flash('mensagem', 'Não é possível editar uma requisição que foi julgada. Edite o dispostivo ao invés disso.');
-            }
+            session()->flash('tipo', 'success');
+            session()->flash('mensagem', 'Os dados da requisição foram atualizados.');
         }
-        else abort(403);
+        catch(Exception $e)
+        {
+            session()->flash('tipo', 'error');
+            session()->flash('mensagem', 'Ocorreu um erro durante a atualização. Motivo: ' . $e->getMessage());
+        }
 
-        return redirect()->back();
+        return back();
     }
 }

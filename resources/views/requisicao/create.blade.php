@@ -62,7 +62,7 @@
                     // Se houver erro na requisição (e.g. 404)
                     error: function (XMLHttpRequest, textStatus, errorThrown) {
                         $("#userDetails").html(XMLHttpRequest.responseText);
-                    },
+                    }
                 });
             });
         });
@@ -208,7 +208,7 @@
                                 @if($errors->has('termo'))
                                     <p class="text-danger">{!! $errors->first('termo') !!}</p>
                                 @endif
-                                <input name="termo" type='file' title="Arquivo PDF do termo de compromisso assinado" required>
+                                <input name="termo" type='file' title="Arquivo PDF do termo de compromisso assinado">
                             </div>
                         </div>
 
