@@ -52,7 +52,7 @@ class SuspendOldUsers extends Command
                 $request->status = 3;
                 $request->avaliacao = $today;
                 $request->juizCPF = '00000000001';
-                $request->juizMotivo = 'Data de validade da concessão expirou.';
+                $request->juizMotivo = 'Data de validade da requisição expirou.';
                 $request->save();
                 $this->info('O acesso de ' . $request->usuarioNome . ' foi suspenso.');
 
