@@ -127,7 +127,13 @@
                                         $(document).ready(function() {
                                             $( "#datepicker" ).datepicker($.datepicker.regional['pt-BR']);
                                         });
+
+                                        submitApproval = function(){
+                                            $('#loadingModal').modal({backdrop: 'static', keyboard: false});
+                                            document.forms['approveForm'].submit();
+                                        };
                                     </script>
+
 
                                     {{-- AJAX de recuperação de IPs não usados de acordo com a Subrede --}}
                                     <script>
@@ -168,7 +174,7 @@
                                     </script>
                                 @endpush
 
-                                <form class="form" action="{{ route('approveRequisicao') }}" method="post">
+                                <form id="approveForm" class="form" action="{{ route('approveRequisicao') }}" method="post">
 
                                     {{ csrf_field() }}
 
@@ -224,7 +230,7 @@
                                                 <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i> Apagar</button>
                                             @endif
                                             <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#denyModal"><i class='fa fa-times'></i> Negar</button>
-                                            <button type="submit" class="btn btn-success"><i class='fa fa-check'></i> Aprovar</button>
+                                            <button type="button" onclick="submitApproval()" class="btn btn-success"><i class='fa fa-check'></i> Aprovar</button>
                                         </div>
                                     </div>
                                 </form>
@@ -250,6 +256,22 @@
     </div>
 
     @can('manipulateRequisicao', $requisicao)
+        <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title text-center">Aguarde</h4>
+                    </div>
+                    <div class="modal-body text-center">
+                        Gerando e enviando um novo arquivo de configuração para o pfSense.
+                        <br />
+                        <br />
+                        <img src="{{asset('public/img/bigloading.gif')}}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- Modal com justificativa para negar --}}
         <div class="modal fade modal-danger" id="denyModal" tabindex="-1" role="dialog" aria-labelledby="denyModal" aria-hidden="true">
             <div class="modal-dialog">
