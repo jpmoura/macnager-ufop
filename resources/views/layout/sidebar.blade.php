@@ -68,7 +68,8 @@
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="{{ route('exportConfig') }}"><i class="fa fa-cogs"></i> <span>Configurações do pfSense</span></a></li>
+                        <li><a href="{{ route('exportLanConfig') }}"><i class="fa fa-cogs"></i> <span>Configurações pfSense LAN</span></a></li>
+                        <li><a href="{{ route('exportNatConfig') }}"><i class="fa fa-cogs"></i> <span>Configurações pfSense NAT</span></a></li>
                     </ul>
                 </li>
             @endcan
