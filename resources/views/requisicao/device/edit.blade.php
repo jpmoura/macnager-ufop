@@ -61,7 +61,7 @@
                 $("#ips").empty(); // Limpa as opções disponíveis
 
                 $.ajax({
-                    url: '{{ secure_url('/subnet/ips') }}' + '/' + this.selectedIndex, // url
+                    url: '{{ secure_url('/subnet/ips') }}' + '/' + $('#subrede').val(), // url
                     type: "get", // método
 
                     success: function(response)
@@ -82,7 +82,7 @@
                     // Se houver erro na requisição (e.g. 404)
                     error: function (XMLHttpRequest, textStatus, errorThrown)
                     {
-                        $("#ips").append('<option value="">Erro durante requisição</option>');
+                        $("#ips").append('<option value="">Erro durante requisição ou opção inválida selecionada</option>');
                         console.log('Error in Subnet:' + errorThrown);
                     },
                 });
