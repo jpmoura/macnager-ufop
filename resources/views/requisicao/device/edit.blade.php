@@ -329,7 +329,7 @@
                         @if($requisicao->status == 1)
                             <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#blockModal"><i class="fa fa-ban"></i> Bloquear</button>
                         @elseif ($requisicao->status == 4)
-                            <a href="{{ route('reactiveRequisicao', $requisicao->id)}}" class="btn btn-primary"><i class="fa fa-power-off"></i> Desbloqueado</a>
+                            <a href="{{ route('reactiveRequisicao', $requisicao->id)}}" class="btn btn-primary"><i class="fa fa-unlock"></i> Desbloquear</a>
                         @endif
                         @if($requisicao->status < 5 && $requisicao->status != 3)
                             <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#disableModal"><i class="fa fa-power-off"></i> Desativar</button>
