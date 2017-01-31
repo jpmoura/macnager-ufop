@@ -49,8 +49,7 @@ class RequisicaoController extends Controller
      */
     public function indexDevice($status)
     {
-        $requests = Requisicao::with('tipoDoDispositivo', 'tipoDoUsuario')->where('status', $status)->get();
-        $requests->sortBy('ip');
+        $requests = Requisicao::with('tipoDoDispositivo', 'tipoDoUsuario')->where('status', $status)->orderBy(DB::raw('INET_ATON(`ip`)'))->get();
         return view('requisicao.device.index')->with(['dispositivos' => $requests, 'tipo' => $status]);
     }
 
@@ -101,6 +100,7 @@ class RequisicaoController extends Controller
             'juizMotivo' => 'Adição manual por ' . auth()->user()->nome,
             'ip' => $input['ip'],
             'status' => 1,
+            'subrede_id' => $input['subrede'],
             'validade' => $input['validade']
         ]);
 
@@ -158,7 +158,7 @@ class RequisicaoController extends Controller
 
         $record->save();
 
-        if(PfsenseController::refreshPfsense($record->tipo->id))
+        if(PfsenseController::refreshPfsense($record->subrede_id))
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'info');

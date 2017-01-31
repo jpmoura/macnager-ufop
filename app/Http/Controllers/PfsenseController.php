@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Events\NewConfigurationFile;
 use App\Requisicao;
+use App\Subrede;
+use App\TipoSubrede;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use SSH;
@@ -14,14 +16,23 @@ class PfsenseController extends Controller
      * Reconstroi o static map (lista de ip vinculados a macs)
      * @return bool True em todos os casos.
      */
-    private static function rebuildStaticMap()
+    private static function rebuildStaticMap($tipoSubredeId, $pathConfigFile)
     {
-        $requestsAllowed = Requisicao::where('status', 1)->orderBy(DB::raw('INET_ATON(ip)'))->get();
-        $pathConfigFile = storage_path("app/config/config.xml");
+        // Recupera os IDs de todas as subredes do mesmo tipo
+        $subredes = TipoSubrede::find($tipoSubredeId)->subredes;
 
+        info('Info', ['Ids subredes' => $subredes->pluck('id'), 'Tipo subrede' => $tipoSubredeId]);
+
+        // Recupera todas as requisições ativas de um mesmo tipo de subrede (LAN ou NAT) ordenados pelo IP
+        $requestsAllowed = Requisicao::where('status', 1)->whereIn('subrede_id', $subredes->pluck('id'))->orderBy(DB::raw('INET_ATON(ip)'))->get();
+
+        // Carrega o arquivo de configuração de acordo com o path informado
         $configXML = simplexml_load_file($pathConfigFile);
-        unset($configXML->dhcpd->lan->staticmap); // Apaga o static map atual
 
+        // Apaga os vínculos [IP, MAC] que existiam antes
+        unset($configXML->dhcpd->lan->staticmap);
+
+        // Inicia o iterador
         $iterator = 0;
 
         // Para cada requisição liberada é criada uma nova entrada no static map
@@ -30,7 +41,7 @@ class PfsenseController extends Controller
             $configXML->dhcpd->lan->staticmap[$iterator]->mac = $request->mac;
             $configXML->dhcpd->lan->staticmap[$iterator]->ipaddr = $request->ip;
             $configXML->dhcpd->lan->staticmap[$iterator]->hostname = "Requisicao-" . $request->id;
-            $configXML->dhcpd->lan->staticmap[$iterator]->addChild("descr");
+            $configXML->dhcpd->lan->staticmap[$iterator]->descr = $request->usuarioNome . '-' . $request->descricao_dispositivo;
             $configXML->dhcpd->lan->staticmap[$iterator]->addChild("arp_table_static_entry");
             $configXML->dhcpd->lan->staticmap[$iterator]->addChild("filename");
             $configXML->dhcpd->lan->staticmap[$iterator]->addChild("rootpath");
@@ -60,8 +71,9 @@ class PfsenseController extends Controller
     public static function refreshPfsense($subrede_id)
     {
         $pfsenseConnection = 'pfsense';
+        $tipoSubrede = Subrede::find($subrede_id)->tipo_subrede_id;
 
-        if($subrede_id == 1) // Redes LAN
+        if($tipoSubrede == 1) // Redes LAN
         {
             $folder = 'lan';
             $pfsenseConnection .= 'LAN';
@@ -87,7 +99,7 @@ class PfsenseController extends Controller
             SSH::into($pfsenseConnection)->get("/cf/conf/config.xml", $configFile); // Path do arquivo local e path do arquivo remoto
 
             // Modificar o arquivo de configuração, adicionando o novo static map
-            PfsenseController::rebuildStaticMap();
+            PfsenseController::rebuildStaticMap($tipoSubrede, $configFile);
 
             // Envia o novo arquivo de configuração
             SSH::into($pfsenseConnection)->put($configFile, '/cf/conf/config.xml');
@@ -100,6 +112,7 @@ class PfsenseController extends Controller
         }
         catch (\Exception $e)
         {
+            logger()->error('Erro pfSense', ['mensagem' => $e->getMessage(), 'codigo' => $e->getCode()]);
             return false;
         }
 
