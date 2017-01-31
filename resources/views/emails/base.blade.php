@@ -139,7 +139,7 @@
                                                 <w:anchorlock/>
                                                 <center>
                                             <![endif]-->
-                                            <a href="http://200.239.152.5/macnager/@yield('button-link')"
+                                            <a href="https://200.239.152.5/macnager/@yield('button-link')"
                                                style="background-color:dimgray;border-radius:4px;color:#ffffff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:16px;font-weight:bold;line-height:50px;text-align:center;text-decoration:none;width:200px;-webkit-text-size-adjust:none;">
                                                 @yield('button-title')
                                             </a>
