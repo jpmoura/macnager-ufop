@@ -19,7 +19,7 @@ Requisição Aprovada
     </p>
     <p align="justify">
         Para qualquer rede Wi-fi que se inicia com a letra do bloco e é seguida por um traço e um númeral de três
-        algarismos (rede A200, por exemplo), a senha é igual a ufop0609 (em minúsculo) caso seja um dispositivo com
+        algarismos (rede UFOP-A200, por exemplo), a senha é igual a ufop0609 (em minúsculo) caso seja um dispositivo com
         placa de rede sem fio.
     </p>
 @endsection
