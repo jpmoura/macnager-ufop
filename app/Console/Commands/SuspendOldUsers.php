@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Events\RequestExpired;
+use App\Http\Controllers\PfsenseController;
 use App\Ldapuser;
 use App\Mail\RequestExcluded;
 use Illuminate\Console\Command;
@@ -44,15 +45,18 @@ class SuspendOldUsers extends Command
      */
     public function handle()
     {
-        $activeRequests = Requisicao::where('status', 1)->where('validade', '<>', null)->get();
+        $rebuild = false;
+        $activeRequests = Requisicao::where('status', 1)->whereNotNull('validade')->get();
         $today = date("Y-m-d H:i:s", time());
 
-        foreach ($activeRequests as $request) {
-            if($today >= $request->validade) {
+        foreach ($activeRequests as $request)
+        {
+            if($today >= $request->validade)
+            {
                 $request->status = 3;
                 $request->avaliacao = $today;
                 $request->juizCPF = '00000000001';
-                $request->juizMotivo = 'Data de validade da requisição expirou.';
+                $request->juizMotivo = 'Retirada automática. A data de validade da requisição expirou.';
                 $request->save();
                 $this->info('O acesso de ' . $request->usuarioNome . ' foi suspenso.');
 
@@ -62,14 +66,14 @@ class SuspendOldUsers extends Command
                 if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $request));
 
                 Log::info('O acesso de ' . $request->usuarioNome . ' através do IP '. $request->ip . ' e MAC ' . $request->mac . ' foi suspenso.');
+                $rebuild = true;
             }
         }
 
         $this->line('Comando de suspensão executado.');
 
-        // TODO método para gerar novamente o arquivo de configuração e enviar ao servidor
+        if($rebuild) PfsenseController::rebuildBoth();
 
         return;
-
     }
 }

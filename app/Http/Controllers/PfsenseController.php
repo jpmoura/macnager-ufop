@@ -13,7 +13,7 @@ use SSH;
 class PfsenseController extends Controller
 {
     /**
-     * Reconstroi o static map (lista de ip vinculados a macs)
+     * Reconstrói o arquivo de configuração com a nova tabela ARP
      * @return bool True em todos os casos.
      */
     private static function rebuildStaticMap($tipoSubredeId, $pathConfigFile)
@@ -66,7 +66,9 @@ class PfsenseController extends Controller
     }
 
     /**
-     * Atualiza o arquivo de configuração no pfSense
+     * Atualiza a tabela ARP do servidor ARP de uma determinada rede (LAN ou NAT)
+     * @param int $subrede_id ID da subrede que sofreu a modificação
+     * @return bool True se bem sucedido e falso caso contrário
      */
     public static function refreshPfsense($subrede_id)
     {
@@ -117,5 +119,19 @@ class PfsenseController extends Controller
         }
 
         return true;
+    }
+
+    /**
+     * Recria os arquivos de configuração para os dois servidores pfSense (NAT e LAN)
+     */
+    public static function rebuildBoth()
+    {
+        $natSubrede = TipoSubrede::find(2)->subredes->first()->id;
+        $lanSubrede = TipoSubrede::find(1)->subredes->first()->id;
+
+        PfsenseController::refreshPfsense($natSubrede);
+        PfsenseController::refreshPfsense($lanSubrede);
+
+        return;
     }
 }
