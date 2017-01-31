@@ -51,7 +51,7 @@
                     <ul class="nav nav-tabs">
                         <li role="presentation" @if($tipo == 1) class="active" @endif><a href="{{ route('indexDevice', 1) }}"><i class="fa fa-check"></i> Ativos</a></li>
                         <li role="presentation" @if($tipo == 3) class="active" @endif><a href="{{ route('indexDevice', 3) }}"><i class="fa fa-history"></i> Vencidos</a></li>
-                        <li role="presentation" @if($tipo == 4) class="active" @endif><a href="{{ route('indexDevice', 4) }}"><i class="fa fa-ban"></i> Suspensos</a></li>
+                        <li role="presentation" @if($tipo == 4) class="active" @endif><a href="{{ route('indexDevice', 4) }}"><i class="fa fa-ban"></i> Bloqueados</a></li>
                         <li role="presentation" @if($tipo == 5) class="active" @endif><a href="{{ route('indexDevice', 5) }}"><i class="fa fa-power-off"></i> Desligados</a></li>
                     </ul>
                 </div>
