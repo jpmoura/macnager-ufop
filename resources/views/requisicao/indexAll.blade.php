@@ -76,9 +76,9 @@
                                     <td>{{ $requisicao->id }}</td>
                                     <td>{!! $requisicao->responsavelNome !!}</td>
                                     <td>{!! $requisicao->usuarioNome !!}</td>
-                                    <td>{{ $requisicao->tipousuario }}</td>
-                                    <td>{{ $requisicao->tipodispositivo }}</td>
-                                    <td>{{ date_format(date_create($requisicao->submissao),"d/m/Y H:i:s") }}</td>
+                                    <td>{!! $requisicao->tipoDoUsuario->descricao !!}</td>
+                                    <td>{!! $requisicao->tipoDoDispositivo->descricao !!}</td>
+                                    <td>{!! date_format(date_create($requisicao->submissao),"d/m/Y H:i:s") !!}</td>
                                     <td>
                                         @if($tipo == 0)
                                             <a href="{{ route('showRequisicao', $requisicao->id) }}" class="btn btn-success btn-xs"><i class="fa fa-legal"></i> Avaliar</a>
@@ -90,15 +90,15 @@
                             @endforeach
                             </tbody>
                             <tfoot>
-                            <tr>
-                                <th>ID</th>
-                                <th>Responsável</th>
-                                <th>Usuário</th>
-                                <th>Tipo do Usuário</th>
-                                <th>Tipo do Dispositivo</th>
-                                <th>Data de Submissão</th>
-                                <th>Ação</th>
-                            </tr>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Responsável</th>
+                                    <th>Usuário</th>
+                                    <th>Tipo do Usuário</th>
+                                    <th>Tipo do Dispositivo</th>
+                                    <th>Data de Submissão</th>
+                                    <th>Ação</th>
+                                </tr>
                             </tfoot>
                         </table>
                     </div>

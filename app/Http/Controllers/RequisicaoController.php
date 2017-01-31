@@ -104,7 +104,7 @@ class RequisicaoController extends Controller
             'validade' => $input['validade']
         ]);
 
-        if(PfsenseController::refreshPfsense())
+        if(PfsenseController::refreshPfsense($input['subrede']))
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'info');
@@ -255,20 +255,16 @@ class RequisicaoController extends Controller
 
     /**
      * Renderiza a view contendo todos os pedidos feitos de acordo com um status determinado.
-     * @param int $type Status do pedido
-     * @return mixed
+     * @param int $status Status do pedido
+     * @return mixed View com o indíce de todas as requisições de um dado status.
      */
-    public function allIndex($type)
+    public function allIndex($status)
     {
         session()->put('novosPedidos', Requisicao::where('status', '=', 0)->count());
 
         if(!isset($type)) $type = 0;
 
-        $requests = DB::table('requisicoes')->join('tipo_dispositivo', 'requisicoes.tipo_dispositivo', '=', 'tipo_dispositivo.id')
-            ->join('tipo_usuario', 'requisicoes.tipo_usuario', '=', 'tipo_usuario.id')
-            ->select('requisicoes.id as id', 'responsavelNome', 'usuarioNome', 'tipo_usuario.descricao as tipousuario', 'tipo_dispositivo.descricao as tipodispositivo', 'submissao', 'avaliacao')
-            ->where('status', $type)
-            ->get();
+        $requests = Requisicao::with('tipoDoDispositivo', 'tipoDoUsuario')->where('status', $status)->get();
 
         return view('requisicao.indexAll')->with(['requisicoes' => $requests, 'tipo' => $type]);
     }
@@ -298,13 +294,14 @@ class RequisicaoController extends Controller
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->juizCPF = auth()->user()->cpf;
         $requisicao->ip = $form['ip'];
+        $requisicao->subrede_id = $form['subrede'];
 
         if(empty($form['validade'])) $requisicao->validade = null;
         else $requisicao->validade = date("Y-m-d H:i:s", time());
 
         $requisicao->save();
 
-        if(PfsenseController::refreshPfsense())
+        if(PfsenseController::refreshPfsense($requisicao->subrede_id))
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'success');
@@ -368,7 +365,7 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestSuspended($user, $requisicao));
 
-        if(PfsenseController::refreshPfsense())
+        if(PfsenseController::refreshPfsense($requisicao->subrede_id))
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'info');
@@ -402,7 +399,7 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $requisicao));
 
-        if(PfsenseController::refreshPfsense())
+        if(PfsenseController::refreshPfsense($requisicao->subrede_id))
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'success');
@@ -434,7 +431,7 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestReactivated($user, $requisicao));
 
-        if(PfsenseController::refreshPfsense())
+        if(PfsenseController::refreshPfsense($requisicao->subrede_id))
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'info');
