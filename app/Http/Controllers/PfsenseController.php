@@ -170,4 +170,22 @@ class PfsenseController extends Controller
             }
         }
     }
+
+    /**
+     * Exporta as configurações do servidor pfSense responsável pela rede NAT.
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse Arquivo XML de onfiguração da rede NAT
+     */
+    public function exportNatConfig()
+    {
+        return response()->download(storage_path('app/config/nat/config.xml'), 'config.xml');
+    }
+
+    /**
+     * Exporta as configurações do servidor pfSense responsável pela rede LAN.
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse Arquivo XML de onfiguração da rede LAN
+     */
+    public function exportLanConfig()
+    {
+        return response()->download(storage_path('app/config/lan/config.xml'), 'config.xml');
+    }
 }
