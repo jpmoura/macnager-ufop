@@ -24,8 +24,9 @@ class AprovarRequisicaoRequest extends FormRequest
     public function rules()
     {
         return [
-            'id' => 'required|exists:requisicoes',
-            'ip' => 'required|ip',
+            'id'       => 'required|exists:requisicoes',
+            'subrede'  => 'required|exists:subredes,id',
+            'ip'       => 'required|ip',
             'validade' => 'nullable|date_format:d/m/Y|after:today',
         ];
     }
