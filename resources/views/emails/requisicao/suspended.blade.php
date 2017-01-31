@@ -5,12 +5,12 @@
 @endsection
 
 @section('title')
-    Requisição Suspensa
+    Requisição Bloqueada
 @endsection
 
 @section('body')
     <p align="justify">
-        Olá {!! explode(" ", $user->nome)[0] !!}, sua requisição de ID #{{ $request->id }} acaba de ser suspensa.
+        Olá {!! explode(" ", $user->nome)[0] !!}, sua requisição de ID #{{ $request->id }} acaba de ser temporariamente bloqueada.
     </p>
     <p align="justify">
         Essa requisição está relacionada ao usuário {!! $request->usuarioNome !!} e a descrição que você ofereceu foi
@@ -18,7 +18,7 @@
     </p>
     <p align="justify">
         A justificativa para a suspensão foi {!! $request->juizMotivo !!}. Você pode ver os detalhes da requisição clicando
-        no botão abaixo.
+        no botão abaixo:
     </p>
 @endsection
 
