@@ -2,7 +2,7 @@
 
 namespace App\Listeners;
 
-use App\Events\RequestReactivated;
+use App\Events\RequestExcluded;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
@@ -22,10 +22,10 @@ class LogRequestExcluded
     /**
      * Handle the event.
      *
-     * @param  RequestReactivated  $event
+     * @param  RequestExcluded  $event
      * @return void
      */
-    public function handle(RequestReactivated $event)
+    public function handle(RequestExcluded $event)
     {
         Log::notice('Requisição desligada.', ['requisição' => $event->request->id, 'juiz' => $event->judge->nome]);
     }
