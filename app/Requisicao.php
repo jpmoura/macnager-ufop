@@ -25,4 +25,26 @@ class Requisicao extends Model
     {
         return $this->belongsTo('App\Subrede');
     }
+
+    /**
+     * Define o atributo MAC como sempre com as letras em maiúsculo
+     *
+     * @param  string  $value  String representando o endereço MAC
+     * @return void
+     */
+    public function setMacAttribute($value)
+    {
+        $this->attributes['mac'] = strtoupper($value);
+    }
+
+    /**
+     * Recupera o endereço MAC da requisicição.
+     *
+     * @param  string  $value  Valor do atributo no banco de ddados
+     * @return string  Endereço MAC em maiúsculo
+     */
+    public function getMacAttribute($value)
+    {
+        return strtoupper($value);
+    }
 }
