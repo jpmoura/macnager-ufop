@@ -62,6 +62,11 @@ Route::group(['middleware' => 'auth'], function() {
             Route::post('edit', ['as' => 'updateTipoUsuario', 'uses' => 'TipoUsuarioController@update']);
             Route::get('delete/{tipousuario}', ['as' => 'deleteTipoUsuario', 'uses' => 'TipoUsuarioController@delete']);
         });
+
+        Route::group(['prefix' =>'export'], function(){
+            Route::get('config/nat', ['as' => 'exportNatConfig', 'uses' => 'PfsenseController@exportNatConfig']);
+            Route::get('config/lan', ['as' => 'exportLanConfig', 'uses' => 'PfsenseController@exportLanConfig']);
+        });
     });
 
     Route::get('/', ['as' => 'home', 'uses' => 'PagesController@home']);
@@ -78,10 +83,6 @@ Route::group(['middleware' => 'auth'], function() {
         Route::post('edit', ['as' => 'updateRequisicao', 'uses' => 'RequisicaoController@update']);
         Route::get('list/user', ['as' => 'indexUserRequisicao', 'uses' => 'RequisicaoController@userIndex']);
         Route::get('term/{filepath}', ['as' => 'showTermRequisicao', 'uses' => 'RequisicaoController@showTerm']);
-    });
-
-    Route::group(['prefix' =>'export'], function(){
-        Route::get('config', ['as' => 'exportConfig', 'uses' => 'PagesController@exportConfig']);
     });
 });
 
