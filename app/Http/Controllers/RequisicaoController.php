@@ -142,6 +142,9 @@ class RequisicaoController extends Controller
         $input = $request->all();
 
         $record = Requisicao::find($input['id']);
+
+        $oldSubredeId = $record->subrede_id;
+
         $record->ip = $input['ip'];
         $record->responsavel = RequisicaoController::cleanCPF($input['responsavel']);
         $record->responsavelNome = ucwords(strtolower($input['responsavelNome']));
@@ -158,7 +161,7 @@ class RequisicaoController extends Controller
 
         $record->save();
 
-        if(PfsenseController::refreshPfsense($record->subrede_id))
+        if(PfsenseController::checkDeviceUpdate($oldSubredeId, $record->subrede_id))
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'info');
@@ -313,6 +316,9 @@ class RequisicaoController extends Controller
             session()->flash('tipo', 'error');
         }
 
+        // Recupera a quantidade de requisições que ainda não foram julgadas
+        session()->put('novosPedidos', Requisicao::where('status', '=', 0)->count());
+
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $requisicao));
@@ -344,6 +350,9 @@ class RequisicaoController extends Controller
         session()->flash('tipo', 'success');
         session()->flash('mensagem', 'A requisição foi negada.');
 
+        // Recupera a quantidade de requisições que ainda não foram julgadas
+        session()->put('novosPedidos', Requisicao::where('status', '=', 0)->count());
+
         return back();
     }
 
@@ -356,7 +365,7 @@ class RequisicaoController extends Controller
     {
         $requisicao = Requisicao::find(Input::get('id'));
         $requisicao->juizMotivo = Input::get('juizMotivo');
-        $requisicao->juizCPF = auth()->user->cpf;
+        $requisicao->juizCPF = auth()->user()->cpf;
         $requisicao->status = 4;
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
