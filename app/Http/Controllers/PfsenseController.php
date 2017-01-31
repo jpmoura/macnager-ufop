@@ -21,8 +21,6 @@ class PfsenseController extends Controller
         // Recupera os IDs de todas as subredes do mesmo tipo
         $subredes = TipoSubrede::find($tipoSubredeId)->subredes;
 
-        info('Info', ['Ids subredes' => $subredes->pluck('id'), 'Tipo subrede' => $tipoSubredeId]);
-
         // Recupera todas as requisições ativas de um mesmo tipo de subrede (LAN ou NAT) ordenados pelo IP
         $requestsAllowed = Requisicao::where('status', 1)->whereIn('subrede_id', $subredes->pluck('id'))->orderBy(DB::raw('INET_ATON(ip)'))->get();
 
@@ -133,5 +131,43 @@ class PfsenseController extends Controller
         PfsenseController::refreshPfsense($lanSubrede);
 
         return;
+    }
+
+    /**
+     * Determina se é preciso atualizar os dois servidores pfSense. Essa checagem deve ser feita em casos de atualização
+     * de dispositivos pois eles podem transitar entre redes NAT e LAN.
+     * @param int $oldSubredeId ID da antiga subrede do dispositivo
+     * @param int $newDeviceSubrede ID da nova subrede
+     */
+    public static function checkDeviceUpdate($oldSubredeId, $newSubredeId)
+    {
+        // Se o dispositivo só mudou de IP dentro de uma mesma rede, então basta atualizar o pfSense que controla o tipo daquela rede
+        if($oldSubredeId == $newSubredeId)
+        {
+            info('A subrede do dispositivo não mudou. Somente um servidor será atualizado.');
+            return PfsenseController::refreshPfsense($newSubredeId);
+        }
+        else
+        {
+            // Senão é necessário se as redes são do mesmo tipo
+            $oldSubrede = Subrede::find($oldSubredeId);
+            $newSubrede = Subrede::find($newSubredeId);
+
+            // Se a antiga rede e a nova rede forem do mesmo tipo, então basta atualizar qualquer uma das redes, pois os tipos são iguais
+            if($oldSubrede->tipo->id == $newSubrede->tipo->id)
+            {
+                info('A subrede do dispositivo mudou mas o tipo ainda é o mesmo. Somente um servidor será atualizado.');
+                return PfsenseController::refreshPfsense($newSubredeId);
+            }
+            else
+            {
+                // Senão é necessário atualizar os dois tipos (NAT e LAN)
+                $oldSubredeCallback = PfsenseController::refreshPfsense($oldSubredeId);
+                $newSubredeCallback = PfsenseController::refreshPfsense($newSubredeId);
+
+                info('Um dispositivo mudou o tipo da sua rede, foi necessário atualizar o pfSense do NAT e da LAN');
+                return $oldSubredeCallback && $newSubredeCallback;
+            }
+        }
     }
 }
