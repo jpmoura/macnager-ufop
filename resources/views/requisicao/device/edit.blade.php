@@ -357,7 +357,7 @@
                         <div class="form-group {{ $errors->has('validade') ? ' has-error' : '' }}">
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="fa fa-history"></i></span>
-                                <input id="datepicker" name="validade" value="{{ $errors->has('validade') ? date_format(date_create(old('validade')),"d/m/Y") : date_format(date_create($requisicao->validade),"d/m/Y") }}" type="text" minlength="10" maxlength="10" class="form-control" placeholder="Validade do cadastro" data-toggle="tooltip" data-placement="top" title="Validade">
+                                <input id="datepicker" name="validade" value="@if($errors->has('validade')){{date_format(date_create(old('validade')),"d/m/Y")}}@elseif(!is_null($requisicao->validade)){{date_format(date_create($requisicao->validade),"d/m/Y")}}@endif" type="text" minlength="10" maxlength="10" class="form-control" placeholder="Validade do cadastro" data-toggle="tooltip" data-placement="top" title="Validade">
                             </div>
                             @if($errors->has('validade'))
                                 <p class="help-block">{!! $errors->first('validade') !!}</p>
