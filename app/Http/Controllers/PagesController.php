@@ -11,7 +11,8 @@ use App\Requisicao;
 class PagesController extends Controller
 {
     /**
-     * Renderiza a view da página inicial que contém informações diferentes de acordo com o tipo do usuário
+     * Recupera informações para serem mostradas na página inicial dependendo do nível do usuário
+     * @return mixed View com dados sumarizados
      */
     public function home()
     {
@@ -37,24 +38,18 @@ class PagesController extends Controller
             $rejected = Requisicao::where('status', 2)->where('responsavel', Auth::user()->cpf)->count();
             $outdated = Requisicao::where('status', 3)->where('responsavel', Auth::user()->cpf)->count();
             $blocked = Requisicao::where('status', 4)->where('responsavel', Auth::user()->cpf)->count();
+            // TODO fazer pare as requisições desativadas
 
             return view('index')->with(['aceitas' => $accepted, 'rejeitadas' => $rejected, 'vencidas' => $outdated, 'bloqueadas' => $blocked]);
         }
     }
 
     /**
-     * Renderiza a view com informações sobre o sistema
+     * Renderiza a view que contém informação sobre o sistema
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View View com informações sobre o sistema
      */
     public function about()
     {
         return view('about');
-    }
-
-    /**
-     * Exporta as últimas configurações enviadas ao servidor pfSense
-     */
-    public function exportConfig()
-    {
-        return response()->download(storage_path('app/config/config.xml'), 'config.xml');
     }
 }
