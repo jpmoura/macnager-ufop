@@ -52,7 +52,7 @@
                         <li role="presentation" @if($tipo == 1) class="active" @endif><a href="{{ route('indexAllRequisicao', 1)}}"><i class="fa fa-check"></i> Aprovadas</a></li>
                         <li role="presentation" @if($tipo == 2) class="active" @endif><a href="{{ route('indexAllRequisicao', 2)}}"><i class="fa fa-times"></i> Negadas</a></li>
                         <li role="presentation" @if($tipo == 3) class="active" @endif><a href="{{ route('indexAllRequisicao', 3)}}"><i class="fa fa-history"></i> Vencidas</a></li>
-                        <li role="presentation" @if($tipo == 4) class="active" @endif><a href="{{ route('indexAllRequisicao', 4)}}"><i class="fa fa-ban"></i> Suspensas</a></li>
+                        <li role="presentation" @if($tipo == 4) class="active" @endif><a href="{{ route('indexAllRequisicao', 4)}}"><i class="fa fa-ban"></i> Bloqueadas</a></li>
                         <li role="presentation" @if($tipo == 5) class="active" @endif><a href="{{ route('indexAllRequisicao', 5)}}"><i class="fa fa-power-off"></i> Desativadas</a></li>
                     </ul>
                 </div>
