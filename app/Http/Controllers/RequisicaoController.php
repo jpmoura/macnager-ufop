@@ -265,11 +265,11 @@ class RequisicaoController extends Controller
     {
         session()->put('novosPedidos', Requisicao::where('status', '=', 0)->count());
 
-        if(!isset($type)) $type = 0;
+        if(!isset($status)) $status = 0;
 
         $requests = Requisicao::with('tipoDoDispositivo', 'tipoDoUsuario')->where('status', $status)->get();
 
-        return view('requisicao.indexAll')->with(['requisicoes' => $requests, 'tipo' => $type]);
+        return view('requisicao.indexAll')->with(['requisicoes' => $requests, 'tipo' => $status]);
     }
 
     /**
