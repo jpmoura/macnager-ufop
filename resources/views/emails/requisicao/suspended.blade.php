@@ -23,7 +23,7 @@
 @endsection
 
 @section('button-link')
-request/details/{{ $request->id }}
+request/show/{{ $request->id }}
 @endsection
 
 @section('button-title')

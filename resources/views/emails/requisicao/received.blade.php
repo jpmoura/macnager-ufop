@@ -16,13 +16,13 @@ Requisição Recebida
         Assim que houver um parecer, você receberá outro e-mail lhe informando se ela foi aprovada ou negada.
     </p>
     <p align="justify">
-        Você também pode acompanhar o status da requisição na opção <a href="http://200.239.152.5/macnager/request/list/user" target="_blank">Minhas Requisições</a>
-        no menu principal do <a href="http://200.239.152.5/macnager/">MACnager</a> ou clicando no botão abaixo:
+        Você também pode acompanhar o status da requisição na opção <a href="https://200.239.152.5/macnager/request/list/user" target="_blank">Minhas Requisições</a>
+        no menu principal do <a href="https://200.239.152.5/macnager/">MACnager</a> ou clicando no botão abaixo:
     </p>
 @endsection
 
 @section('button-link')
-request/details/{{ $request->id }}
+request/show/{{ $request->id }}
 @endsection
 
 @section('button-title')
