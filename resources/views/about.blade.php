@@ -19,7 +19,7 @@
         <div class="col-md-6 col-md-offset-3">
             <p class="text-justify">
                 O <span class="text-bold">MAC</span>nager é o sistema da <a target="_blank" href="http://ufop.br">Universidade Federal de Ouro Preto</a> do
-                <a taget="_blank" href="http://www.icea.ufop.br/site/"><em>campus</em> João Monlevade</a> usado por professores para fazer requisições de inclusão de dispositivos
+                <a target="_blank" href="http://www.icea.ufop.br/site/"><em>campus</em> João Monlevade</a> usado por professores para fazer requisições de inclusão de dispositivos
                 à rede da <a>UFOP</a> e acompanhar o status daquelas que já foram feitas. É usado também pelo NTI do <em>campus</em> para gerenciar a rede do instituto, podendo acompanhar
                 todos os pedidos e suas características, podendo facilmente suspender/reativar dispostivos bem como desligá-los ou adicionar a rede a qualquer momento.
             </p>
