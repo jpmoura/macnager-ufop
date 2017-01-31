@@ -122,7 +122,7 @@
                             @endif
                             <p class="help-block">
                                 Caso o usuário não seja uma pessoa e sim todo um laboratório, por exemplo, você pode clicar
-                                <a href="#" data-toggle="modal" data-target="#infoModal">aqui</a> para ver a lista de usuários padrões.
+                                <a href="#" data-toggle="modal" data-target="#infoModal">aqui</a> para ver a lista de usuários-padrão (organizações).
                             </p>
                         </div>
 
@@ -237,7 +237,7 @@
                         <table id="organizacoes" class='table table-striped table-condensed text-center'>
                             <thead>
                             <tr>
-                                <th>Código</th>
+                                <th>CPF</th>
                                 <th>Organização</th>
                             </tr>
                             </thead>

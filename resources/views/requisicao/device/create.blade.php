@@ -19,12 +19,15 @@
 
 @push('extra-css')
     {!! HTML::style('public/js/plugins/jQueryUI/jquery-ui.min.css') !!}
+    {!! HTML::style('public/js/plugins/datatables/dataTables.bootstrap.css') !!}
 @endpush
 
 @push('extra-scripts')
     {!! HTML::script('public/js/plugins/jQueryMask/jquery.mask.min.js') !!}
     {!! HTML::script('public/js/plugins/jQueryUI/jquery-ui.min.js') !!}
     {!! HTML::script('public/js/plugins/jQueryUI/datepicker-pt-BR.js') !!}
+    {!! HTML::script('public/js/plugins/datatables/jquery.dataTables.min.js') !!}
+    {!! HTML::script('public/js/plugins/datatables/dataTables.bootstrap.min.js') !!}
 
     {{-- Modal de loading --}}
     <script>
@@ -32,6 +35,28 @@
             $('#loadingModal').modal({backdrop: 'static', keyboard: false});
             document.forms['addmac'].submit();
         }
+    </script>
+
+    {{-- Opções da tabela de organização --}}
+    <script>
+        $(function () {
+            $("#organizacoes").DataTable( {
+                "language": {
+                    "lengthMenu": "Mostrar _MENU_ registros por página",
+                    "zeroRecords": "Nada encontrado.",
+                    "info": "Mostrando página _PAGE_ de _PAGES_",
+                    "infoEmpty": "Nenhum registro disponível",
+                    "infoFiltered": "(Filtrado de _MAX_ registros)",
+                    "search": "Procurar:",
+                    "paginate": {
+                        "next": "Próximo",
+                        "previous": "Anterior"
+                    }
+                },
+                "autoWidth" : true,
+                "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Tudo"]]
+            });
+        });
     </script>
 
     {{-- Máscara de Endereço MAC e selecionador de datas em português --}}
@@ -221,10 +246,13 @@
                                 <div id='responsibleDetails' class="col-lg-12"></div>
                                 <input type="hidden" name="responsavelNome" value="{{ old('responsavelNome') }}">
                             </div>
-
                             @if($errors->has('responsavel'))
                                 <p class="help-block">{!! $errors->first('responsavel') !!}</p>
                             @endif
+                            <p class="help-block">
+                                Caso o responsável não seja uma pessoa e sim todo um laboratório, por exemplo, você pode clicar
+                                <a href="#" data-toggle="modal" data-target="#infoModal">aqui</a> para ver a lista de usuários-padrão (organizações).
+                            </p>
                         </div>
 
                         {{-- Usuário --}}
@@ -242,6 +270,11 @@
                             @if($errors->has('usuario'))
                                 <p class="help-block">{!! $errors->first('usuario') !!}</p>
                             @endif
+
+                            <p class="help-block">
+                                Caso o usuario não seja uma pessoa e sim todo um laboratório, por exemplo, você pode clicar
+                                <a href="#" data-toggle="modal" data-target="#infoModal">aqui</a> para ver a lista de usuários-padrão (organizações).
+                            </p>
                         </div>
 
                         {{-- Tipo do Usuário --}}
@@ -330,6 +363,40 @@
             </div>
         </div><!-- /.col -->
     </div><!-- /.row -->
+
+    <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title text-center"><i class="fa fa-th-list"></i> Lista de usuários padrão</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="table">
+                        <table id="organizacoes" class='table table-striped table-condensed text-center'>
+                            <thead>
+                            <tr>
+                                <th>CPF</th>
+                                <th>Organização</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach ($organizacoes as $organizacao)
+                                <tr>
+                                    <td>{{ str_pad($organizacao->cpf, 11, "0", STR_PAD_LEFT) }}</td> {{-- Completa o número de 0 a esquerda --}}
+                                    <td>{!! $organizacao->nome !!}</td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="text-center"><button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal -->
     <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

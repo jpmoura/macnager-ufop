@@ -62,8 +62,8 @@ class RequisicaoController extends Controller
         $deviceType = TipoDispositivo::all();
         $userType = TipoUsuario::all();
         $subnetworks = Subrede::with('tipo')->get();
-
-        return view('requisicao.device.create')->with(['dispositivos' => $deviceType, 'usuarios' => $userType, 'subredes' => $subnetworks]);
+        $organizations = Ldapuser::where('nivel', 3)->get();
+        return view('requisicao.device.create')->with(['dispositivos' => $deviceType, 'usuarios' => $userType, 'subredes' => $subnetworks, 'organizacoes' => $organizations]);
     }
 
     /**
@@ -129,7 +129,8 @@ class RequisicaoController extends Controller
         $deviceType = TipoDispositivo::all();
         $userType = TipoUsuario::all();
         $subredes = Subrede::all();
-        return view('requisicao.device.edit')->with(['requisicao' => $requisicao, 'dispositivos' => $deviceType, 'usuarios' => $userType, 'subredes' => $subredes]);
+        $organizations = Ldapuser::where('nivel', 3)->get();
+        return view('requisicao.device.edit')->with(['requisicao' => $requisicao, 'dispositivos' => $deviceType, 'usuarios' => $userType, 'subredes' => $subredes, 'organizacoes' => $organizations]);
     }
 
     /**
