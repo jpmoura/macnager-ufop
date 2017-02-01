@@ -343,8 +343,8 @@
                         </div>
 
                         {{-- Justificativa --}}
-                        <div class="form-group">
-                            <div class="input-group {{ $errors->has('justificativa') ? ' has-error' : '' }}">
+                        <div class="form-group {{ $errors->has('justificativa') ? ' has-error' : '' }}">
+                            <div class="input-group">
                                 <span class="input-group-addon"><i class="fa fa-comment"></i></span>
                                 <textarea name="justificativa" class="form-control no-resize" placeholder="Justificativa para adição do dispositivo" maxlength="100" required>{{ $errors->has('justificativa') ? old('justificativa') : $requisicao->justificativa }}</textarea>
                             </div>
