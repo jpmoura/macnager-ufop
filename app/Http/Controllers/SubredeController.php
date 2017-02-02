@@ -119,53 +119,13 @@ class SubredeController extends Controller
     }
 
     /**
-     * Obtém o primeiro e último endereço da subrede.
-     * @param $subrede Subrede Instância de uma subrede
-     * @return array Array contendo o primeiro e último endereço da rede
-     */
-    private function getRange($subrede) {
-        $maskBinStr =str_repeat("1", $subrede->cidr) . str_repeat("0", 32 - $subrede->cidr); // Máscara da rede em binário
-        $inverseMaskBinStr = str_repeat("0", $subrede->cidr) . str_repeat("1", 32 - $subrede->cidr); // Inverso da Máscara da rede em binário
-
-        $ipLong = ip2long($subrede->endereco); // Endereço da rede convertido em long integer
-
-        $ipMaskLong = bindec($maskBinStr);
-        $inverseIpMaskLong = bindec($inverseMaskBinStr);
-
-        $netWork = $ipLong & $ipMaskLong;
-
-        $start = $netWork;
-        if(!$subrede->ignorar_gateway) ++$start; // Não ignora o endereço de
-
-        $end = ($netWork | $inverseIpMaskLong);
-        if(!$subrede->ignorar_broadcast) --$end; // Não ignora o endereço de broadcast
-
-        return array('firstIP' => $start, 'lastIP' => $end );
-    }
-
-    /**
-     * Obtém todos os endereços possíveis de uma subrede.
-     * @param Subrede $subrede Instância da subrede as quais os IPs serão obtidos
-     * @return array Array contendo os IPs possíveis para a subrede.
-     */
-    private function getAllIps(Subrede $subrede) {
-        $ips = array();
-
-        $range = $this->getRange($subrede);
-
-        for ($ip = $range['firstIP']; $ip <= $range['lastIP']; $ip++) $ips[] = long2ip($ip);
-
-        return $ips;
-    }
-
-    /**
      * Obtém todos os IPs disponíveis para uma dada Subrede.
      * @param Subrede $subrede Instância da subrede
      * @return Response Resposta contendo a contagem de IPs disponíveis e quais IPs estão disponíveis
      */
     public function getAvailableIps(Subrede $subrede) {
 
-        $allSubnetIps = $this->getAllIps($subrede); // Obtém todos os IPs da subrede
+        $allSubnetIps = $subrede->getAllIps(); // Obtém todos os IPs da subrede
         $activeIpsRaw = Requisicao::select('ip')->where('status', 1)->orWhere('status', 4)->get(); // Obtém todos os IPs sendo usados
 
         // Transforma a coleção resultante da query em um array contendo somento os IPs
