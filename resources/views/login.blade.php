@@ -35,7 +35,7 @@
 
                 <div class="input-group @if(Session::get('erro') == 1) has-error @endif">
                     <span class="input-group-addon"><i class="fa fa-user"></i></span>
-                    <input type="text" name="username" class="form-control" maxlength="11" minlength="11" placeholder="CPF do Minha UFOP (Sem números)" required value="{{Input::old('username')}}" @if(Session::get('erro') != 2)  autofocus @endif data-toggle="tooltip" data-placement="right" title="CPF do Minha UFOP" >
+                    <input type="text" data-mask="000.000.000-00" data-mask-reverse="true" name="username" class="form-control" maxlength="14" minlength="11" placeholder="CPF do Minha UFOP" required value="{{Input::old('username')}}" @if(Session::get('erro') != 2)  autofocus @endif data-toggle="tooltip" data-placement="right" title="CPF do Minha UFOP" >
                 </div>
 
                 <div class="input-group @if(Session::get('erro') == 2) has-error @endif">
@@ -73,6 +73,6 @@
 </footer>
 
 {!! HTML::script('public/js/app.js') !!}
-
+{!! HTML::script('public/js/plugins/jQueryMask/jquery.mask.min.js') !!}
 </body>
 </html>

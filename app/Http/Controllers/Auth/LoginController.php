@@ -84,16 +84,20 @@ class LoginController extends Controller
     public function postLogin() {
         $input = Input::all();
 
+        // Retirada dos pontos e hífen do CPF
+        $input['username'] = str_replace('.', '', $input['username']);
+        $input['username'] = str_replace('-', '', $input['username']);
+
         // Componentes do corpo da requisição
         $requestBody['user'] = $input['username'];
         $requestBody['password'] = $input['password'];
         $requestBody['attributes'] = ["cpf", "nomecompleto", "email", "id_grupo"]; // Atributos que devem ser retornados em caso autenticação confirmada
 
         // Chamada de autenticação para a LDAPI
-        $httpClient = new Client();
+        $httpClient = new Client(['verify' => false]);
         try
         {
-            $response = $httpClient->request("POST", "http://200.239.152.5/ldapi/auth", [
+            $response = $httpClient->request(Config::get('ldapi.requestMethod'), Config::get('ldapi.authUrl'), [
                 "auth" => [Config::get('ldapi.user'), Config::get('ldapi.password'), "Basic"],
                 "body" => json_encode($requestBody),
                 "headers" => [
@@ -161,7 +165,7 @@ class LoginController extends Controller
             if(isset($input['remember-me']))  Auth::login($user, true);
             else Auth::login($user);
 
-            return redirect()->intended('/');
+            return redirect()->intended(secure_url('/'));
         }
         else // Senão retorna para a página de login com mensagem de erro.
         {

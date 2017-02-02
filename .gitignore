@@ -6,7 +6,5 @@
 /public/fonts
 /public/img
 /vendor
-/.idea
-Homestead.json
-Homestead.yaml
+.idea/
 .env

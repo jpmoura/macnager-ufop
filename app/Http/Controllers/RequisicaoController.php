@@ -4,380 +4,241 @@ namespace App\Http\Controllers;
 
 use App\Events\DeviceEdited;
 use App\Events\DeviceStored;
-use App\Events\NewConfigurationFile;
 use App\Events\RequestStored;
+use App\Http\Requests\AprovarRequisicaoRequest;
+use App\Http\Requests\CreateDeviceRequest;
+use App\Http\Requests\CreateRequisicaoRequest;
+use App\Http\Requests\EditDeviceRequest;
+use App\Http\Requests\EditRequisicaoRequest;
+use App\Http\Requests\RecusarRequisicaoRequest;
+use App\Ldapuser;
+use App\Mail\RequestApproved;
 use App\Mail\RequestDenied;
 use App\Mail\RequestExcluded;
 use App\Mail\RequestReactivated;
+use App\Mail\RequestReceived;
 use App\Mail\RequestSuspended;
-use Illuminate\Http\Request;
-use App\Http\Requests;
 use App\Requisicao;
+use App\Subrede;
 use App\TipoDispositivo;
 use App\TipoUsuario;
-use App\Ldapuser;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\View;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Response;
-use SSH;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
-use Exception;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\RequestApproved;
+use Exception;
 
 class RequisicaoController extends Controller
 {
 
-    // Tenta deletar um determinado arquivo em 'attempts' vezes
-    private function tryToDelete($file, $attempts = 10)
-    {
-        while(File::exists($file) && $attempts > 0) File::delete($file);
-        return !File::exists($file);
-    }
-
-    // Gera a tabela ARP de whitelist do firewall, envia para o servidor e reinicia o serviço
-    public function updateArpAndDhcp(&$arpResponse, &$dhcpResponse)
-    {
-        $successful = true;
-        $this->generateFiles(); // gera os arquivos
-
-        // Sincronizando ARP
-
-        $this->result = '';
-        SSH::into('firewall')->run('cp /usr/local/etc/arp_icea /usr/local/etc/arp_icea.' . date("d-m-Y-H-i-s", time()) . '.backup');
-        SSH::into('firewall')->put('/var/www/html/macnager/storage/app/public/temp_arp', '/usr/local/etc/arp_icea'); // transfere o arquivo
-        SSH::into('firewall')->run('sudo arp -f /usr/local/etc/arp_icea', function($line) { $this->result = $this->result . $line . "<br />"; } ); // recarrega a whitelist do Firewall
-        if($this->result == "") $this->result = "Arquivo criado e transferido com sucesso.";
-        $arpResponse = $this->result;
-
-        // Sincronizando DHCP
-        $this->result = '';
-        SSH::into('dhcp')->run('cp /usr/local/etc/dhcp.conf /usr/local/etc/dhcpd.conf.' . date("d-m-Y-H-i-s", time()) . '.backup');
-        SSH::into('dhcp')->put('/var/www/html/macnager/storage/app/public/temp_dhcp', '/usr/local/etc/dhcpd.conf'); // transfere o arquivo
-        SSH::into('dhcp')->run('/usr/local/etc/rc.d/isc-dhcpd restart', function($line) { $this->result = $this->result. $line . "<br />"; }); // reinicia o servidor DHCP
-        if($this->result == "") $this->result = "Arquivo criado e transferido com sucesso.";
-        $dhcpResponse = $this->result;
-
-        Event::fire(new NewConfigurationFile());
-
-        return;
-    }
-
     /**
-     * Formata um registro como uma linha da tabela de IP do Firewall
-     * @param $record Requisição que será formarado
-     * @return string Requisição formatada devidademente para a tabela ARP do servidor ARP
+     * Retira os pontos e traço de um CPF.
+     * @param $cpf string Número de CPF no formato 000.000.000-00
+     * @return string Número de CPF no formato 00000000000
      */
-    private function formatToArp($record)
-    {
-        $formatted = str_replace(' ', '', $record->ip) . ' ' . str_replace(' ', '', $record->mac) . ' #Requisicao-' . $record->id . PHP_EOL;
-        return $formatted;
-    }
-
-    /**
-     * Formata uma requisição como uma entrada da tabela do servidor DHCP
-     * @param $record Requisição a ser formatada
-     * @return string Requisição formatada como uma entrada do arquivo DHCPD
-     */
-    private function formatToDhcp($record)
-    {
-        $explodedIP = explode('.', $record->ip);
-        $suffixIP = $explodedIP[2] . '.' . $explodedIP[3];
-
-        $formatted = 'host ' . $suffixIP . ' {' . PHP_EOL .
-            "\thardware ethernet " . str_replace(' ', '', $record->mac) . ';' . PHP_EOL .
-            "\tfixed-address " . str_replace(' ', '', $record->ip). ';' . PHP_EOL .
-            "}" . PHP_EOL;
-
-        return $formatted;
-    }
-
-    /**
-     * Gera os arquivos ARP e DHACPD para os devidos servidores
-     * @return bool True se bem sucedido e False caso contrário
-     */
-    private function generateFiles()
-    {
-        $requestsAllowed = Requisicao::where('status', 1)->orderBy(DB::raw('INET_ATON(ip)'))->get();
-
-        $dhcpFile = storage_path('app/public/temp_dhcp');
-        $arpFile = storage_path('app/public/temp_arp');
-
-        $successful = $this->tryToDelete($arpFile);
-        if($successful) $successful = $this->tryToDelete($dhcpFile);
-
-        $dhcpDocument = "option domain-name-servers " . PHP_EOL . PHP_EOL .
-            "189.38.95.95,189.38.95.96,8.8.8.8,8.8.4.4;" . PHP_EOL . PHP_EOL .
-            "default-lease-time 99999999;" . PHP_EOL . PHP_EOL .
-            "max-lease-time 99999999;" . PHP_EOL . PHP_EOL .
-            "log-facility local7;" . PHP_EOL . PHP_EOL .
-            "subnet 200.239.152.0 netmask 255.255.252.0 {" . PHP_EOL .
-            "\toption routers 200.239.152.2;" . PHP_EOL .
-            "}" . PHP_EOL . PHP_EOL;
-
-        $arpDocument = "";
-
-        if($successful == true)
-        {
-            // Itera sobre todos os registros, formatando-os para a escrita
-            foreach ($requestsAllowed as $entry)
-            {
-                $dhcpDocument .= $this->formatToDhcp($entry) . PHP_EOL;
-                $arpDocument .= $this->formatToArp($entry) . PHP_EOL;
-            }
-
-            $successful = File::append($arpFile, $arpDocument);
-            if($successful) $successful = File::append($dhcpFile, $dhcpDocument);
-        }
-
-        return $successful;
+    private static function cleanCPF($cpf) {
+        $cpf = str_replace('.', '', $cpf);
+        $cpf = str_replace('-', '', $cpf);
+        return $cpf;
     }
 
     /**
      * Renderiza a view da lista de dispositivos cadastrados
-     * @param $type Status do dispositivo
+     * @param $status int Status do dispositivo
+     * @return mixed View contendo a lista de dispositos para um dado status
      */
-    public function listDevices($status)
+    public function indexDevice($status)
     {
-        $requests = DB::table('requisicoes')->join('tipo_dispositivo', 'requisicoes.tipo_dispositivo', '=', 'tipo_dispositivo.id')
-            ->join('tipo_usuario', 'requisicoes.tipo_usuario', '=', 'tipo_usuario.id')
-            ->select('requisicoes.id as id', 'responsavelNome', 'usuarioNome', 'tipo_usuario.descricao as tipousuario', 'tipo_dispositivo.descricao as tipodispositivo', 'submissao', 'avaliacao', 'status', 'ip', 'mac', 'descricao_dispositivo', 'validade')
-            ->where('status', $status)
-            ->orderBy(DB::raw('INET_ATON(ip)'))
-            ->get();
-
-        return View::make('requisicao.device.list')->with(['liberados' => $requests, 'tipo' => $status]);
+        $requests = Requisicao::with('tipoDoDispositivo', 'tipoDoUsuario')->where('status', $status)->orderBy(DB::raw('INET_ATON(`ip`)'))->get();
+        return view('requisicao.device.index')->with(['dispositivos' => $requests, 'tipo' => $status]);
     }
 
     /**
-     * Recupera quais são os endereços IP livres para serem alocados.
-     * @return array Array com o índice sendo a faixa e o conteúdo de cada índice sendo a quantidade de IPs livre naquela faixa
+     * Renderiza view de criação de um dispositivo.
+     * @return mixed View com os campos para criação do dispositivo.
      */
-    public static function getFreeIPs() {
-        $freeIPs = array();
-
-        for ($faixa=152; $faixa < 156; $faixa++) {
-            for ($id=1; $id < 256; $id++) {
-                $tempIP = '200.239.' . $faixa . '.' . $id;
-                $count = Requisicao::where('ip', $tempIP)->whereRaw("(`status` = 1 or `status` = 2)")->count();
-                if($count == 0 && $tempIP != '200.239.155.255') array_push($freeIPs, $tempIP);
-            }
-        }
-
-        return $freeIPs;
-    }
-
-    /**
-     * Renderiza a view de adição de um novo dispositivo.
-     */
-    public function showAddDevice()
+    public function createDevice()
     {
-        $freeIPs = $this->getFreeIPs();
         $deviceType = TipoDispositivo::all();
         $userType = TipoUsuario::all();
-
-        return View::make('requisicao.device.add')->with(['ipsLivre' => $freeIPs, 'dispositivos' => $deviceType, 'usuarios' => $userType]);
+        $subnetworks = Subrede::with('tipo')->get();
+        $organizations = Ldapuser::where('nivel', 3)->get();
+        return view('requisicao.device.create')->with(['dispositivos' => $deviceType, 'usuarios' => $userType, 'subredes' => $subnetworks, 'organizacoes' => $organizations]);
     }
 
     /**
-     * Adiciona um dispositivo diretamente no sistema, sem a necessidade de requisiçAo
+     * @param CreateDeviceRequest $request Requisição já validada
+     * @return mixed Página anterior
      */
-    public function addDevice()
+    public function storeDevice(CreateDeviceRequest $request)
     {
-        $input = Input::all();
+        $input = $request->all();
 
-        if($input['ip'] == "Sem IP livre")
+        // Tratamento de CPFs
+        $input['responsavel'] = RequisicaoController::cleanCPF($input['responsavel']);
+        $input['usuario'] = RequisicaoController::cleanCPF($input['usuario']);
+
+        // Tratamento da validade
+        if(empty($input['validade'])) $input['validade'] = null;
+        else $input['validade'] = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
+
+        // Criar requisição para o novo dispositivo
+        $newRequest = Requisicao::create([
+            'responsavel' => $input['responsavel'],
+            'responsavelNome' => ucwords(strtolower($input['responsavelNome'])),
+            'usuario' => $input['usuario'],
+            'usuarioNome' => ucwords(strtolower($input['usuarioNome'])),
+            'tipo_usuario' => $input['tipousuario'],
+            'tipo_dispositivo' => $input['tipodispositivo'],
+            'mac' => $input['mac'],
+            'termo' => "termos/default.pdf",
+            'descricao_dispositivo' => $input['descricao'],
+            'justificativa' => $input['justificativa'],
+            'submissao' => date("Y-m-d H:i:s", time()),
+            'avaliacao' => date("Y-m-d H:i:s", time()),
+            'juizCPF' => auth()->user()->cpf,
+            'juizMotivo' => 'Adição manual por ' . auth()->user()->nome,
+            'ip' => $input['ip'],
+            'status' => 1,
+            'subrede_id' => $input['subrede'],
+            'validade' => $input['validade']
+        ]);
+
+        if(PfsenseController::refreshPfsense($input['subrede']))
         {
-            Session::flash('mensagem', 'Não existe IP livre.');
-            Session::flash('tipo', 'Erro');
+            session()->flash('mensagem', "Servidor pfSense atualizado");
+            session()->flash('tipo', 'info');
+            event(new DeviceStored($newRequest));
         }
         else
         {
-            $date = explode('/', $input['validade']);
-
-            if(empty($input['validade']) || checkdate($date[1], $date[0], $date[2]) )
-            {
-
-                // Criar requisição para o novo dispositivo
-                $newRequest = new Requisicao;
-                $newRequest->responsavel = $input['responsavel'];
-                $newRequest->responsavelNome = ucwords(strtolower($input['responsavelNome']));
-                $newRequest->usuario = $input['usuario'];
-                $newRequest->usuarioNome = ucwords(strtolower($input['usuarioNome']));
-                $newRequest->tipo_usuario = $input['tipousuario'];
-                $newRequest->tipo_dispositivo = $input['tipodispositivo'];
-                $newRequest->mac = $input['mac'];
-                $newRequest->termo = "termos/default.pdf";
-                $newRequest->descricao_dispositivo = $input['descricao'];
-                $newRequest->justificativa = $input['justificativa'];
-                $newRequest->submissao = date("Y-m-d H:i:s", time());
-                $newRequest->avaliacao = date("Y-m-d H:i:s", time());
-                $newRequest->juizCPF = Session::get('id');
-                $newRequest->juizMotivo = 'Adição manual.';
-                $newRequest->ip = $input['ip'];
-                $newRequest->status = 1;
-
-                if( empty($input['validade']) ) $newRequest->validade = null;
-                else $newRequest->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
-
-                $newRequest->save();
-
-                Event::fire(new DeviceStored($newRequest));
-
-                $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
-
-                Session::flash('mensagem', "<p>ARP: " . $arpResponse . "</p><p>DHCP: " . $dhcpResponse . "</p>");
-                Session::flash('tipo', 'Informação');
-            }
-            else
-            {
-                Session::flash('mensagem', 'A data informada é inválida.');
-                Session::flash('tipo', 'Erro');
-            }
+            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            session()->flash('tipo', 'error');
         }
 
-        return Redirect::back();
+        return back();
     }
 
     /**
-     * Renderiza a view com o formulário de edição de um dispositivo inserido.
-     * @param $id ID da requisição
+     * Renderiza a view de edição de dispositivo
+     * @param Requisicao $requisicao Instância de Requisicao referente ao dispositivo.
+     * @return mixed View com os dados atuais do dispositivos
      */
-    public function showEditDevice($id)
+    public function editDevice(Requisicao $requisicao)
     {
-        $request = Requisicao::find($id);
         $deviceType = TipoDispositivo::all();
         $userType = TipoUsuario::all();
-        $freeIPs = $this->getFreeIPs();
-        return View::make('requisicao.device.edit')->with(['requisicao' => $request, 'tiposdispositivo' => $deviceType, 'tiposusuario' => $userType, 'ipsLivre' => $freeIPs]);
+        $subredes = Subrede::all();
+        $organizations = Ldapuser::where('nivel', 3)->get();
+        return view('requisicao.device.edit')->with(['requisicao' => $requisicao, 'dispositivos' => $deviceType, 'usuarios' => $userType, 'subredes' => $subredes, 'organizacoes' => $organizations]);
     }
 
     /**
-     * Edita os dados de uma requisição de um dispositivo.
+     * Atualiza os dados de uma instância de dispositivo.
+     * @param EditDeviceRequest $request Requisição com os campos validados
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function editDevice()
+    public function updateDevice(EditDeviceRequest $request)
     {
-        $input = Input::all();
+        $input = $request->all();
 
-        $date = explode('/', $input['validade']);
+        $record = Requisicao::find($input['id']);
 
-        if(empty($input['validade']) || checkdate($date[1], $date[0], $date[2]) )
-        { // Se a data for válida ou em branco
-            $record = Requisicao::find($input['id']);
-            $record->ip = $input['ip'];
-            $record->responsavel = ucwords(strtolower($input['responsavel']));
-            $record->responsavelNome = ucwords(strtolower($input['responsavelNome']));
-            $record->usuario = $input['usuario'];
-            $record->usuarioNome = ucwords(strtolower($input['usuarioNome']));
-            $record->mac = $input['mac'];
-            $record->descricao_dispositivo = $input['descricao'];
-            $record->tipo_dispositivo = $input['tipodispositivo'];
-            $record->tipo_usuario = $input['tipousuario'];
+        $oldSubredeId = $record->subrede_id;
 
-            if( empty($input['validade']) ) $record->validade = null;
-            else $record->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
+        $record->ip = $input['ip'];
+        $record->responsavel = RequisicaoController::cleanCPF($input['responsavel']);
+        $record->responsavelNome = ucwords(strtolower($input['responsavelNome']));
+        $record->usuario = RequisicaoController::cleanCPF($input['usuario']);
+        $record->usuarioNome = ucwords(strtolower($input['usuarioNome']));
+        $record->mac = $input['mac'];
+        $record->descricao_dispositivo = $input['descricao'];
+        $record->tipo_dispositivo = $input['tipodispositivo'];
+        $record->tipo_usuario = $input['tipousuario'];
+        $record->subrede_id = $input['subrede'];
 
-            $record->save();
+        if( empty($input['validade']) ) $record->validade = null;
+        else $record->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
 
-            Event::fire(new DeviceEdited($record));
+        $record->save();
 
-            $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
-
-            Session::flash('mensagem', "<p>ARP: " . $arpResponse . "</p><p>DHCP: " . $dhcpResponse . "</p>");
-            Session::flash('tipo', 'Informação');
+        if(PfsenseController::checkDeviceUpdate($oldSubredeId, $record->subrede_id))
+        {
+            session()->flash('mensagem', "Servidor pfSense atualizado");
+            session()->flash('tipo', 'info');
+            event(new DeviceEdited($record));
         }
-        else  {
-            Session::flash('mensagem', 'A data informada é inválida.');
-            Session::flash('tipo', 'Erro');
+        else
+        {
+            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            session()->flash('tipo', 'error');
         }
 
-        return Redirect::back();
+        return back();
     }
 
     /**
-     * Armazena uma nova requisição no banoo de dados
+     * Armazena um instância de Requisicao no banco de dados após validação do formulário de criação.
+     * @param CreateRequisicaoRequest $request Requisição contendo o formulário validado
+     * @return \Illuminate\Http\RedirectResponse View com o índice de todas as requisições já feitas pelo usuário.
      */
-    public function store()
+    public function store(CreateRequisicaoRequest $request)
     {
-        Session::flash('tipo', 'Erro');
-        $form = Input::all();
+        $form = $request->all();
 
-        if($form['termo']->isValid()) {
-            if($form['termo']->getMimeType() == 'application/pdf') {
-                $newRequest = new Requisicao;
-                $newRequest->responsavel = $form['responsavel'];
-                $newRequest->responsavelNome = ucwords(strtolower($form['responsavelNome']));
-                $newRequest->usuario = $form['usuario'];
-                $newRequest->usuarioNome = ucwords(strtolower($form['usuarioNome']));
-                $newRequest->tipo_usuario = $form['tipousuario'];
-                $newRequest->tipo_dispositivo = $form['tipodispositivo'];
-                $newRequest->mac = $form['mac'];
-                $newRequest->termo = $form['termo']->store('termos');
-                $newRequest->descricao_dispositivo = $form['descricao'];
-                $newRequest->justificativa = $form['justificativa'];
-                $newRequest->save();
+        // Limpeza de CPF
+        $form['usuario'] = RequisicaoController::cleanCPF($form['usuario']);
 
-                Event::fire(new RequestStored($newRequest, Auth::user()));
+        $newRequest = Requisicao::create([
+            'responsavel' => $form['responsavel'],
+            'responsavelNome' => ucwords(strtolower($form['responsavelNome'])),
+            'usuario' => $form['usuario'],
+            'usuarioNome' => ucwords(strtolower($form['usuarioNome'])),
+            'tipo_dispositivo' => $form['tipousuario'],
+            'tipo_usuario' => $form['tipodispositivo'],
+            'mac' => $form['mac'],
+            'termo' => $form['termo']->store('termos'),
+            'descricao_dispositivo' => $form['descricao'],
+            'justificativa' => $form['justificativa'],
+        ]);
 
-                Session::flash('tipo', 'Sucesso');
-                Session::flash('mensagem', 'Seu pedido foi enviado com sucesso. Aguarde pela resposta.');
+        event(new RequestStored($newRequest, auth()->user()));
 
-                // Envio de e-mail avisando que a requisição foi aprovada.
-                $user = Ldapuser::where('cpf', $form['responsavel'])->first();
-                if(!is_null($user->email) || !empty($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $newRequest));
-            }
-            else Session::flash('mensagem', 'O arquivo enviado ou não está em formato PDF ou não foi codificado corretamente.');
-        }
-        else Session::flash('mensagem', 'Ouve um erro durante o envio do arquivo do termo de compromisso.');
+        session()->flash('tipo', 'success');
+        session()->flash('mensagem', 'Seu pedido foi enviado com sucesso. Você será notificado assim que o pedido for julgado.');
 
-        if(Session::get('tipo') == 'Erro') return Redirect::back()->withInput(Input::all());
-        else return Redirect::route('listUserRequests');
+        // Envio de e-mail avisando que a requisição foi aprovada.
+        $user = Ldapuser::where('cpf', $form['responsavel'])->first();
+        if(!is_null($user->email) || !empty($user->email)) Mail::to($user->email)->queue(new RequestReceived($user, $newRequest));
+
+        return redirect()->route('indexUserRequisicao');
     }
 
     /**
-     * Renderiza a view com todas as requisições feitas pelo usuário atual.
+     * Renderiza a view com o índice de todas as requisições feitas pelo usuário atual.
+     * @return mixed View com a lista das requisições
      */
-    public function showFromUser()
+    public function userIndex()
     {
-        $requests = DB::table('requisicoes')->join('tipo_dispositivo', 'requisicoes.tipo_dispositivo', '=', 'tipo_dispositivo.id')
-            ->join('tipo_usuario', 'requisicoes.tipo_usuario', '=', 'tipo_usuario.id')
-            ->select('requisicoes.id as id', 'usuarioNome', 'tipo_usuario.descricao as tipousuario', 'tipo_dispositivo.descricao as tipodispositivo', 'submissao', 'avaliacao', 'status')
-            ->where('responsavel', Auth::user()->cpf)
-            ->get();
-
-        return View::make('requisicao.showuser')->with('requisicoes', $requests);
+        $requests = Requisicao::with('tipoDoUsuario', 'tipoDoDispositivo')->where('responsavel', auth()->user()->cpf)->get();
+        return view('requisicao.indexUser')->with('requisicoes', $requests);
     }
 
     /**
      * Renderiza a view com o formulário de adição de uma nova requisição
      */
-    public function showAdd()
+    public function create()
     {
-        if(Auth::user()->isAdmin())
-        {
-            $users = TipoUsuario::all();
-            $devices = TipoDispositivo::all();
-        }
-        else
-        {
-            $users = TipoUsuario::where('id', '>', 1)->get();
-            $devices = TipoDispositivo::where('id', '>', 1)->get();
-        }
-
+        $users = TipoUsuario::where('id', '>', 1)->get();
+        $devices = TipoDispositivo::where('id', '>', 1)->get();
         $organizations = Ldapuser::where('nivel', 3)->get();
 
-        return View::make('requisicao.add')->with(['usuarios' => $users, 'dispositivos' => $devices, 'organizacoes' => $organizations]);
+        return view('requisicao.create')->with(['usuarios' => $users, 'dispositivos' => $devices, 'organizacoes' => $organizations]);
     }
 
     /**
      * Renderiza o arquivo PDF do termo de aceite enviado.
-     * @param $filepath Nome do arquivo em base64
+     * @param $filepath string do arquivo em base64
      * @return mixed
      */
     public function showTerm($filepath)
@@ -393,399 +254,278 @@ class RequisicaoController extends Controller
             abort(404);
         }
 
-        return Response::make($file, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => "inline; filename='termo.pdf'"] );
+        return response($file, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => "inline; filename='termo.pdf'"]);
     }
 
     /**
-     * Renderiza a view contendo todas as requisições de um determinado tipo
-     * @param $type Tipo da requisição
+     * Renderiza a view contendo todos os pedidos feitos de acordo com um status determinado.
+     * @param int $status Status do pedido
+     * @return mixed View com o indíce de todas as requisições de um dado status.
      */
-    public function show($type)
+    public function allIndex($status)
     {
         session()->put('novosPedidos', Requisicao::where('status', '=', 0)->count());
 
-        if(!isset($type)) $type = 0;
+        if(!isset($status)) $status = 0;
 
-        $requests = DB::table('requisicoes')->join('tipo_dispositivo', 'requisicoes.tipo_dispositivo', '=', 'tipo_dispositivo.id')
-            ->join('tipo_usuario', 'requisicoes.tipo_usuario', '=', 'tipo_usuario.id')
-            ->select('requisicoes.id as id', 'responsavelNome', 'usuarioNome', 'tipo_usuario.descricao as tipousuario', 'tipo_dispositivo.descricao as tipodispositivo', 'submissao', 'avaliacao')
-            ->where('status', $type)
-            ->get();
+        $requests = Requisicao::with('tipoDoDispositivo', 'tipoDoUsuario')->where('status', $status)->get();
 
-        return View::make('requisicao.show')->with(['requisicoes' => $requests, 'tipo' => $type]);
+        return view('requisicao.indexAll')->with(['requisicoes' => $requests, 'tipo' => $status]);
     }
 
     /**
-     * Renderiza a view que mostra os detalhes de uma requisição.
-     * @param $id ID da requisição
+     * Renderiza view contendo os detalhes de uma requisição
+     * @param Requisicao $requisicao Requisição a qual se verá os detalhes
+     * @return mixed View com os dados da requisição
      */
-    public function details($id)
+    public function show(Requisicao $requisicao)
     {
-            $freeIPs = null;
-            $requisicao = Requisicao::find($id);
-
-            if(Auth::user()->isAdmin() == 1 && $requisicao->status == 0) $freeIPs = $this->getFreeIPs();
-
-            return View::make('requisicao.details')->with(['requisicao' => $requisicao, 'ipsLivre' => $freeIPs]);
+        $subredes = Subrede::all();
+        return view('requisicao.show')->with(['requisicao' => $requisicao, 'subredes' => $subredes]);
     }
 
     /**
-     * Aprova uma requisição.
+     * Aprova uma requisição, definindo um endereço IP para o dispositivo.
+     * @param AprovarRequisicaoRequest $request Requisição com os campos validados
+     * @return \Illuminate\Http\RedirectResponse View com os detalhes da requisição
      */
-    public function approve()
+    public function approve(AprovarRequisicaoRequest $request)
     {
-        $date = explode('/', Input::get('validade'));
+        $form = $request->all();
 
-        // Verifica se a data informada é nula ou se ele é válida
-        if(empty(Input::get('validade')) || checkdate($date[1], $date[0], $date[2]) )
+        $requisicao = Requisicao::find($form['id']);
+        $requisicao->status = 1;
+        $requisicao->avaliacao = date("Y-m-d H:i:s", time());
+        $requisicao->juizCPF = auth()->user()->cpf;
+        $requisicao->ip = $form['ip'];
+        $requisicao->subrede_id = $form['subrede'];
+
+        if(empty($form['validade'])) $requisicao->validade = null;
+        else $requisicao->validade = date("Y-m-d H:i:s", time());
+
+        $requisicao->save();
+
+        if(PfsenseController::refreshPfsense($requisicao->subrede_id))
         {
-            $request = Requisicao::find(Input::get('id'));
-            $request->status = 1;
-            $request->avaliacao = date("Y-m-d H:i:s", time());
-            $request->juizCPF = Auth::user()->cpf;
-            $request->ip = Input::get('ip');
-
-            if( empty($input['validade']) ) $request->validade = null;
-            else $request->validade = date("Y-m-d H:i:s", time());
-
-            $request->save();
-
-            Event::fire(new RequestApproved($request, Auth::user()));
-
-            $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
-
-            // Envio de e-mail avisando que a requisição foi aprovada.
-            $user = Ldapuser::where('cpf', $request->responsavel)->first();
-            if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $request));
-
-            Session::flash('tipo', 'Sucesso');
-            Session::flash('mensagem', '<p>A requisição foi aprovada.</p><p>Saída do ARP: ' . $arpResponse  . '</p>Saída do DHCPD: ' . $dhcpResponse . '</p>');
+            session()->flash('mensagem', "Servidor pfSense atualizado");
+            session()->flash('tipo', 'success');
+            event(new \App\Events\RequestApproved($requisicao, auth()->user()));
         }
         else
         {
-            Session::flash('mensagem', 'A data informada é inválida.');
-            Session::flash('tipo', 'Erro');
+            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            session()->flash('tipo', 'error');
         }
 
-        return Redirect::back();
+        // Recupera a quantidade de requisições que ainda não foram julgadas
+        session()->put('novosPedidos', Requisicao::where('status', '=', 0)->count());
+
+        // Envio de e-mail avisando que a requisição foi aprovada.
+        $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
+        if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $requisicao));
+
+        return back();
     }
 
     /**
-     * Nega uma requisição.
+     * Recusa um pedido de requisição
+     * @param RecusarRequisicaoRequest $request Requisição com os campos validados.
+     * @return \Illuminate\Http\RedirectResponse View da página de detalhes da requisição.
      */
-    public function deny()
+    public function deny(RecusarRequisicaoRequest $request)
     {
-        $requisicao = Requisicao::find(Input::get('id'));
-        $requisicao->juizMotivo = Input::get('juizMotivo');
-        $requisicao->juizCPF = Session::get("id");
+        $form = $request->all();
+
+        $requisicao = Requisicao::find($form['id']);
+        $requisicao->juizMotivo = $form['juizMotivo'];
+        $requisicao->juizCPF = auth()->user()->cpf;
         $requisicao->status = 2;
         $requisicao->save();
 
-        Event::fire(new RequestDenied($requisicao, Auth::user()));
+        event(new \App\Events\RequestDenied($requisicao, auth()->user()));
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestDenied($user, $requisicao));
 
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', 'O pedido de liberação do dispositivo foi negado.');
+        session()->flash('tipo', 'success');
+        session()->flash('mensagem', 'A requisição foi negada.');
 
-        return redirect()->route('showRequest', 0);
+        // Recupera a quantidade de requisições que ainda não foram julgadas
+        session()->put('novosPedidos', Requisicao::where('status', '=', 0)->count());
+
+        return back();
     }
 
     /**
-     * Suspende temporariamente uma requisição, impedindo que o usuário seja capaz de usar a rede.
+     * Bloqueia temporariamente o acesso de um dispositivo. O IP atribuído ao dispositivo bloqueado não aparecerá
+     * na lista de IPs disponíveis enquanto o dispositivo não for desativado.
+     * @return \Illuminate\Http\RedirectResponse Página anterior
      */
-    public function suspend()
+    public function block()
     {
         $requisicao = Requisicao::find(Input::get('id'));
         $requisicao->juizMotivo = Input::get('juizMotivo');
-        $requisicao->juizCPF = Session::get("id");
+        $requisicao->juizCPF = auth()->user()->cpf;
         $requisicao->status = 4;
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
-
-        Event::fire(new RequestSuspended($requisicao, Auth::user()));
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestSuspended($user, $requisicao));
 
-        $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
+        if(PfsenseController::refreshPfsense($requisicao->subrede_id))
+        {
+            session()->flash('mensagem', "Servidor pfSense atualizado");
+            session()->flash('tipo', 'info');
+            event(new \App\Events\RequestSuspended($requisicao, auth()->user()));
+        }
+        else
+        {
+            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            session()->flash('tipo', 'error');
+        }
 
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', "<p>O dispositivo teve o acesso suspenso.</p><p>ARP: " . $arpResponse . "</p><p>DHCP: " . $dhcpResponse . "</p>");
-
-        return Redirect::back()->with('requisicao', $requisicao);
+        return back()->with('requisicao', $requisicao);
 
     }
 
     /**
-     * Desativa uma requisição, sendo que o usuário não será capaz mais de se conectar a rede, sendo necessário abrir
-     * uma nova requisição.
+     * Desativa um dispositivo permanentemente, sendo necessário criar outra requisição ou dispositivo para liberar o
+     * acesso para o mesmo endereço MAC.
+     * @return \Illuminate\Http\RedirectResponse View contendo o índice dos dispositivos
      */
     public function disable()
     {
         $requisicao = Requisicao::find(Input::get('id'));
         $requisicao->juizMotivo = Input::get('juizMotivo');
-        $requisicao->juizCPF = Session::get("id");
+        $requisicao->juizCPF = auth()->user()->cpf;
         $requisicao->status = 5;
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
-
-        Event::fire(new RequestExcluded($requisicao, Auth::user()));
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $requisicao));
 
-        $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
+        if(PfsenseController::refreshPfsense($requisicao->subrede_id))
+        {
+            session()->flash('mensagem', "Servidor pfSense atualizado");
+            session()->flash('tipo', 'success');
+            event(new \App\Events\RequestExcluded($requisicao, auth()->user()));
+        }
+        else
+        {
+            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            session()->flash('tipo', 'error');
+        }
 
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', "<p>O dispositivo foi desligado da rede.</p><p>ARP: " . $arpResponse . "</p><p>DHCP: " . $dhcpResponse . "</p>");
-
-        return Redirect::route('listDevice');
+        return redirect()->route('indexDevice');
     }
 
     /**
-     * Reativa uma requisição que foi suspensa.
-     * @param $id ID da requisição
+     * Reativa uma intância de Requisição que estava bloqueada.
+     * @param Requisicao $requisicao Instância a ser reativada.
+     * @return \Illuminate\Http\RedirectResponse Página anterior
      */
-    public function reactive($id)
+    public function reactive(Requisicao $requisicao)
     {
-        $requisicao = Requisicao::find($id);
         $requisicao->juizMotivo = null;
-        $requisicao->juizCPF = Auth::user()->cpf;
+        $requisicao->juizCPF = auth()->user()->cpf;
         $requisicao->status = 1;
         $requisicao->avaliacao = date("Y-m-d H:i:s", time());
         $requisicao->save();
-
-        Event::fire(new RequestReactivated($requisicao, Auth::user()));
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestReactivated($user, $requisicao));
 
-        $this->updateArpAndDhcp($arpResponse, $dhcpResponse);
+        if(PfsenseController::refreshPfsense($requisicao->subrede_id))
+        {
+            session()->flash('mensagem', "Servidor pfSense atualizado");
+            session()->flash('tipo', 'info');
+            event(new \App\Events\RequestReactivated($requisicao, auth()->user()));
+        }
+        else
+        {
+            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            session()->flash('tipo', 'error');
+        }
 
-        Session::flash('tipo', 'Sucesso');
-        Session::flash('mensagem', "<p>O dispositivo teve o acesso reativado.</p><p>ARP: " . $arpResponse . "</p><p>DHCP: " . $dhcpResponse . "</p>");
-
-        return Redirect::back();
+        return back();
     }
 
     /**
-     * Apaga uma requisição do banco de dados.
+     * Deleta uma instância de Requisicao do banco de dados
+     * @param Request $request Requisicao HTTP contendo o ID da Requisicao
+     * @return \Illuminate\Http\RedirectResponse Página anterior em caso de erro ou o
      */
-    public function delete()
+    public function delete(Request $request)
     {
-        $requisicao = Requisicao::find(Input::get('id'));
-
-        if(Auth::user()->isAdmin() || $requisicao->responsavel == Auth::user()->cpf)
+        $requisicao = Requisicao::find($request->input('id'));
+        $this->authorize('manipulateRequisicao', $requisicao);
+        try
         {
-            if($requisicao->status == 0)
-            {
-                Requisicao::destroy($requisicao->id);
-                Session::flash('tipo', 'Sucesso');
-                Session::flash('mensagem', "A requisição foi apagada.");
-                return redirect()->route('listUserRequests');
-            }
-            else
-            {
-                Session::flash('tipo', 'Erro');
-                Session::flash('mensagem', "Não é possível deletar uma requisição que já foi julgada.");
-                return redirect()->back();
-            }
+            $requisicao->delete();
+            session()->flash('tipo', 'success');
+            session()->flash('mensagem', "A requisição foi apagada.");
+            return redirect()->route('indexUserRequisicao');
         }
-    }
-
-    /**
-     * Renderiza a view de edição de uma requisição.
-     * @param $id ID da requisição
-     */
-    public function showEdit($id)
-    {
-        $requisicao = Requisicao::find($id);
-
-        if(Auth::user()->isAdmin() || $requisicao->responsavel == Auth::user()->cpf)
+        catch (Exception $e)
         {
-            if($requisicao->status == 0)
-            {
-                if(Auth::user()->isAdmin())
-                {
-                    $users = TipoUsuario::all();
-                    $devices = TipoDispositivo::all();
-                }
-                else
-                {
-                    $users = TipoUsuario::where('id', '>', 1)->get();
-                    $devices = TipoDispositivo::where('id', '>', 1)->get();
-                }
-                return View::make('admin.actions.editRequest')->with(['requisicao' => $requisicao, 'usuarios' => $users, 'dispositivos' => $devices, 'organizacoes' => Ldapuser::where('nivel', 3)->get()]);
-            }
-            return redirect()->route('listUserRequests');
-        }
-        else abort(403);
-    }
-
-    public function edit()
-    {
-            $requisicao = Requisicao::find(Input::get('id'));
-
-            if(Auth::user()->isAdmin() || $requisicao->responsavel == Auth::user()->cpf)
-            {
-                if($requisicao->status == 0)
-                {
-                    // pegar variáveis e salvar
-                    $form = Input::all();
-
-                    if(Input::has('termo'))
-                    {
-                        if($form['termo']->isValid())
-                        {
-                            if($form['termo']->getMimeType() == 'application/pdf') $requisicao->termo = $form['termo']->store('termos');
-                            else
-                            {
-                                Session::flash('tipo', 'Erro');
-                                Session::flash('mensagem', 'O formato do arquivo não é PDF ou não foi bem codificado.');
-                            }
-                        }
-                        else
-                        {
-                            Session::flash('tipo', 'Erro');
-                            Session::flash('mensagem', 'Houve um erro no envio do arquivo e ele não pode ser validado.');
-                        }
-                    }
-
-                    $requisicao->usuario = $form['usuario'];
-                    $requisicao->usuarioNome = $form['usuarioNome'];
-                    $requisicao->tipo_usuario = $form['tipousuario'];
-                    $requisicao->tipo_dispositivo = $form['tipodispositivo'];
-                    $requisicao->mac = $form['mac'];
-                    $requisicao->descricao_dispositivo = $form['descricao'];
-                    $requisicao->justificativa = $form['justificativa'];
-                    $requisicao->save();
-
-                    Session::flash('tipo', 'Sucesso');
-                    Session::flash('mensagem', 'Seu pedido foi atualizado com sucesso. Aguarde pela resposta.');
-                }
-                else
-                {
-                    Session::flash('tipo', 'Erro');
-                    Session::flash('mensagem', 'Não é possível editar uma requisição que foi julgada. Edite o dispostivo ao invés disso.');
-                }
-            }
-            else abort(403);
-
+            session()->flash('tipo', 'error');
+            session()->flash('mensagem', "Não é possível deletar a requisição. Motivo: " . $e->getMessage());
             return redirect()->back();
+        }
     }
 
     /**
-     * Recupera os usuários ativos em um determinado intervalo de tempo
-     * @param $id
+     * Renderiza view de edição de uma requisição que ainda esteja em avaliação.
+     * @param Requisicao $requisicao Instância de Requisição em avaliação que terá os dados atualizados
+     * @return mixed View com os dados atuais da requisição
      */
-    public function getMonthlyActiveUsers($id)
+    public function edit(Requisicao $requisicao)
     {
-        if ($id == 1) $url = "http://200.239.152.2:8080/trafego-nti/Subnet-1-200.239.152.0.html"; //diário
-        elseif ($id == 2) $url = "http://200.239.152.2:8080/trafego-nti/Subnet-2-200.239.152.0.html"; //semanal
-        else $url = "http://200.239.152.2:8080/trafego-nti/Subnet-3-200.239.152.0.html"; // mensal e inativos;
+        $this->authorize('manipulateRequisicao', $requisicao);
+        $users = TipoUsuario::where('id', '>', 1)->get();
+        $devices = TipoDispositivo::where('id', '>', 1)->get();
+        return view('requisicao.edit')->with(['requisicao' => $requisicao, 'usuarios' => $users, 'dispositivos' => $devices, 'organizacoes' => Ldapuser::where('nivel', 3)->get()]);
+    }
+
+    /**
+     * Atualiza os valores de uma intância de Requisicao
+     * @param EditRequisicaoRequest $request Requisição HTTP com os valores validados
+     * @return \Illuminate\Http\RedirectResponse Página de edição com os valores atualizados
+     */
+    public function update(EditRequisicaoRequest $request)
+    {
+        $form = $request->all();
 
         try
         {
-            $content = file_get_contents($url);
+            $requisicao = Requisicao::find($form['id']);
+            $requisicao->usuario = RequisicaoController::cleanCpf($form['usuario']);
+            $requisicao->usuarioNome = $form['usuarioNome'];
+            $requisicao->tipo_usuario = $form['tipousuario'];
+            $requisicao->tipo_dispositivo = $form['tipodispositivo'];
+            $requisicao->mac = $form['mac'];
+            $requisicao->descricao_dispositivo = $form['descricao'];
+            $requisicao->justificativa = $form['justificativa'];
+
+            if($form['termo']) $requisicao->termo = $form['termo']->store('termos');
+
+            $requisicao->save();
+
+            session()->flash('tipo', 'success');
+            session()->flash('mensagem', 'Os dados da requisição foram atualizados.');
         }
-        catch (Exception $e0)
+        catch(Exception $e)
         {
-            $content = false;
+            session()->flash('tipo', 'error');
+            session()->flash('mensagem', 'Ocorreu um erro durante a atualização. Motivo: ' . $e->getMessage());
         }
 
-        if($content != false) {
-            $dom = new \DOMDocument;
-            $dom->preserveWhiteSpace = false;
-
-            try
-            {
-                libxml_use_internal_errors(true); // ignora erros de formatação provenientes do Bandwidthd
-                $loadSuccess = $dom->loadHTML($content);
-            } catch (Exception $e) {
-                $loadSuccess = false;
-            }
-
-            if($loadSuccess == true)
-            {
-                $rows = $dom->getElementsByTagName('td');
-                $frequentUsers = array();
-
-                for($i=10; $rows->item($i) != NULL; $i+=10)
-                {
-                    // $rows->item(11)->nodeValue; // Total
-                    // $rows->item(12)->nodeValue; // Total Sent
-                    // $rows->item(13)->nodeValue; // Total Received
-                    // $rows->item($i)->nodeValue; // IP
-
-                    $user = Requisicao::where('ip', $rows->item($i)->nodeValue)->where('status', 1)->first();
-
-                    // Se o usuário não existe no banco, é uma falha de segurança na rede
-                    if(is_null($user))
-                    {
-                        $user = new Requisicao();
-                        $user->id = -1;
-                        $user->ip = $rows->item($i)->nodeValue;
-                        $user->responsavelNome = "Inexistente no banco";
-                        $user->usuarioNome = "Inexistente no banco";
-                        $user->descricao_dispositivo = "Desconhecido";
-                    }
-
-                    // Adição de dados de uso
-                    $user['totalTransferred'] = $rows->item($i + 1)->nodeValue;
-                    $user['sent'] = $rows->item($i + 2)->nodeValue;
-                    $user['received'] = $rows->item($i + 3)->nodeValue;
-
-                    array_push($frequentUsers, $user);
-                }
-            }
-            else
-            {
-                $frequentUsers = NULL;
-                Session::flash('tipo', 'Erro');
-                Session::flash('mensagem', 'O servidor do Bandwidthd não formatou corretamente a sua saída. Verifique a página gerada pelo Bandwidthd');
-            }
-
-            return $frequentUsers;
-        }
-        else
-        {
-            Session::flash('tipo', 'Erro');
-            Session::flash('mensagem', 'O servidor do Bandwidthd não respondeu a solicitação. Tente novamente em alguns instantes.');
-            return NULL;
-        }
-    }
-
-    /**
-     * Renderiza a view contendo o uso da rede pelos usuários.
-     * @param $id Intervalo de usuários ativos ou inativos (1 = ativos hoje, 2 = ativos na semana, 3 = ativos no mês e 4 = inativos a um mês ou mais
-     */
-    public function showUsage($id)
-    {
-        $frequentUsers = $this->getMonthlyActiveUsers($id);
-
-        if($id < 4) return View::make('requisicao.usage')->with(['id' => $id, 'usuarios' => $frequentUsers]);
-        else
-        {
-            if(is_null($frequentUsers)) $nonFrequentUsers = null;
-            else
-            {
-                //pegar os usuarios que tem status == 1 mas não tem o ip na lista
-                $frequentIPs = array();
-
-                // Obtém todos os IPs frequentes
-                foreach ($frequentUsers as $user) array_push($frequentIPs, $user->ip);
-
-                //Obtém todos os usuários aprovados que não estão na lista de frequentes
-                $nonFrequentUsers = Requisicao::where('status', 1)->whereNotIn('ip', $frequentIPs)->get();
-            }
-
-            return View::make('requisicao.usage')->with(['id' => $id, 'usuarios' => $nonFrequentUsers]);
-        }
+        return back();
     }
 }

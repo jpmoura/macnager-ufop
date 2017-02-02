@@ -9,44 +9,54 @@
             @can('administrate')
                 <li class="header text-center">ADMINISTRAÇÃO</li>
 
-                <li class="@yield('pedidos')"><a href="{{ route('showRequest', 0) }}"><i class="fa fa-legal"></i> <span>Pedidos</span> @if(Session::has('novosPedidos') && Session::get('novosPedidos') > 0) <span class="label label-success pull-right">{{Session::get('novosPedidos')}}</span> @endif</a></li>
+                <li @if(Route::is('indexAllRequisicao')) class="active" @endif><a href="{{ route('indexAllRequisicao', 0) }}"><i class="fa fa-legal"></i> <span>Pedidos</span> @if(Session::has('novosPedidos') && Session::get('novosPedidos') > 0) <span class="label label-success pull-right">{{Session::get('novosPedidos')}}</span> @endif</a></li>
 
-                <li class="treeview @yield('dispositivo')">
+                <li class="treeview @if(Route::is('createDevice') || Route::is('indexDevice') || Route::is('indexTipoDispositivo') || Route::is('createTipoDispositivo') || Route::is('editTipoDispositivo')) active @endif">
                     <a href="#">
                         <i class="fa fa-laptop"></i><span>Dispositivos</span>
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li class="@yield('addMac')"><a href="{{ route('showAddDevice') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
-                        <li class="@yield('listMac')"><a href="{{ route('listDevice', 1)}}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
-                        <li class="treeview @yield('tipodispositivo')">
+                        <li @if(Route::is('createDevice')) class="active" @endif><a href="{{ route('createDevice') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
+                        <li @if(Route::is('indexDevice')) class="active" @endif><a href="{{ route('indexDevice', 1)}}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
+                        <li class="treeview @if(Route::is('indexTipoDispositivo') || Route::is('createTipoDispositivo') || Route::is('editTipoDispositivo')) active @endif">
                             <a href="#">
                                 <i class="fa fa-puzzle-piece"></i><span>Tipos</span>
                                 <i class="fa fa-angle-left pull-right"></i>
                             </a>
                             <ul class="treeview-menu">
-                                <li class="@yield('addDeviceType')"><a href="{{ route('showAddDeviceType') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
-                                <li class="@yield('listDeviceType')"><a href="{{ route('listDeviceType') }}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
+                                <li @if(Route::is('createTipoDispositivo')) class="active" @endif><a href="{{ route('createTipoDispositivo') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
+                                <li @if(Route::is('indexTipoDispositivo')) class="active" @endif"><a href="{{ route('indexTipoDispositivo') }}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
                             </ul>
                         </li>
                     </ul>
                 </li>
 
-                <li class="treeview @yield('usuarios')">
+                <li class="treeview @if(Route::is('indexSubrede') || Route::is('createSubrede') || Route::is('editSubrede')) active @endif">
+                    <a href="#">
+                        <i class="fa fa-sitemap"></i><span>Subredes</span>
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li @if(Route::is('indexSubrede')) class="active" @endif><a href="{{ route('indexSubrede') }}"><i class="fa fa-th-list"></i> <span>Listar subredes</span></a></li>
+                        <li @if(Route::is('createSubrede')) class="active" @endif><a href="{{ route('createSubrede') }}"><i class="fa fa-plus"></i> <span>Adicionar subrede</span></a></li>
+                    </ul>
+                </li>
+
+                <li class="treeview @if(Route::is('createTipoUsuario') || Route::is('indexTipoUsuario') || Route::is('editTipoUsuario')) active @endif">
                     <a href="#">
                         <i class="fa fa-users"></i><span>Usuários</span>
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li class="@yield('listUsers')"><a href="{{ route('showUsageRequest', 1) }}"><i class="fa fa-th-list"></i> <span>Listar Frequentes</span></a></li>
-                        <li class="treeview @yield('tipousuario')">
+                        <li class="treeview @if(Route::is('createTipoUsuario') || Route::is('indexTipoUsuario') || Route::is('editTipoUsuario')) active @endif">
                             <a href="#">
                                 <i class="fa fa-puzzle-piece"></i><span>Tipos de usuários</span>
                                 <i class="fa fa-angle-left pull-right"></i>
                             </a>
                             <ul class="treeview-menu">
-                                <li class="@yield('addUserType')"><a href="{{ route('showAddUserType') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
-                                <li class="@yield('listUserType')"><a href="{{ route('listUserType') }}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
+                                <li @if(Route::is('createTipoUsuario')) class="active" @endif><a href="{{ route('createTipoUsuario') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
+                                <li @if(Route::is('indexTipoUsuario')) class="active" @endif><a href="{{ route('indexTipoUsuario') }}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
                             </ul>
                         </li>
                     </ul>
@@ -58,21 +68,21 @@
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="{{ route('exportArp') }}"><i class="fa fa-table"></i> <span>Tabela ARP</span></a></li>
-                        <li><a href="{{ route('exportDhcpd') }}"><i class="fa fa-gear"></i> <span>DHCPD.CONF</span></a></li>
+                        <li><a href="{{ route('exportLanConfig') }}"><i class="fa fa-cogs"></i> <span>Configurações pfSense LAN</span></a></li>
+                        <li><a href="{{ route('exportNatConfig') }}"><i class="fa fa-cogs"></i> <span>Configurações pfSense NAT</span></a></li>
                     </ul>
                 </li>
             @endcan
             <li class="header text-center">MENU</li>
-            <li class="treeview @yield('requisicoes')">
+            <li class="treeview @if(Route::is('createRequisicao') || Route::is('indexUserRequisicao')) active @endif">
                 <a href="#">
                     <i class="fa fa-hand-paper-o"></i><span>Requisições</span>
                     <i class="fa fa-angle-left pull-right"></i>
                 </a>
 
                 <ul class="treeview-menu">
-                    <li class="@yield('addRequest')"><a href="{{ route('showAddRequest') }}"><i class="fa fa-plus"></i> <span>Nova requisição</span></a></li>
-                    <li class="@yield('listUserRequests')"><a href="{{ route('listUserRequests') }}"><i class="fa fa-th-list"></i> <span>Minhas requisições</span></a></li>
+                    <li @if(Route::is('createRequisicao')) class="active" @endif><a href="{{ route('createRequisicao') }}"><i class="fa fa-plus"></i> <span>Nova requisição</span></a></li>
+                    <li @if(Route::is('indexUserRequisicao')) class="active" @endif><a href="{{ route('indexUserRequisicao') }}"><i class="fa fa-th-list"></i> <span>Minhas requisições</span></a></li>
                 </ul>
             </li>
             <li><a href="{{ route('logout') }}"><i class="fa fa-sign-out" aria-hidden="true"></i><span>Sair</span></a></li>

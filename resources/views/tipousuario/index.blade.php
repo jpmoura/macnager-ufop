@@ -1,17 +1,5 @@
 @extends('layout.base')
 
-@section('usuarios')
-    active
-@endsection
-
-@section('tipousuario')
-    active
-@endsection
-
-@section('listUserType')
-    active
-@endsection
-
 @section('title')
     Lista de Tipos de Usuário
 @endsection
@@ -57,16 +45,6 @@
 @section('content')
     <div class="row">
         <div class="col-lg-12">
-
-            @if(Session::has("tipo"))
-                <div class="row">
-                    <div class="text-center alert alert-dismissible @if(Session::get('tipo') == 'Sucesso') alert-success @elseif(Session::get('tipo') == 'Informação') alert-info @else alert-danger @endif" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <strong>{{Session::get("tipo")}}!</strong> {!! Session::get("mensagem") !!}
-                    </div>
-                </div>
-            @endif
-
             <div class="box box-primary-ufop">
                 <div class="box-body">
                     <div class="table">
@@ -82,8 +60,8 @@
                                 <tr>
                                     <td>{{ $tipo->descricao }}</td>
                                     <td>
-                                        <a href="{{ route('showEditUserType', $tipo->id) }}" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> Editar</a>
-                                        <a href="{{ route('deleteUserType', $tipo->id) }}" class="btn btn-xs btn-danger"><i class="fa fa-trash-o"></i> Apagar</a>
+                                        <a href="{{ route('editTipoUsuario', $tipo->id) }}" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> Editar</a>
+                                        <a href="{{ route('deleteTipoUsuario', $tipo->id) }}" class="btn btn-xs btn-danger"><i class="fa fa-trash-o"></i> Apagar</a>
                                     </td>
                                 </tr>
                             @endforeach
@@ -100,7 +78,7 @@
             </div>
 
             <div class="row text-center">
-                <a class="btn btn-success" href="{{ route('addUserType') }}"><i class="fa fa-plus"></i> Adiconar tipo</a>
+                <a class="btn btn-success" href="{{ route('createTipoUsuario') }}"><i class="fa fa-plus"></i> Adiconar tipo</a>
             </div>
         </div>
     </div>

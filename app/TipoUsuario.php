@@ -9,11 +9,11 @@ class TipoUsuario extends Model
   protected $table = "tipo_usuario";
   public $timestamps = false;
 
-  protected $fillable = ['id', 'descricao'];
+  protected $fillable = ['descricao'];
   protected $hidden = ['id'];
 
   public function requisicoes()
   {
-    return $this->belongsTo('App\Requisicao', 'tipo_usuario');
+    return $this->hasMany('App\Requisicao', 'tipo_usuario');
   }
 }

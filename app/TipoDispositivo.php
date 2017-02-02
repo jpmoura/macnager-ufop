@@ -9,10 +9,10 @@ class TipoDispositivo extends Model
   protected $table = "tipo_dispositivo";
   public $timestamps = false;
 
-  protected $fillable = ['id', 'descricao'];
+  protected $fillable = ['descricao'];
 
   public function requisicoes()
   {
-    return $this->belongsTo('App\Requisicao', 'tipo_dispositivo');
+    return $this->hasMany('App\Requisicao', 'tipo_dispositivo');
   }
 }

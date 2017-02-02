@@ -59,7 +59,7 @@ class EventServiceProvider extends ServiceProvider
             'App\Listeners\LogNewUserCreated'
         ],
         'App\Events\NewConfigurationFile' => [
-            'App\Events\LogNewConfigurationFile',
+            'App\Listeners\LogConfigurationFileGenerated',
         ],
     ];
 

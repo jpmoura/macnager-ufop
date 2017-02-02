@@ -1,13 +1,5 @@
 @extends('layout.base')
 
-@section('requisicoes')
-    active
-@endsection
-
-@section('listUserRequests')
-    active
-@endsection
-
 @section('title')
     Lista de Requisições
 @endsection
@@ -30,7 +22,7 @@
     {!! HTML::script('public/js/plugins/datatables/dataTables.bootstrap.min.js') !!}
     <script>
         $(function () {
-            $("#tipos").DataTable( {
+            $("#requisicoes").DataTable( {
                 "language": {
                     "lengthMenu": "Mostrar _MENU_ registros por página",
                     "zeroRecords": "Nada encontrado.",
@@ -53,20 +45,10 @@
 @section('content')
     <div class="row">
         <div class="col-lg-12">
-
-            @if(Session::has("tipo"))
-                <div class="row">
-                    <div class="text-center alert alert-dismissible @if(Session::get('tipo') == 'Sucesso') alert-success @elseif(Session::get('tipo') == 'Informação') alert-info @else alert-danger @endif" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <strong>{{Session::get("tipo")}}!</strong> {!! Session::get("mensagem") !!}
-                    </div>
-                </div>
-            @endif
-
             <div class="box box-primary-ufop">
                 <div class="box-body">
                     <div class="table">
-                        <table id="tipos" class="table table-bordered table-striped table-hover text-center">
+                        <table id="requisicoes" class="table table-bordered table-striped table-hover text-center">
                             <thead>
                             <tr>
                                 <th>ID</th>
@@ -83,25 +65,27 @@
                                 <tr>
                                     <td>{{ $requisicao->id }}</td>
                                     <td>{{ $requisicao->usuarioNome }}</td>
-                                    <td>{{ $requisicao->tipodispositivo }}</td>
-                                    <td>{{ $requisicao->tipousuario }}</td>
+                                    <td>{{ $requisicao->tipoDoDispositivo->descricao }}</td>
+                                    <td>{{ $requisicao->tipoDoUsuario->descricao }}</td>
                                     <td>{{ date_format(date_create($requisicao->submissao),"d/m/Y H:i:s") }}</td>
                                     <td>
-                                <span class="text-bold
-                                    @if ($requisicao->status == 0)
-                                        text-info">Em Avaliação
-                                    @elseif($requisicao->status == 1)
-                                        text-success">Aprovado
-                                    @elseif($requisicao->status == 2)
-                                        text-danger">Negado
-                                    @elseif($requisicao->status == 3)
-                                        text-danger">Vencido
-                                    @elseif($requisicao->status == 4)
-                                        text-warning">Suspenso
-                                    @endif
-                                </span>
+                                        <span class="text-bold
+                                            @if($requisicao->status == 0)
+                                                text-info"><i class="fa fa-spinner fa-pulse fa-fw" aria-hidden="true"></i> Em Avaliação
+                                            @elseif($requisicao->status == 1)
+                                                text-success"><i class="fa fa-check"></i> Aprovado
+                                            @elseif($requisicao->status == 2)
+                                                text-danger"><i class="fa fa-times"></i> Negado
+                                            @elseif($requisicao->status == 3)
+                                                text-danger"><i class="fa fa-history"></i> Vencido
+                                            @elseif($requisicao->status == 4)
+                                                text-warning"><i class="fa fa-ban"></i> Bloqueado
+                                            @elseif($requisicao->status == 5)
+                                                text-danger"><i class="fa fa-power-off"></i> Desativado
+                                            @endif
+                                        </span>
                                     </td>
-                                    <td><a href="{{ route('detailsRequest', $requisicao->id)}}" class="btn btn-xs btn-ufop"><i class="fa fa-search"></i> Detalhes</a></td>
+                                    <td><a href="{{ route('showRequisicao', $requisicao->id)}}" class="btn btn-xs btn-ufop"><i class="fa fa-search"></i> Detalhes</a></td>
                                 </tr>
                             @endforeach
                             </tbody>
