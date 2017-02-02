@@ -21,6 +21,11 @@ class Requisicao extends Model
         return $this->hasOne('App\TipoUsuario', 'id', 'tipo_usuario');
     }
 
+    public function tipoStatus()
+    {
+        return $this->hasOne('App\Status', 'id', 'status');
+    }
+
     public function subrede()
     {
         return $this->belongsTo('App\Subrede');
