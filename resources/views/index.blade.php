@@ -18,28 +18,33 @@
                     <h3>Resumo Estatístico da Rede</h3>
                 </div>
                 <div class="box-body">
-                    <div class="col-md-4">
-                        <canvas id="devicesPerUserType">
-                            {!! $charts['devicesPerUserType']->render() !!}
-                        </canvas>
-                    </div>
-                    <div class="col-md-4">
-                        <canvas id="devicesPerType">
-                            {!! $charts['devicesPerType']->render() !!}
-                        </canvas>
-                    </div>
-                    <div class="col-md-4">
-                        <canvas id="requestsPerStatus">
-                            {!! $charts['requestsPerStatus']->render() !!}
-                        </canvas>
-                    </div>
-                    @foreach($subredes as $subrede)
-                        <div class="col-md-3">
-                            <canvas id="subrede{{$subrede->id}}">
-                                {!! $charts['subrede' . $subrede->id]->render() !!}
+                    <div class="row">
+                        <div class="col-md-4">
+                            <canvas id="devicesPerUserType">
+                                {!! $charts['devicesPerUserType']->render() !!}
                             </canvas>
                         </div>
-                    @endforeach
+                        <div class="col-md-4">
+                            <canvas id="devicesPerType">
+                                {!! $charts['devicesPerType']->render() !!}
+                            </canvas>
+                        </div>
+                        <div class="col-md-4">
+                            <canvas id="requestsPerStatus">
+                                {!! $charts['requestsPerStatus']->render() !!}
+                            </canvas>
+                        </div>
+                    </div>
+                    <div class="row">
+                    @for($i=0; $i < $subredes->count(); ++$i)
+                                <div class="col-md-3">
+                                    <canvas id="subrede{{$subredes[$i]->id}}">
+                                        {!! $charts['subrede' . $subredes[$i]->id]->render() !!}
+                                    </canvas>
+                                </div>
+                         @if($i % 4 == 0 && $i != 0)</div><div class="row">@endif
+                    @endfor
+                    @if($i % 4 != 0)</div>@endif
                 </div>
             </div>
         @endcan
