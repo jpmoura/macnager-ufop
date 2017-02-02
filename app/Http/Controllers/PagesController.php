@@ -53,7 +53,7 @@ class PagesController extends Controller
 
         $chart = app()->chartjs
             ->name('devicesPerUserType')
-            ->type('doughnut')
+            ->type('pie')
             ->element('devicesPerUserType')
             ->labels(array_keys($tipoUsuario))
             ->datasets([
@@ -84,7 +84,7 @@ class PagesController extends Controller
 
         $chart = app()->chartjs
             ->name('devicesPerType')
-            ->type('doughnut')
+            ->type('pie')
             ->element('devicesPerType')
             ->labels(array_keys($tipos))
             ->datasets([
@@ -117,7 +117,7 @@ class PagesController extends Controller
 
         $chart = app()->chartjs
             ->name('requestsPerStatus')
-            ->type('doughnut')
+            ->type('pie')
             ->element('requestsPerStatus')
             ->labels(array_keys($tipos))
             ->datasets([
@@ -141,12 +141,12 @@ class PagesController extends Controller
 
         $chart = app()->chartjs
             ->name('subrede' . $subrede->id)
-            ->type('doughnut')
+            ->type('pie')
             ->element('subrede' . $subrede->id)
             ->labels(['Livre', 'Em Uso'])
             ->datasets([
                 [
-                    'backgroundColor' => ['#36A2EB', '#FF6384'],
+                    'backgroundColor' => ['#36A2EB', '#b52a3e'],
                     'data' => [$ipsLivres, $todosIps - $ipsLivres]
                 ]
             ])
