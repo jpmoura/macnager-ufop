@@ -23,6 +23,7 @@ elixir(function(mix) {
     mix.copy('resources/assets/js/jQueryUI', 'public/js/plugins/jQueryUI'); // Seleção de datas
     mix.copy('resources/assets/js/jQueryMask', 'public/js/plugins/jQueryMask'); // Seleção de datas
     mix.copy('resources/assets/js/datatables', 'public/js/plugins/datatables'); // Organização e pesquisa em tabelas
+    mix.copy('resources/assets/js/chartjs', 'public/js/plugins/chartjs'); // Geração de gráficos
 
     // CSS que não funcionam em conjunto01111
     // TODO verificar se usando SASS e LESS o erro é resolvido
