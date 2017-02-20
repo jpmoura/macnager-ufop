@@ -6,12 +6,9 @@ use App\Events\LdapiErrorOnLogin;
 use App\Events\LoginFailed;
 use App\Events\NewUserCreated;
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use App\Http\Requests\LoginRequest;
 use App\Ldapuser;
-use Auth;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Event;
-use Input;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Client;
@@ -50,6 +47,7 @@ class LoginController extends Controller
 
     /**
      * Renderiza a view de login
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View View de login
      */
     public function showLogin()
     {
@@ -58,7 +56,7 @@ class LoginController extends Controller
 
     /**
      * Determina se um usuário é capaz de usar o sistema ou não baseado no seu grupo.
-     * @param $group ID do grupo o qual o usuário pertence
+     * @param int $group ID do grupo o qual o usuário pertence
      * @return bool True se é autorizado a usar e False caso contrário
      */
     private function isPermitted($group)
@@ -78,11 +76,13 @@ class LoginController extends Controller
         }
         return $permitted;
     }
+
     /**
-     * Realiza o processo de login de usuário.
+     * @param LoginRequest $request Requisição com os campos validados
+     * @return $this|\Illuminate\Http\RedirectResponse Para a página anteriror com mensagem de erro em caso de falha ou para página inicial do sistema em caso de sucesso.
      */
-    public function postLogin() {
-        $input = Input::all();
+    public function postLogin(LoginRequest $request) {
+        $input = $request->all();
 
         // Retirada dos pontos e hífen do CPF
         $input['username'] = str_replace('.', '', $input['username']);
@@ -97,8 +97,8 @@ class LoginController extends Controller
         $httpClient = new Client(['verify' => false]);
         try
         {
-            $response = $httpClient->request(Config::get('ldapi.requestMethod'), Config::get('ldapi.authUrl'), [
-                "auth" => [Config::get('ldapi.user'), Config::get('ldapi.password'), "Basic"],
+            $response = $httpClient->request(config('ldapi.requestMethod'), config('ldapi.authUrl'), [
+                "auth" => [config('ldapi.user'), config('ldapi.password'), "Basic"],
                 "body" => json_encode($requestBody),
                 "headers" => [
                     "Content-type" => "application/json",
@@ -109,25 +109,17 @@ class LoginController extends Controller
             $credentials['username'] = $input["username"];
             $credentials['password'] = $input['password'];
 
-            Event::fire(new LoginFailed($credentials));
+            event(new LoginFailed($credentials));
 
-            $responseBody = $ex->getResponse()->getBody()->getContents();
-            if(is_null($responseBody)) $requestBody = "Erro desconhecido.";
-
-            session()->flash('erro', 1);
-            session()->flash('mensagem', $responseBody);
-
-            return redirect()->back();
+            return back()->withErrors(['username' => $ex->getMessage()]);
         }
         catch (RequestException $ex) { // Erros relacionados ao servidor
             $credentials['username'] = $input["username"];
             $credentials['password'] = $input['password'];
 
-            Event::fire(new LdapiErrorOnLogin($credentials));
+            event(new LdapiErrorOnLogin($credentials));
 
-            session()->flash('mensagem', $ex->getResponse()->getBody()->getContents());
-
-            return redirect()->back();
+            return back()->withErrors(['username' => $ex->getMessage()]);
         }
 
         // Se nenhuma excessão foi jogada, então o usuário está autenticado
@@ -150,28 +142,19 @@ class LoginController extends Controller
                     'status' => 1
                 ]);
 
-                Event::fire(new NewUserCreated($user));
+                event(new NewUserCreated($user));
             }
-            else
-            {
-                session()->flash('mensagem', 'Você não permissão para usar o sistema.');
-                return redirect()->route('showLogin');
-            }
+            else return back()->withErrors(['username' => 'Você não tem permissão para usar o sistema.']);
         }
 
         // Se o usuário tem status ativo, então realiza-se o login
         if($user->status == 1)
         {
-            if(isset($input['remember-me']))  Auth::login($user, true);
-            else Auth::login($user);
+            if(isset($input['remember-me']))  auth()->login($user, true);
+            else auth()->login($user);
 
             return redirect()->intended(secure_url('/'));
         }
-        else // Senão retorna para a página de login com mensagem de erro.
-        {
-            Session::flash('erro', 1);
-            Session::flash('mensagem', 'Você não está mais autorizado a usar o sistema.');
-            return redirect()->back();
-        }
+        else return back()->withErrors(['username' => 'Você não está mais autorizado a usar o sistema.']);
     }
 }

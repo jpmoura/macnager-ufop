@@ -421,7 +421,7 @@ class RequisicaoController extends Controller
             session()->flash('tipo', 'error');
         }
 
-        return redirect()->route('indexDevice');
+        return redirect()->route('indexDevice', 5);
     }
 
     /**
