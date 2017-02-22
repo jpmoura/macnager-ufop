@@ -66,7 +66,17 @@
                                 <th>Dispositivo</th>
                                 <th>MAC</th>
                                 <th>Descrição</th>
-                                <th>Aprovado em</th>
+                                <th>
+                                    @if($tipo == 1)
+                                        Aprovado em
+                                    @elseif($tipo == 3)
+                                        Desativado em
+                                    @elseif($tipo == 4)
+                                        Bloqueado em
+                                    @else
+                                        Desligado em
+                                    @endif
+                                </th>
                                 <th>Válido até</th>
                                 @if($tipo < 5)
                                     <th>Ações</th>
@@ -106,7 +116,17 @@
                                 <th>Dispositivo</th>
                                 <th>MAC</th>
                                 <th>Descrição</th>
-                                <th>Aprovado em</th>
+                                <th>
+                                    @if($tipo == 1)
+                                        Aprovado em
+                                    @elseif($tipo == 3)
+                                        Desativado em
+                                    @elseif($tipo == 4)
+                                        Bloqueado em
+                                    @else
+                                        Desligado em
+                                    @endif
+                                </th>
                                 <th>Válido até</th>
                                 @if ($tipo < 5)
                                     <th>Ações</th>
