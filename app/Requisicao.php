@@ -8,7 +8,6 @@ class Requisicao extends Model
 {
     protected $table = "requisicoes";
     public $timestamps = false;
-
     protected $guarded = ['id'];
 
     public function tipoDoDispositivo()
@@ -51,5 +50,15 @@ class Requisicao extends Model
     public function getMacAttribute($value)
     {
         return strtoupper($value);
+    }
+
+    public function usuarioDaRequisicao()
+    {
+        return $this->hasOne('App\Ldapuser', 'cpf', 'usuario');
+    }
+
+    public function responsavelDaRequisicao()
+    {
+        return $this->hasOne('App\Ldapuser', 'cpf', 'responsavel');
     }
 }
