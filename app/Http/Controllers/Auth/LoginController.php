@@ -8,10 +8,13 @@ use App\Events\NewUserCreated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Ldapuser;
+use App\MeuIceaUser;
+use Illuminate\Encryption\Encrypter;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Client;
+use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -156,5 +159,70 @@ class LoginController extends Controller
             return redirect()->intended(secure_url('/'));
         }
         else return back()->withErrors(['username' => 'Você não está mais autorizado a usar o sistema.']);
+    }
+
+    /**
+     * Gera um token para que o usuário proveniente do portal Meu ICEA consiga realizar o login sem preencher novamente o formulário
+     * @param Request $request Requisição com os dados necessários para gerar o token
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     */
+    public function generateMeuIceaToken(Request $request)
+    {
+        // Cria o decriptador com a chave do Meu ICEA
+        $decrypter = new Encrypter(config('meuicea.chave'), config('meuicea.algoritmo'));
+
+        // decripta a informação
+        $id = $decrypter->decrypt($request->header('Meu-ICEA'));
+
+        // Procura pelo usuário
+        $meuIceaUser = MeuIceaUser::find($id);
+        $user = Ldapuser::where('cpf', $meuIceaUser->cpf)->first();
+
+        // Se o usuário não existir no sistema
+        if(is_null($user))
+        {
+            // Verifica se ele é permitido a usar o sistema
+            if($this->isPermitted($meuIceaUser->id_grupo))
+            {
+                // Cria o novo usuário se sim
+                $user = Ldapuser::create([
+                    'cpf' => $meuIceaUser->cpf,
+                    'email' => $meuIceaUser->email,
+                    'nome' => $meuIceaUser->nomecompleto,
+                    'nivel' => 2,
+                    'status' => 1
+                ]);
+                event(new NewUserCreated($user)); // Dispara o evento de novo usuário
+            }
+            else return response('block', 403); // Se não for permitido, responde que é para bloquear a requisição
+        }
+        // Se o usuário tem status ativo, então realiza-se o login
+        if($user->status == 1)
+        {
+            // Gera um novo token para ser utilizado na autenticação
+            $newToken = str_random(32);
+            $user->meuicea_token = $newToken;
+            $user->save();
+
+            return response($newToken, 200);
+        }
+        else return response('Você não está mais autorizado a usar o sistem de reserva.', 403); // Senão retorna com erro de não permitido
+    }
+
+    public function tokenLogin($token)
+    {
+        $user = Ldapuser::where('meuicea_token', $token)->first();
+
+        // Se o token não foi encontrado, ou ele nunca existiu ou já foi consumido o que siginifca um erro de autorização
+        if(is_null($user)) abort(430);
+        else
+        {
+            // O token ainda não foi usado e será consumido neste login
+            $user->meuicea_token = NULL;
+            $user->save();
+            auth()->login($user);
+
+            return redirect()->route('home');
+        }
     }
 }

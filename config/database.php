@@ -66,6 +66,20 @@ return [
             'engine' => null,
         ],
 
+        'meuicea' => [
+            'driver' => 'mysql',
+            'host' => env('DB_MEU_ICEA_HOST'),
+            'port' => env('DB_MEU_ICEA_PORT'),
+            'database' => env('DB_MEU_ICEA_DATABASE'),
+            'username' => env('DB_MEU_ICEA_USERNAME'),
+            'password' => env('DB_MEU_ICEA_PASSWORD'),
+            'charset' => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix' => '',
+            'strict' => false,
+            'engine' => null,
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'host' => env('DB_HOST', 'localhost'),

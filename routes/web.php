@@ -88,4 +88,6 @@ Route::group(['middleware' => 'auth'], function() {
 
 Route::get('/login', ['as' => 'showLogin', 'uses' => 'Auth\LoginController@showLogin']);
 Route::post('/login', ['as' => 'login', 'uses' => 'Auth\LoginController@postLogin']);
+Route::get('token/generate', ['as' => 'loginViaMiddleware', 'uses' => 'Auth\LoginController@generateMeuIceaToken']);
+Route::get('token/login/{token}', ['as' => 'loginViaToken', 'uses' => 'Auth\LoginController@tokenLogin']);
 Route::get('/sair', ['as' => 'logout', 'uses' => 'Auth\LoginController@logout']);
