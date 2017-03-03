@@ -35,8 +35,8 @@ return [
     | Normalmente o método é GET ou POST.
     |
     */
-    'requestMethod' => env('LDAPI_REQUEST_METHOD'),
 
+    'requestMethod' => env('LDAPI_REQUEST_METHOD'),
 
     /*
     |--------------------------------------------------------------------------
@@ -50,6 +50,7 @@ return [
 
     'authUrl' => env('LDAPI_AUTH_URL'),
 
+
     /*
     |--------------------------------------------------------------------------
     | URL de Busca
@@ -61,5 +62,4 @@ return [
     */
 
     'searchUrl' => env('LDAPI_SEARCH_URL'),
-
 ];
