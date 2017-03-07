@@ -184,10 +184,10 @@ class PagesController extends Controller
         else
         {
             // Recupera a quantidade de cada requisição feita pelo usuário
-            $accepted = Requisicao::where('status', 1)->where('responsavel', Auth::user()->cpf)->count();
-            $rejected = Requisicao::where('status', 2)->where('responsavel', Auth::user()->cpf)->count();
-            $outdated = Requisicao::where('status', 3)->where('responsavel', Auth::user()->cpf)->count();
-            $blocked = Requisicao::where('status', 4)->where('responsavel', Auth::user()->cpf)->count();
+            $accepted = Requisicao::where('status', 1)->where('responsavel', auth()->user()->cpf)->count();
+            $rejected = Requisicao::where('status', 2)->where('responsavel', auth()->user()->cpf)->count();
+            $outdated = Requisicao::where('status', 3)->where('responsavel', auth()->user()->cpf)->count();
+            $blocked = Requisicao::where('status', 4)->where('responsavel', auth()->user()->cpf)->count();
             // TODO fazer pare as requisições desativadas
 
             return view('index')->with(['aceitas' => $accepted, 'rejeitadas' => $rejected, 'vencidas' => $outdated, 'bloqueadas' => $blocked]);
