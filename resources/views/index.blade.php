@@ -11,40 +11,42 @@
 @section('content')
     {!! HTML::script('public/js/plugins/chartjs/Chart.min.js') !!}
 
-    <div class='col-md-12'>
+    <div class='row'>
         @can('administrate')
-            <div class="box box-primary-ufop">
-                <div class="text-center">
-                    <h3>Resumo Estatístico da Rede</h3>
-                </div>
-                <div class="box-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <canvas id="devicesPerUserType">
-                                {!! $charts['devicesPerUserType']->render() !!}
-                            </canvas>
-                        </div>
-                        <div class="col-md-4">
-                            <canvas id="devicesPerType">
-                                {!! $charts['devicesPerType']->render() !!}
-                            </canvas>
-                        </div>
-                        <div class="col-md-4">
-                            <canvas id="requestsPerStatus">
-                                {!! $charts['requestsPerStatus']->render() !!}
-                            </canvas>
-                        </div>
+            <div class="col-md-12">
+                <div class="box box-primary-ufop">
+                    <div class="text-center">
+                        <h3>Resumo Estatístico da Rede</h3>
                     </div>
-                    <div class="row">
-                    @for($i=0; $i < $subredes->count(); ++$i)
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <canvas id="devicesPerUserType">
+                                    {!! $charts['devicesPerUserType']->render() !!}
+                                </canvas>
+                            </div>
+                            <div class="col-md-4">
+                                <canvas id="devicesPerType">
+                                    {!! $charts['devicesPerType']->render() !!}
+                                </canvas>
+                            </div>
+                            <div class="col-md-4">
+                                <canvas id="requestsPerStatus">
+                                    {!! $charts['requestsPerStatus']->render() !!}
+                                </canvas>
+                            </div>
+                        </div>
+                        <div class="row">
+                            @for($i=0; $i < $subredes->count(); ++$i)
                                 <div class="col-md-3">
                                     <canvas id="subrede{{$subredes[$i]->id}}">
                                         {!! $charts['subrede' . $subredes[$i]->id]->render() !!}
                                     </canvas>
                                 </div>
-                         @if($i % 4 == 0 && $i != 0)</div><div class="row">@endif
-                    @endfor
-                    @if($i % 4 != 0)</div>@endif
+                                @if($i % 4 == 0 && $i != 0)</div><div class="row">@endif
+                            @endfor
+                            @if($i % 4 != 0)</div>@endif
+                    </div>
                 </div>
             </div>
         @endcan
