@@ -144,7 +144,7 @@
                             @if($errors->has('tipousuario'))
                                 <p class="text-danger">{!! $errors->first('tipousuario') !!}</p>
                             @endif
-                            <p class="help-block">Para usuários que seja organizações, selecione o tipo <a>Recurso com múltiplos usuários.</a></p>
+                            <p class="help-block">Para usuários que sejam organizações, selecione o tipo <a>Recurso com múltiplos usuários.</a></p>
                         </div>
 
                         <div class="form-group">
