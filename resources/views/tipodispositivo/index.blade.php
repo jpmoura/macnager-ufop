@@ -1,17 +1,5 @@
 @extends('layout.base')
 
-@section('dispositivo')
-    active
-@endsection
-
-@section('tipodispositivo')
-    active
-@endsection
-
-@section('listDeviceType')
-    active
-@endsection
-
 @section('title')
     Lista de Tipos de Dispositivos
 @endsection

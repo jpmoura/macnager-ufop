@@ -43,12 +43,14 @@
                     </ul>
                 </li>
 
-                <li class="treeview @if(Route::is('createTipoUsuario') || Route::is('indexTipoUsuario') || Route::is('editTipoUsuario')) active @endif">
+                <li class="treeview @if(Route::is('createTipoUsuario') || Route::is('indexTipoUsuario') || Route::is('editTipoUsuario') || Route::is('ldapuser.index') || Route::is('ldapuser.create') ) active @endif">
                     <a href="#">
                         <i class="fa fa-users"></i><span>Usuários</span>
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
                     <ul class="treeview-menu">
+                        <li {!! Route::is('ldapuser.index') ? "class='active'" : '' !!}  }><a href="{{ route('ldapuser.index') }}"><i class="fa fa-th-list"></i><span>Listar usuários</span></a></li>
+                        <li {!! Route::is('ldapuser.create') ? "class='active'" : '' !!}><a href="{{ route('ldapuser.create') }}"><i class="fa fa-user-plus"></i><span>Adicionar usuário</span></a></li>
                         <li class="treeview @if(Route::is('createTipoUsuario') || Route::is('indexTipoUsuario') || Route::is('editTipoUsuario')) active @endif">
                             <a href="#">
                                 <i class="fa fa-puzzle-piece"></i><span>Tipos de usuários</span>

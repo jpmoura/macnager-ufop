@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Ldapuser;
 use App\Requisicao;
 use App\Subrede;
 use App\TipoDispositivo;
@@ -32,6 +33,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::model('requisicao', Requisicao::class);
         Route::model('tipodispositivo', TipoDispositivo::class);
         Route::model('tipousuario', TipoUsuario::class);
+        Route::model('ldapuser', Ldapuser::class);
 
         parent::boot();
     }
