@@ -209,7 +209,7 @@ class RequisicaoController extends Controller
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $form['responsavel'])->first();
-        if(!is_null($user->email) || !empty($user->email)) Mail::to($user->email)->queue(new RequestReceived($user, $newRequest));
+        if(isset($user) && isset($user->email)) Mail::to($user->email)->queue(new RequestReceived($user, $newRequest));
 
         return redirect()->route('indexUserRequisicao');
     }
@@ -322,7 +322,7 @@ class RequisicaoController extends Controller
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
-        if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $requisicao));
+        if(isset($user) && isset($user->email)) Mail::to($user->email)->queue(new RequestApproved($user, $requisicao));
 
         return back();
     }
@@ -346,7 +346,7 @@ class RequisicaoController extends Controller
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
-        if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestDenied($user, $requisicao));
+        if(isset($user) && isset($user->email)) Mail::to($user->email)->queue(new RequestDenied($user, $requisicao));
 
         session()->flash('tipo', 'success');
         session()->flash('mensagem', 'A requisição foi negada.');
@@ -373,7 +373,7 @@ class RequisicaoController extends Controller
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
-        if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestSuspended($user, $requisicao));
+        if(isset($user) && isset($user->email)) Mail::to($user->email)->queue(new RequestSuspended($user, $requisicao));
 
         if(PfsenseController::refreshPfsense($requisicao->subrede_id))
         {
@@ -439,7 +439,7 @@ class RequisicaoController extends Controller
 
         // Envio de e-mail avisando que a requisição foi aprovada.
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
-        if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestReactivated($user, $requisicao));
+        if(isset($user) && isset($user->email)) Mail::to($user->email)->queue(new RequestReactivated($user, $requisicao));
 
         if(PfsenseController::refreshPfsense($requisicao->subrede_id))
         {

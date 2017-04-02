@@ -56,14 +56,14 @@ class SuspendOldUsers extends Command
                 $request->status = 3;
                 $request->avaliacao = $today;
                 $request->juizCPF = '00000000001';
-                $request->juizMotivo = 'Retirada automática. A data de validade da requisição expirou.';
+                $request->juizMotivo = 'Retirada automática. A data de validade da requisição expirou';
                 $request->save();
                 $this->info('O acesso de ' . $request->usuarioNome . ' foi suspenso.');
 
-                Event::fire(new RequestExpired($request));
+                event(new RequestExpired($request));
 
                 $user = Ldapuser::where('cpf', $request->responsavel)->first();
-                if(!is_null($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $request));
+                if(isset($user) && isset($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $request));
 
                 Log::info('O acesso de ' . $request->usuarioNome . ' através do IP '. $request->ip . ' e MAC ' . $request->mac . ' foi suspenso.');
                 $rebuild = true;
