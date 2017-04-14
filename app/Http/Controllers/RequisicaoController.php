@@ -104,10 +104,10 @@ class RequisicaoController extends Controller
             'validade' => $input['validade']
         ]);
 
-        if(PfsenseController::refreshPfsense($input['subrede']))
+        if(PfsenseController::refreshPfsense())
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
-            session()->flash('tipo', 'info');
+            session()->flash('tipo', 'success');
             event(new DeviceStored($newRequest));
         }
         else
@@ -162,10 +162,10 @@ class RequisicaoController extends Controller
 
         $record->save();
 
-        if(PfsenseController::checkDeviceUpdate($oldSubredeId, $record->subrede_id))
+        if(PfsenseController::refreshPfsense())
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
-            session()->flash('tipo', 'info');
+            session()->flash('tipo', 'success');
             event(new DeviceEdited($record));
         }
         else
@@ -305,7 +305,7 @@ class RequisicaoController extends Controller
 
         $requisicao->save();
 
-        if(PfsenseController::refreshPfsense($requisicao->subrede_id))
+        if(PfsenseController::refreshPfsense())
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'success');
@@ -375,10 +375,10 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(isset($user) && isset($user->email)) Mail::to($user->email)->queue(new RequestSuspended($user, $requisicao));
 
-        if(PfsenseController::refreshPfsense($requisicao->subrede_id))
+        if(PfsenseController::refreshPfsense())
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
-            session()->flash('tipo', 'info');
+            session()->flash('tipo', 'success');
             event(new \App\Events\RequestSuspended($requisicao, auth()->user()));
         }
         else
@@ -409,7 +409,7 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(isset($user) && isset($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $requisicao));
 
-        if(PfsenseController::refreshPfsense($requisicao->subrede_id))
+        if(PfsenseController::refreshPfsense())
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
             session()->flash('tipo', 'success');
@@ -441,10 +441,10 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(isset($user) && isset($user->email)) Mail::to($user->email)->queue(new RequestReactivated($user, $requisicao));
 
-        if(PfsenseController::refreshPfsense($requisicao->subrede_id))
+        if(PfsenseController::refreshPfsense())
         {
             session()->flash('mensagem', "Servidor pfSense atualizado");
-            session()->flash('tipo', 'info');
+            session()->flash('tipo', 'success');
             event(new \App\Events\RequestReactivated($requisicao, auth()->user()));
         }
         else

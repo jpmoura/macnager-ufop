@@ -65,8 +65,7 @@ Route::group(['middleware' => 'auth'], function() {
         });
 
         Route::group(['prefix' =>'export'], function(){
-            Route::get('config/nat', ['as' => 'exportNatConfig', 'uses' => 'PfsenseController@exportNatConfig']);
-            Route::get('config/lan', ['as' => 'exportLanConfig', 'uses' => 'PfsenseController@exportLanConfig']);
+            Route::get('config', ['as' => 'exportConfig', 'uses' => 'PfsenseController@exportConfig']);
         });
     });
 

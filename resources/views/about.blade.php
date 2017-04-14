@@ -33,9 +33,10 @@
                 sua requisição atendida.
             </p>
             <p>
-                O sistema tem duas versões atualmente disponíveis, uma suportando o uso de dois servidores separados sendo um atuando como Firewall e outro como servidor DHCP, tendo uma integração
-                com a ferramenta Bandwidthd, onde é possível rastrar o tráfego de cada usuário e listar aqueles que estão inativos a um determinado intervalo de tempo. A versão atual trabalha
+                O sistema tem três versões atualmente disponíveis, uma suportando o uso de dois servidores separados sendo um atuando como Firewall e outro como servidor DHCP, tendo uma integração
+                com a ferramenta Bandwidthd, onde é possível rastrar o tráfego de cada usuário e listar aqueles que estão inativos a um determinado intervalo de tempo. A versão 2 trabalha
                 em conjunto com dois servidores <a href="https://pfsense.org/" target="_blank">pfSense</a>, um dos firewalls mais usados no mercado, onde um controla a rede LAN e outro controla a rede NAT.
+                A terceira versão usa somente um servidor pfSense controlando ambas as redes LAN e NAT.
             </p>
             <p>
                 O sistema foi desenvolvido usando a versão 5.3 do <em>Framework</em> <a href="https://laravel.com/" target="_blank">Laravel</a> para aplicações web, um dos mais usados no mercado durante o

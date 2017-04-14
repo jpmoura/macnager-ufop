@@ -72,7 +72,7 @@ class SuspendOldUsers extends Command
 
         $this->line('Comando de suspensão executado.');
 
-        if($rebuild) PfsenseController::rebuildBoth();
+        if($rebuild) PfsenseController::refreshPfsense();
 
         return;
     }

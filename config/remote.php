@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => 'pfsenseLAN',
+    'default' => 'pfsense',
 
     /*
     |--------------------------------------------------------------------------
@@ -27,32 +27,11 @@ return [
     */
 
     'connections' => [
-        'firewall' => [
-            'host'      => env('FIREWALL_HOST'),
-            'username'  => env('FIREWALL_USER'),
-            'password'  => env('FIREWALL_PASS'),
-            'key'       => env('FIREWALL_PATH', ''),
-            'keyphrase' => '',
-        ],
-        'dhcp' => [
-            'host'      => env('DHCP_HOST'),
-            'username'  => env('DHCP_USER'),
-            'password'  => env('DHCP_PASS'),
-            'key'       => env('DHCP_PATH', ''),
-            'keyphrase' => '',
-        ],
-        'pfsenseLAN' => [
-            'host'      => env('PFSENSE_LAN_HOST'),
-            'username'  => env('PFSENSE_LAN_USER'),
-            'password'  => env('PFSENSE_LAN_PASS'),
-            'key'       => env('PFSENSE_LAN_PATH', ''),
-            'keyphrase' => '',
-        ],
-        'pfsenseNAT' => [
-            'host'      => env('PFSENSE_NAT_HOST'),
-            'username'  => env('PFSENSE_NAT_USER'),
-            'password'  => env('PFSENSE_NAT_PASS'),
-            'key'       => env('PFSENSE_NAT_PATH', ''),
+        'pfsense' => [
+            'host'      => env('PFSENSE_HOST'),
+            'username'  => env('PFSENSE_USER'),
+            'password'  => env('PFSENSE_PASS'),
+            'key'       => env('PFSENSE_PATH', ''),
             'keyphrase' => '',
         ],
     ],
