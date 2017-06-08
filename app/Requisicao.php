@@ -12,17 +12,17 @@ class Requisicao extends Model
 
     public function tipoDoDispositivo()
     {
-        return $this->hasOne('App\TipoDispositivo', 'id', 'tipo_dispositivo');
+        return $this->belongsTo('App\TipoDispositivo', 'tipo_dispositivo');
     }
 
     public function tipoDoUsuario()
     {
-        return $this->hasOne('App\TipoUsuario', 'id', 'tipo_usuario');
+        return $this->belongsTo('App\TipoUsuario', 'tipo_usuario');
     }
 
     public function tipoStatus()
     {
-        return $this->hasOne('App\Status', 'id', 'status');
+        return $this->belongsTo('App\Status', 'status');
     }
 
     public function subrede()
