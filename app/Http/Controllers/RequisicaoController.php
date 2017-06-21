@@ -104,17 +104,8 @@ class RequisicaoController extends Controller
             'validade' => $input['validade']
         ]);
 
-        if(PfsenseController::refreshPfsense())
-        {
-            session()->flash('mensagem', "Servidor pfSense atualizado");
-            session()->flash('tipo', 'success');
-            event(new DeviceStored($newRequest));
-        }
-        else
-        {
-            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-            session()->flash('tipo', 'error');
-        }
+        cache()->forever("changes", true);
+        event(new DeviceStored($newRequest));
 
         return back();
     }
@@ -144,8 +135,6 @@ class RequisicaoController extends Controller
 
         $record = Requisicao::find($input['id']);
 
-        $oldSubredeId = $record->subrede_id;
-
         $record->ip = $input['ip'];
         $record->responsavel = RequisicaoController::cleanCPF($input['responsavel']);
         $record->responsavelNome = ucwords(strtolower($input['responsavelNome']));
@@ -153,6 +142,7 @@ class RequisicaoController extends Controller
         $record->usuarioNome = ucwords(strtolower($input['usuarioNome']));
         $record->mac = $input['mac'];
         $record->descricao_dispositivo = $input['descricao'];
+        $record->justificativa = $input['justificativa'];
         $record->tipo_dispositivo = $input['tipodispositivo'];
         $record->tipo_usuario = $input['tipousuario'];
         $record->subrede_id = $input['subrede'];
@@ -160,17 +150,17 @@ class RequisicaoController extends Controller
         if( empty($input['validade']) ) $record->validade = null;
         else $record->validade = date_create_from_format('d/m/Y', $input['validade'])->format('Y-m-d H:i:s');
 
-        $record->save();
-
-        if(PfsenseController::refreshPfsense())
+        try
         {
-            session()->flash('mensagem', "Servidor pfSense atualizado");
-            session()->flash('tipo', 'success');
+            $record->save();
+            cache()->forever('changes', true);
             event(new DeviceEdited($record));
+            session()->flash('mensagem', "Dispositivo atualizado com sucesso!");
+            session()->flash('tipo', 'success');
         }
-        else
+        catch(Exception $e)
         {
-            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
+            session()->flash('mensagem', "Erro ao atualizar dispositivo: " . $e->getMessage());
             session()->flash('tipo', 'error');
         }
 
@@ -304,18 +294,8 @@ class RequisicaoController extends Controller
         else $requisicao->validade = date("Y-m-d H:i:s", time());
 
         $requisicao->save();
-
-        if(PfsenseController::refreshPfsense())
-        {
-            session()->flash('mensagem', "Servidor pfSense atualizado");
-            session()->flash('tipo', 'success');
-            event(new \App\Events\RequestApproved($requisicao, auth()->user()));
-        }
-        else
-        {
-            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-            session()->flash('tipo', 'error');
-        }
+        cache()->forever('changes', true);
+        event(new \App\Events\RequestApproved($requisicao, auth()->user()));
 
         // Recupera a quantidade de requisições que ainda não foram julgadas
         session()->put('novosPedidos', Requisicao::where('status', '=', 0)->count());
@@ -375,17 +355,8 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(isset($user) && isset($user->email)) Mail::to($user->email)->queue(new RequestSuspended($user, $requisicao));
 
-        if(PfsenseController::refreshPfsense())
-        {
-            session()->flash('mensagem', "Servidor pfSense atualizado");
-            session()->flash('tipo', 'success');
-            event(new \App\Events\RequestSuspended($requisicao, auth()->user()));
-        }
-        else
-        {
-            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-            session()->flash('tipo', 'error');
-        }
+        cache()->forever('changes', true);
+        event(new \App\Events\RequestSuspended($requisicao, auth()->user()));
 
         return back()->with('requisicao', $requisicao);
 
@@ -409,17 +380,8 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(isset($user) && isset($user->email)) Mail::to($user->email)->queue(new RequestExcluded($user, $requisicao));
 
-        if(PfsenseController::refreshPfsense())
-        {
-            session()->flash('mensagem', "Servidor pfSense atualizado");
-            session()->flash('tipo', 'success');
-            event(new \App\Events\RequestExcluded($requisicao, auth()->user()));
-        }
-        else
-        {
-            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-            session()->flash('tipo', 'error');
-        }
+        cache()->forever('changes', true);
+        event(new \App\Events\RequestExcluded($requisicao, auth()->user()));
 
         return redirect()->route('indexDevice', 5);
     }
@@ -441,17 +403,8 @@ class RequisicaoController extends Controller
         $user = Ldapuser::where('cpf', $requisicao->responsavel)->first();
         if(isset($user) && isset($user->email)) Mail::to($user->email)->queue(new RequestReactivated($user, $requisicao));
 
-        if(PfsenseController::refreshPfsense())
-        {
-            session()->flash('mensagem', "Servidor pfSense atualizado");
-            session()->flash('tipo', 'success');
-            event(new \App\Events\RequestReactivated($requisicao, auth()->user()));
-        }
-        else
-        {
-            session()->flash('mensagem', 'Não foi possível conectar ao servidor pfSense.');
-            session()->flash('tipo', 'error');
-        }
+        cache()->forever('changes', true);
+        event(new \App\Events\RequestReactivated($requisicao, auth()->user()));
 
         return back();
     }
@@ -516,6 +469,7 @@ class RequisicaoController extends Controller
             if($form['termo']) $requisicao->termo = $form['termo']->store('termos');
 
             $requisicao->save();
+            cache()->forever('changes', true);
 
             session()->flash('tipo', 'success');
             session()->flash('mensagem', 'Os dados da requisição foram atualizados.');

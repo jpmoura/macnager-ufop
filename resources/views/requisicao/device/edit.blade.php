@@ -26,28 +26,6 @@
     {!! HTML::script('public/js/plugins/datatables/dataTables.bootstrap.min.js') !!}
 
     <script>
-        submitEditModal = function(){
-            $('#loadingModal').modal({backdrop: 'static', keyboard: false});
-            document.forms['editForm'].submit();
-        };
-        submitSuspendModal = function(){
-            $('#suspendModal').modal('hide');
-            $('#loadingModal').modal({backdrop: 'static', keyboard: false});
-            document.forms['suspendForm'].submit();
-        };
-        submitDisableModal = function(){
-            $('#disableModal').modal('hide');
-            $('#loadingModal').modal({backdrop: 'static', keyboard: false});
-            document.forms['disableForm'].submit();
-        };
-        submitUnlock = function(){
-            $('#disableModal').modal('hide');
-            $('#loadingModal').modal({backdrop: 'static', keyboard: false});
-            window.location.href = "{{ route('reactiveRequisicao', $requisicao->id) }}";
-        };
-    </script>
-
-    <script>
         $(document).ready(function() {
             $('#macAddress').mask('00:00:00:00:00:00', {'translation': {0: {pattern: /[A-Fa-f0-9]/} } } );
             $("#datepicker").datepicker($.datepicker.regional['pt-BR']);
@@ -369,13 +347,13 @@
                         @if($requisicao->status == 1)
                             <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#blockModal"><i class="fa fa-ban"></i> Bloquear</button>
                         @elseif ($requisicao->status == 4)
-                            <button type="button" onclick="submitUnlock()" class="btn btn-primary"><i class="fa fa-unlock"></i> Desbloquear</button>
+                            <a href="{{ route('reactiveRequisicao', $requisicao->id) }}" class="btn btn-primary"><i class="fa fa-unlock"></i> Desbloquear</a>
                         @endif
                         @if($requisicao->status < 5 && $requisicao->status != 3)
                             <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#disableModal"><i class="fa fa-power-off"></i> Desativar</button>
                         @endif
                         <button type="reset" class="btn bg-gray"><i class="fa fa-eraser"></i> Resetar</button>
-                        <button id="edit" type="button" onclick="submitEditModal();" class="btn btn-success"><i class="fa fa-check"></i> Aplicar</button>
+                        <button type="submit" class="btn btn-success"><i class="fa fa-check"></i> Aplicar</button>
                     </div>
                 </div>
             </form>
@@ -439,7 +417,7 @@
 
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Cancelar</button>
-                            <button type="button" onclick="submitSuspendModal();" class="btn bg-black"><i class="fa fa-ban"></i> Bloquear</button>
+                            <button type="submit" class="btn bg-black"><i class="fa fa-ban"></i> Bloquear</button>
                         </div>
 
                     </form>
@@ -469,27 +447,11 @@
 
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Cancelar</button>
-                            <button type="button" onclick="submitDisableModal();" class="btn bg-black"><i class="fa fa-power-off"></i> Desativar</button>
+                            <button type="submit" class="btn bg-black"><i class="fa fa-power-off"></i> Desativar</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     @endif
-
-    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title text-center">Aguarde</h4>
-                </div>
-                <div class="modal-body text-center">
-                    Gerando e enviando um novo arquivo de configuração para o pfSense.
-                    <br />
-                    <br />
-                    <img src="{{asset('public/img/bigloading.gif')}}" />
-                </div>
-            </div>
-        </div>
-    </div>
 @endsection

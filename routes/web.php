@@ -17,6 +17,7 @@ Route::group(['middleware' => 'auth'], function() {
     // Rotas disponíveis somente para administradores
     Route::group(['middelaware' => 'can:administrate'], function() {
         Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
+        Route::get('apply', ['as' => 'applyChanges','uses' => 'PfsenseController@applyChanges']);
         Route::resource('ldapuser', 'UserController', ['except' => 'show']);
 
         Route::group(['prefix' => 'request'], function() {

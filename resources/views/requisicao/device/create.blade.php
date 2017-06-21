@@ -29,14 +29,6 @@
     {!! HTML::script('public/js/plugins/datatables/jquery.dataTables.min.js') !!}
     {!! HTML::script('public/js/plugins/datatables/dataTables.bootstrap.min.js') !!}
 
-    {{-- Modal de loading --}}
-    <script>
-        submitModal = function(){
-            $('#loadingModal').modal({backdrop: 'static', keyboard: false});
-            document.forms['addmac'].submit();
-        }
-    </script>
-
     {{-- Opções da tabela de organização --}}
     <script>
         $(function () {
@@ -356,7 +348,7 @@
                         <div class="text-center">
                             <button type="button" class="btn btn-warning" onClick="history.back()">Cancelar <i class='fa fa-times'></i></button>
                             <button type="reset" class="btn btn-info">Limpar <i class='fa fa-eraser'></i></button>
-                            <button type="button" onclick="submitModal();" class="btn btn-success">Confirmar <i class='fa fa-check'></i></button>
+                            <button type="submit" class="btn btn-success">Confirmar <i class='fa fa-check'></i></button>
                         </div>
                     </form>
                 </div>
@@ -393,23 +385,6 @@
                 </div>
                 <div class="modal-footer">
                     <div class="text-center"><button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal -->
-    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title text-center">Aguarde</h4>
-                </div>
-                <div class="modal-body text-center">
-                    Gerando e enviando um novo arquivo de configuração para o pfSense.
-                    <br />
-                    <br />
-                    <img src="{{ secure_asset('public/img/bigloading.gif') }}" />
                 </div>
             </div>
         </div>

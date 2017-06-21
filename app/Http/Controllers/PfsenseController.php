@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Events\NewConfigurationFile;
 use App\Requisicao;
-use App\Subrede;
 use App\TipoSubrede;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -142,5 +141,30 @@ class PfsenseController extends Controller
     public function exportConfig()
     {
         return response()->download(storage_path('app/config/config.xml'), 'config.xml');
+    }
+
+    /**
+     * Aplica as mudanças que estão pendentes.
+     * @return \Illuminate\Http\RedirectResponse Página anteiror
+     */
+    public function applyChanges()
+    {
+
+        if(PfsenseController::refreshPfsense())
+        {
+            $tipo = "success";
+            $mensagem = "Mudanças aplicadas com sucesso!";
+            cache()->flush();
+        }
+        else
+        {
+            $tipo = "error";
+            $mensagem = "Erro ao aplicar mudanças! Verifique o log para mais detalhes.";
+        }
+
+        session()->flash('tipo', $tipo);
+        session()->flash('mensagem', $mensagem);
+
+        return back();
     }
 }
