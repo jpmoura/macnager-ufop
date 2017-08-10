@@ -44,33 +44,35 @@
         </section>
 
         <section class="content">
-            @if(cache()->has('changes'))
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="alert alert-warning alert-dismissible">
-                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                            <h4><i class="icon fa fa-warning"></i> Atenção!</h4>
-                            Existem mudanças que ainda não foram aplicadas! <a href="{{ route('applyChanges') }}" onclick="$('#loadingModal').modal({backdrop: 'static', keyboard: false});" class="btn btn-xs btn-success">Clique aqui</a> para confirmar e efetivá-las!
+            @can('administrate')
+                @if(cache()->has('changes'))
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="alert alert-warning alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                                <h4><i class="icon fa fa-warning"></i> Atenção!</h4>
+                                Existem mudanças que ainda não foram aplicadas! <a href="{{ route('applyChanges') }}" onclick="$('#loadingModal').modal({backdrop: 'static', keyboard: false});" class="btn btn-xs btn-success">Clique aqui</a> para confirmar e efetivá-las!
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h4 class="modal-title text-center">Aguarde</h4>
-                            </div>
-                            <div class="modal-body text-center">
-                                Gerando e enviando um novo arquivo de configuração para o pfSense.
-                                <br />
-                                <br />
-                                <img src="{{asset('public/img/bigloading.gif')}}" />
+                    <div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title text-center">Aguarde</h4>
+                                </div>
+                                <div class="modal-body text-center">
+                                    Gerando e enviando um novo arquivo de configuração para o pfSense.
+                                    <br />
+                                    <br />
+                                    <img src="{{asset('public/img/bigloading.gif')}}" />
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            @endif
+                @endif
+            @endcan
 
             @yield('content')
         </section>
