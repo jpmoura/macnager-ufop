@@ -20,6 +20,24 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('apply', ['as' => 'applyChanges','uses' => 'PfsenseController@applyChanges']);
         Route::resource('ldapuser', 'UserController', ['except' => 'show']);
 
+        Route::group(['prefix' => 'report'], function() {
+
+            // Rotas para relatórios estatísticos
+            Route::group(['prefix' => 'statistical'], function() {
+                Route::get('subnet', ['as' => 'report.statistical.subnet', 'uses' => 'RelatorioController@showStatisticalSubnet']);
+
+                Route::group(['prefix' => 'requests'], function() {
+                    Route::get('status', ['as' => 'report.statistical.requests.status', 'uses' => 'RelatorioController@showStatisticalRequestsStatus']);
+                });
+
+                Route::group(['prefix' => 'type'], function() {
+                    Route::get('user', ['as' => 'report.statistical.type.user', 'uses' => 'RelatorioController@showStatisticalUserType']);
+                    Route::get('device', ['as' => 'report.statistical.type.device', 'uses' => 'RelatorioController@showStatisticalDeviceType']);
+                });
+            });
+
+        });
+
         Route::group(['prefix' => 'request'], function() {
             Route::get('list/all/{type}', ['as' => 'indexAllRequisicao', 'uses' => 'RequisicaoController@allIndex']);
             Route::post('approve', ['as' => 'approveRequisicao', 'uses' => 'RequisicaoController@approve']);

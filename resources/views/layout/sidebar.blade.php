@@ -26,7 +26,7 @@
                             </a>
                             <ul class="treeview-menu">
                                 <li @if(Route::is('createTipoDispositivo')) class="active" @endif><a href="{{ route('createTipoDispositivo') }}"><i class="fa fa-plus"></i> <span>Adicionar</span></a></li>
-                                <li @if(Route::is('indexTipoDispositivo')) class="active" @endif"><a href="{{ route('indexTipoDispositivo') }}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
+                                <li @if(Route::is('indexTipoDispositivo')) class="active" @endif><a href="{{ route('indexTipoDispositivo') }}"><i class="fa fa-th-list"></i> <span>Listar</span></a></li>
                             </ul>
                         </li>
                     </ul>
@@ -63,6 +63,58 @@
                         </li>
                     </ul>
                 </li>
+
+                <li class="treeview {{
+                Route::is('report.statistical.subnet') ||
+                Route::is('report.statistical.type.user') ||
+                Route::is('report.statistical.type.device') ||
+                Route::is('report.statistical.requests.status')
+                ? 'active' : '' }}">
+                    <a href="#">
+                        <i class="fa fa-line-chart"></i><span>Relatórios</span>
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li class="treeview {{
+                        Route::is('report.statistical.subnet') ||
+                        Route::is('report.statistical.type.user') ||
+                        Route::is('report.statistical.type.device') ||
+                        Route::is('report.statistical.requests.status')
+                        ? 'active' : ''
+                        }}">
+                            <a href="#">
+                                <i class="fa fa-bar-chart"></i><span>Estatísticos</span>
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </a>
+                            <ul class="treeview-menu">
+                                <li @if(Route::is('report.statistical.type.user')) class="active" @endif>
+                                    <a href="{{ route('report.statistical.type.user') }}">
+                                        <i class="fa fa-users"></i> <span>Tipos de usuário</span>
+                                    </a>
+                                </li>
+
+                                <li @if(Route::is('report.statistical.type.device')) class="active" @endif>
+                                    <a href="{{ route('report.statistical.type.device') }}">
+                                        <i class="fa fa-desktop"></i> <span>Tipos de dispositivo</span>
+                                    </a>
+                                </li>
+
+                                <li @if(Route::is('report.statistical.subnet')) class="active" @endif>
+                                    <a href="{{ route('report.statistical.subnet') }}">
+                                        <i class="fa fa-sitemap"></i> <span>Utilização das subredes</span>
+                                    </a>
+                                </li>
+
+                                <li @if(Route::is('report.statistical.requests.status')) class="active" @endif>
+                                    <a href="{{ route('report.statistical.requests.status') }}">
+                                        <i class="fa fa-exchange fa-rotate-90"></i> <span>Status de requisição</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+
 
                 <li class="treeview">
                     <a href="#">
