@@ -103,6 +103,10 @@
                                     @if ($tipo < 5)
                                         <td>
                                             <a href="{{ route('editDevice', $dispositivo->id) }}" class="btn btn-xs btn-ufop"><i class="fa fa-edit"></i> Editar</a>
+                                            @if($tipo == 1)
+                                                <br>
+                                                <a href="{{ route('requisicao.wake', $dispositivo->id) }}" class="btn btn-xs btn-primary"><i class="fa fa-power-off"></i> Ligar</a>
+                                            @endif
                                         </td>
                                     @endif
                                 </tr>

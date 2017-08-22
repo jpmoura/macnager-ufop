@@ -45,6 +45,7 @@ Route::group(['middleware' => 'auth'], function() {
             Route::post('disable', ['as' => 'disableRequisicao', 'uses' => 'RequisicaoController@disable']);
             Route::post('deny', ['as' => 'denyRequisicao', 'uses' => 'RequisicaoController@deny']);
             Route::get('reactive/{requisicao}', ['as' => 'reactiveRequisicao', 'uses' => 'RequisicaoController@reactive']);
+            Route::get('wake/{requisicao}', ['as' => 'requisicao.wake', 'uses' => 'PfsenseController@wakeOnLan']);
         });
 
         Route::group(['prefix' => 'device'], function(){

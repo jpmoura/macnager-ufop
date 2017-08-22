@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Events\NewConfigurationFile;
+use App\Events\RequestWake;
+use App\Events\RequestWakeFailed;
 use App\Requisicao;
 use App\TipoSubrede;
 use Illuminate\Support\Facades\DB;
@@ -160,6 +162,34 @@ class PfsenseController extends Controller
         {
             $tipo = "error";
             $mensagem = "Erro ao aplicar mudanças! Verifique o log para mais detalhes.";
+        }
+
+        session()->flash('tipo', $tipo);
+        session()->flash('mensagem', $mensagem);
+
+        return back();
+    }
+
+    /**
+     * Envia um magic packet para um determinado dispositivo com o intuito de ligá-lo. É necessário que o dispositivo
+     * tenha a funcionalidade Wake-On-Lan ativada e devidamente configurada.
+     * @param Requisicao $dispositivo Dispositivo a ser enviado o magic packet
+     */
+    public function wakeOnLan(Requisicao $dispositivo)
+    {
+        $tipo = 'info';
+        $mensagem = 'Magic packet enviado para o dispositivo ' . $dispositivo->mac;
+
+        try
+        {
+            SSH::into("pfsense")->run("wol " . $dispositivo->mac);
+            event(new RequestWake($dispositivo, auth()->user()));
+        }
+        catch(\Exception $e)
+        {
+            $tipo = 'error';
+            $mensagem = 'Erro ao enviar o magic packet. Veja o log para mais detalhes.';
+            event(new RequestWakeFailed($dispositivo, auth()->user(), $e->getMessage()));
         }
 
         session()->flash('tipo', $tipo);

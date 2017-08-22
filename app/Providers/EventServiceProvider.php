@@ -61,6 +61,12 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\NewConfigurationFile' => [
             'App\Listeners\LogConfigurationFileGenerated',
         ],
+        'App\Events\RequestWake' => [
+            'App\Listeners\LogRequestWake'
+        ],
+        'App\Events\RequestWakeFailed' => [
+            'App\Listeners\LogRequestWakeFailed'
+        ]
     ];
 
     /**
